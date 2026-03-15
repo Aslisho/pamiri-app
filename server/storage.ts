@@ -46,7 +46,7 @@ export interface IStorage {
   // Votes
   createVote(vote: InsertVote): Promise<WordVote>;
   getVotesForWord(wordId: number): Promise<WordVote[]>;
-  getPendingCommunityWords(userId: string): Promise<PendingWordReview[]>;
+  getPendingCommunityWords(userId: string, includeVoted?: boolean): Promise<PendingWordReview[]>;
 
   // XP Log
   createXpLog(entry: InsertXpLog): Promise<XpLog>;
@@ -621,7 +621,9 @@ export class PostgresStorage implements IStorage {
     return rows.map(r => this.rowToVote(r));
   }
 
-  async getPendingCommunityWords(userId: string): Promise<PendingWordReview[]> {
+  async getPendingCommunityWords(userId: string, includeVoted = false): Promise<PendingWordReview[]> {
+    const voteFilter = includeVoted ? '' : 'AND uv.vote_type IS NULL';
+    const orderBy = includeVoted ? 'ORDER BY w.upvotes_count DESC, w.created_at ASC' : 'ORDER BY w.created_at ASC';
     const { rows } = await this.pool.query(
       `SELECT w.*,
               uv.vote_type AS user_vote,
@@ -634,8 +636,8 @@ export class PostgresStorage implements IStorage {
        WHERE w.verified = 0
          AND w.source = 'community'
          AND (w.added_by_user_id IS NULL OR w.added_by_user_id != $1)
-         AND uv.vote_type IS NULL
-       ORDER BY w.created_at ASC`,
+         ${voteFilter}
+       ${orderBy}`,
       [userId]
     );
     return rows.map(r => ({
@@ -964,8 +966,10 @@ if (process.env.DATABASE_URL) {
     async createVote(vote: InsertVote): Promise<WordVote> { const now = new Date().toISOString(); const existing = this.db.prepare("SELECT * FROM word_votes WHERE word_id = ? AND user_id = ?").get(vote.wordId, vote.userId) as any; if (existing) { this.db.prepare("UPDATE word_votes SET vote_type = ? WHERE id = ?").run(vote.voteType, existing.id); this.recalcVotes(vote.wordId); const row = this.db.prepare("SELECT * FROM word_votes WHERE id = ?").get(existing.id) as any; return this.rowToVote(row); } const result = this.db.prepare(`INSERT INTO word_votes (word_id, user_id, vote_type, created_at) VALUES (?, ?, ?, ?)`).run(vote.wordId, vote.userId, vote.voteType, now); this.recalcVotes(vote.wordId); const row = this.db.prepare("SELECT * FROM word_votes WHERE id = ?").get(Number(result.lastInsertRowid)) as any; return this.rowToVote(row); }
     private recalcVotes(wordId: number) { const ups = (this.db.prepare("SELECT COUNT(*) as c FROM word_votes WHERE word_id = ? AND vote_type = 'up'").get(wordId) as any).c; const downs = (this.db.prepare("SELECT COUNT(*) as c FROM word_votes WHERE word_id = ? AND vote_type = 'down'").get(wordId) as any).c; this.db.prepare("UPDATE words SET upvotes_count = ? WHERE id = ?").run(ups - downs, wordId); }
     async getVotesForWord(wordId: number): Promise<WordVote[]> { const rows = this.db.prepare("SELECT * FROM word_votes WHERE word_id = ?").all(wordId) as any[]; return rows.map(r => this.rowToVote(r)); }
-    async getPendingCommunityWords(userId: string): Promise<PendingWordReview[]> {
-      const rows = this.db.prepare(`SELECT w.*, uv.vote_type AS user_vote, COALESCE(u.cnt, 0) AS up_votes, COALESCE(d.cnt, 0) AS down_votes FROM words w LEFT JOIN word_votes uv ON uv.word_id = w.id AND uv.user_id = ? LEFT JOIN (SELECT word_id, COUNT(*) AS cnt FROM word_votes WHERE vote_type = 'up' GROUP BY word_id) u ON u.word_id = w.id LEFT JOIN (SELECT word_id, COUNT(*) AS cnt FROM word_votes WHERE vote_type = 'down' GROUP BY word_id) d ON d.word_id = w.id WHERE w.verified = 0 AND w.source = 'community' AND (w.added_by_user_id IS NULL OR w.added_by_user_id != ?) AND uv.vote_type IS NULL ORDER BY w.created_at ASC`).all(userId, userId) as any[];
+    async getPendingCommunityWords(userId: string, includeVoted = false): Promise<PendingWordReview[]> {
+      const voteFilter = includeVoted ? '' : 'AND uv.vote_type IS NULL';
+      const orderBy = includeVoted ? 'ORDER BY w.upvotes_count DESC, w.created_at ASC' : 'ORDER BY w.created_at ASC';
+      const rows = this.db.prepare(`SELECT w.*, uv.vote_type AS user_vote, COALESCE(u.cnt, 0) AS up_votes, COALESCE(d.cnt, 0) AS down_votes FROM words w LEFT JOIN word_votes uv ON uv.word_id = w.id AND uv.user_id = ? LEFT JOIN (SELECT word_id, COUNT(*) AS cnt FROM word_votes WHERE vote_type = 'up' GROUP BY word_id) u ON u.word_id = w.id LEFT JOIN (SELECT word_id, COUNT(*) AS cnt FROM word_votes WHERE vote_type = 'down' GROUP BY word_id) d ON d.word_id = w.id WHERE w.verified = 0 AND w.source = 'community' AND (w.added_by_user_id IS NULL OR w.added_by_user_id != ?) ${voteFilter} ${orderBy}`).all(userId, userId) as any[];
       return rows.map(r => ({ ...this.rowToWord(r), userVote: r.user_vote || null, upVotes: r.up_votes || 0, downVotes: r.down_votes || 0 }));
     }
     async createXpLog(entry: InsertXpLog): Promise<XpLog> { const now = new Date().toISOString(); const result = this.db.prepare(`INSERT INTO xp_logs (user_id, action_type, xp_earned, details, created_at) VALUES (?, ?, ?, ?, ?)`).run(entry.userId, entry.actionType, entry.xpEarned, entry.details || "", now); const row = this.db.prepare("SELECT * FROM xp_logs WHERE id = ?").get(Number(result.lastInsertRowid)) as any; return this.rowToXpLog(row); }

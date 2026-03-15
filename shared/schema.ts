@@ -197,6 +197,9 @@ export interface QuizQuestion {
 }
 
 // Category unlock levels
+// Number of net upvotes required for a word to be considered "ready for approval"
+export const APPROVAL_THRESHOLD = 5;
+
 export const CATEGORY_UNLOCKS: Record<string, { level: number; xpRequired: number }> = {
   "Greetings and Basics": { level: 1, xpRequired: 0 },
   "Numbers and Quantities": { level: 2, xpRequired: 200 },

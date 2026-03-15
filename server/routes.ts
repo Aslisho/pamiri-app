@@ -137,10 +137,12 @@ export async function registerRoutes(
   });
 
   // Community review queue: unverified community words the user hasn't voted on yet
+  // Pass includeVoted=true for moderator view (shows all pending words including already-voted)
   app.get("/api/words/pending-review", async (req, res) => {
     const userId = req.query.userId as string;
+    const includeVoted = req.query.includeVoted === "true";
     if (!userId) return res.status(400).json({ error: "userId required" });
-    const words = await storage.getPendingCommunityWords(userId);
+    const words = await storage.getPendingCommunityWords(userId, includeVoted);
     return res.json(words);
   });
 
