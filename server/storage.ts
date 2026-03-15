@@ -86,6 +86,7 @@ export class PostgresStorage implements IStorage {
   private async init() {
     await this.initTables();
     await this.loadSeedData();
+    await this.updateSeedData();
   }
 
   async ready() {
@@ -206,6 +207,33 @@ export class PostgresStorage implements IStorage {
       console.log(`Loaded ${data.length} seed words into database`);
     } catch (e) {
       console.error("Failed to load seed data:", e);
+    }
+  }
+
+  private async updateSeedData() {
+    try {
+      const seedPath = join(process.cwd(), "seed_words.json");
+      const data = JSON.parse(readFileSync(seedPath, "utf-8"));
+      let updated = 0;
+      for (const entry of data) {
+        const result = await this.pool.query(
+          `UPDATE words SET latin_pamiri = $1, cyrillic_pamiri = $2, russian = $3
+           WHERE english = $4 AND category = $5 AND source = $6
+             AND latin_pamiri IS DISTINCT FROM $1`,
+          [
+            entry.latin_pamiri,
+            entry.cyrillic_pamiri || "",
+            entry.russian,
+            entry.english,
+            entry.category,
+            entry.source || "zarubin",
+          ]
+        );
+        updated += result.rowCount ?? 0;
+      }
+      if (updated > 0) console.log(`Updated ${updated} seed words with correct diacritics`);
+    } catch (e) {
+      console.error("Failed to update seed data:", e);
     }
   }
 
@@ -657,6 +685,7 @@ if (process.env.DATABASE_URL) {
       this.db.pragma("foreign_keys = ON");
       this.initTables();
       this.loadSeedData();
+      this.updateSeedData();
     }
     private initTables() {
       this.db.exec(`
@@ -687,6 +716,19 @@ if (process.env.DATABASE_URL) {
         insertMany(data);
         console.log(`Loaded ${data.length} seed words into database`);
       } catch (e) { console.error("Failed to load seed data:", e); }
+    }
+    private updateSeedData() {
+      try {
+        const seedPath = join(process.cwd(), "seed_words.json");
+        const data = JSON.parse(readFileSync(seedPath, "utf-8"));
+        const update = this.db.prepare(`UPDATE words SET latin_pamiri = ?, cyrillic_pamiri = ?, russian = ? WHERE english = ? AND category = ? AND source = ? AND latin_pamiri != ?`);
+        let updated = 0;
+        for (const entry of data) {
+          const r = update.run(entry.latin_pamiri, entry.cyrillic_pamiri || "", entry.russian, entry.english, entry.category, entry.source || "zarubin", entry.latin_pamiri);
+          updated += r.changes;
+        }
+        if (updated > 0) console.log(`Updated ${updated} seed words with correct diacritics`);
+      } catch (e) { console.error("Failed to update seed data:", e); }
     }
     private rowToUser(row: any): User { return { id: row.id, username: row.username, displayName: row.display_name, preferredLanguage: row.preferred_language, preferredScript: row.preferred_script, role: row.role, totalXp: row.total_xp, level: row.level, currentStreak: row.current_streak, longestStreak: row.longest_streak, lastActiveDate: row.last_active_date, createdAt: row.created_at }; }
     private rowToWord(row: any): Word { return { id: row.id, latinPamiri: row.latin_pamiri, cyrillicPamiri: row.cyrillic_pamiri, english: row.english, russian: row.russian, category: row.category, source: row.source, addedByUserId: row.added_by_user_id, verified: !!row.verified, upvotesCount: row.upvotes_count, createdAt: row.created_at }; }
