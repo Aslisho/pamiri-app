@@ -177,6 +177,10 @@ export async function registerRoutes(
     return res.json(prog);
   });
 
+  // Normalize string for deduplication and comparison (trim + Unicode NFC)
+  const normalizeAnswer = (s: string) =>
+    (s || "").trim().normalize("NFC");
+
   // Quiz generation
   app.get("/api/quiz/:userId", async (req, res) => {
     const user = await storage.getUser(req.params.userId);
@@ -193,6 +197,15 @@ export async function registerRoutes(
       pool = await storage.getUnlockedWordsForUser(user.id);
     }
 
+    // Deduplicate by normalized word form so the same word cannot appear twice in a quiz
+    const seenKeys = new Set<string>();
+    pool = pool.filter((w) => {
+      const key = normalizeAnswer(w.latinPamiri) + "|" + normalizeAnswer(w.english);
+      if (seenKeys.has(key)) return false;
+      seenKeys.add(key);
+      return true;
+    });
+
     if (pool.length < 4) {
       return res.status(400).json({ error: "Not enough words to generate a quiz" });
     }
@@ -200,14 +213,21 @@ export async function registerRoutes(
     const script = user.preferredScript;
 
     // Shuffle and pick 10 (or fewer)
-    const shuffled = pool.sort(() => Math.random() - 0.5);
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
     const quizWords = shuffled.slice(0, Math.min(10, pool.length));
 
     const questions: QuizQuestion[] = quizWords.map((word) => {
       const direction = Math.random() > 0.5 ? "pamiri_to_meaning" : "meaning_to_pamiri";
 
-      // Get wrong answers from pool
-      const otherWords = pool.filter(w => w.id !== word.id).sort(() => Math.random() - 0.5).slice(0, 3);
+      // Get wrong answers from pool (exclude same word by normalized form so options are unique)
+      const wordKey = normalizeAnswer(word.latinPamiri) + "|" + normalizeAnswer(word.english);
+      const otherWords = pool
+        .filter(w => {
+          const k = normalizeAnswer(w.latinPamiri) + "|" + normalizeAnswer(w.english);
+          return k !== wordKey;
+        })
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3);
 
       if (direction === "pamiri_to_meaning") {
         const pamiriText = script === "cyrillic" && word.cyrillicPamiri ? word.cyrillicPamiri : word.latinPamiri;

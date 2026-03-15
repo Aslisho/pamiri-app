@@ -80,10 +80,13 @@ export default function LearnPage() {
     },
   });
 
+  // Normalize for comparison (trim + Unicode NFC) so correct answer always counts
+  const normalizeOption = (s: string) => (s || "").trim().normalize("NFC");
+
   const handleAnswer = (answer: string) => {
     if (showFeedback) return;
     const q = questions[currentQ];
-    const isCorrect = answer === q.correctAnswer;
+    const isCorrect = normalizeOption(answer) === normalizeOption(q.correctAnswer);
     setSelectedAnswer(answer);
     setShowFeedback(true);
     if (isCorrect) setScore(s => s + 1);
@@ -92,7 +95,10 @@ export default function LearnPage() {
 
   const handleNext = () => {
     if (currentQ >= questions.length - 1) {
-      completeQuizMutation.mutate(score);
+      // Include current question in score (state may not have updated yet)
+      const q = questions[currentQ];
+      const currentCorrect = selectedAnswer && normalizeOption(selectedAnswer) === normalizeOption(q.correctAnswer);
+      completeQuizMutation.mutate(score + (currentCorrect ? 1 : 0));
     } else {
       setCurrentQ(c => c + 1);
       setSelectedAnswer(null);
@@ -215,9 +221,9 @@ export default function LearnPage() {
               {q.options.map((option, i) => {
                 let extraClass = "";
                 if (showFeedback) {
-                  if (option === q.correctAnswer) {
+                  if (normalizeOption(option) === normalizeOption(q.correctAnswer)) {
                     extraClass = "border-green-500 bg-green-500/10 text-green-700 dark:text-green-400";
-                  } else if (option === selectedAnswer && option !== q.correctAnswer) {
+                  } else if (option === selectedAnswer) {
                     extraClass = "border-destructive bg-destructive/10 text-destructive";
                   }
                 }
@@ -233,10 +239,10 @@ export default function LearnPage() {
                     } ${showFeedback ? "pointer-events-none" : "cursor-pointer"}`}
                   >
                     <div className="flex items-center gap-2">
-                      {showFeedback && option === q.correctAnswer && (
+                      {showFeedback && normalizeOption(option) === normalizeOption(q.correctAnswer) && (
                         <CheckCircle size={16} className="text-green-500 shrink-0" />
                       )}
-                      {showFeedback && option === selectedAnswer && option !== q.correctAnswer && (
+                      {showFeedback && option === selectedAnswer && normalizeOption(option) !== normalizeOption(q.correctAnswer) && (
                         <XCircle size={16} className="text-destructive shrink-0" />
                       )}
                       <span>{option}</span>
