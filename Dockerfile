@@ -26,6 +26,7 @@ RUN npm install --omit=dev
 # Copy built output from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/seed_words.json ./seed_words.json
+RUN mkdir -p /data
 
 # SQLite database will be stored on a persistent Fly volume
 # mounted at /data
