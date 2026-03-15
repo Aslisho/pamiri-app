@@ -286,6 +286,10 @@ export function ReviewQueue({ user, isModerator = false }: {
         userId: user.id,
         voteType,
       });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Vote failed");
+      }
       return res.json();
     },
     onSuccess: (data) => {
@@ -296,8 +300,6 @@ export function ReviewQueue({ user, isModerator = false }: {
 
       if (data.xpEarned > 0) {
         setSessionXp(prev => prev + data.xpEarned);
-        setXpFlash(true);
-        setTimeout(() => setXpFlash(false), 1200);
         apiRequest("GET", `/api/users/${user.id}`).then(r => r.json()).then(u => setUser(u));
       }
 
@@ -322,6 +324,18 @@ export function ReviewQueue({ user, isModerator = false }: {
       queryClient.invalidateQueries({ queryKey: ["/api/words"] });
       queryClient.invalidateQueries({ queryKey: ["/api/words/pending"] });
       setIndex(prev => prev + 1);
+      // Track session votes for summary
+      setSessionVotes(prev => [...prev, { wordId: data.word.id, netVotes: data.word.upvotesCount }]);
+      // Show vote feedback flash
+      setVoteFeedback({
+        netVotes: data.word.upvotesCount,
+        autoApproved: data.autoApproved,
+        xpEarned: data.xpEarned,
+      });
+      setTimeout(() => {
+        setVoteFeedback(null);
+        setIndex(prev => prev + 1);
+      }, 1500);
     },
   });
 
@@ -339,6 +353,9 @@ export function ReviewQueue({ user, isModerator = false }: {
 
   const totalWords = words?.length ?? 0;
   const done = !words || totalWords === 0 || index >= totalWords;
+
+  // Count words close to auto-approval (net votes >= 3)
+  const closeToApproval = sessionVotes.filter(v => v.netVotes >= 3).length;
 
   if (done) {
     const closeToApproval = sessionVotedWords.filter(
@@ -371,6 +388,11 @@ export function ReviewQueue({ user, isModerator = false }: {
                 .replace("{x}", String(index))
                 .replace("{y}", String(closeToApproval))}
             </p>
+            {closeToApproval > 0 && (
+              <p className="text-sm text-green-600 font-medium">
+                {closeToApproval} {t("add.closeToApproval")}
+              </p>
+            )}
             {sessionXp > 0 && (
               <div className="flex items-center justify-center gap-1 text-primary font-bold text-lg">
                 <Sparkles size={18} />
@@ -412,16 +434,26 @@ export function ReviewQueue({ user, isModerator = false }: {
 
       {/* XP flash */}
       <AnimatePresence>
-        {xpFlash && (
+        {voteFeedback && (
           <motion.div
-            key="xp-flash"
+            key="vote-feedback"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center justify-center gap-1 text-primary font-bold text-sm"
+            className="text-center space-y-1"
           >
-            <Sparkles size={14} />
-            +5 XP
+            <p className="text-sm font-semibold text-foreground">
+              {t("add.voteRecorded")} {t("add.netVotes")} {voteFeedback.netVotes > 0 ? "+" : ""}{voteFeedback.netVotes} {t("add.netVotesUnit")}
+            </p>
+            {voteFeedback.autoApproved && (
+              <p className="text-xs font-medium text-green-600">{t("add.wordAutoApproved")}</p>
+            )}
+            {voteFeedback.xpEarned > 0 && (
+              <div className="flex items-center justify-center gap-1 text-primary font-bold text-sm">
+                <Sparkles size={14} />
+                +{voteFeedback.xpEarned} XP
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -533,6 +565,15 @@ export function ReviewQueue({ user, isModerator = false }: {
         >
           Пропустить
         </Button>
+      )}
+
+      {/* Error / rate limit */}
+      {voteMutation.isError && (
+        <p className="text-destructive text-xs text-center">
+          {voteMutation.error?.message?.includes("Too many")
+            ? t("add.rateLimited")
+            : voteMutation.error?.message || t("add.error")}
+        </p>
       )}
 
       {/* XP info */}

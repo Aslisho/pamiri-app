@@ -8,6 +8,23 @@ import {
   type QuizQuestion, type Word,
 } from "@shared/schema";
 
+// Simple in-memory rate limiter for votes
+const voteRateMap = new Map<string, number[]>();
+const VOTE_RATE_LIMIT = 30; // max votes per window
+const VOTE_RATE_WINDOW = 60_000; // 1 minute
+
+function isRateLimited(userId: string): boolean {
+  const now = Date.now();
+  const timestamps = (voteRateMap.get(userId) || []).filter(t => now - t < VOTE_RATE_WINDOW);
+  if (timestamps.length >= VOTE_RATE_LIMIT) return true;
+  timestamps.push(now);
+  voteRateMap.set(userId, timestamps);
+  return false;
+}
+
+// Approval threshold: when a word reaches this net score, auto-approve
+const AUTO_APPROVE_THRESHOLD = 5;
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -166,6 +183,11 @@ export async function registerRoutes(
         voteType: req.body.voteType,
       });
 
+      // Rate limit check
+      if (isRateLimited(parsed.userId)) {
+        return res.status(429).json({ error: "Too many votes. Please slow down." });
+      }
+
       // Check word state before vote (to detect if it's an unverified review)
       const wordBefore = await storage.getWordById(parsed.wordId);
       const isUnverifiedReview = wordBefore && !wordBefore.verified;
@@ -195,8 +217,15 @@ export async function registerRoutes(
 
       // Fetch updated word (recalcVotes already ran inside createVote)
       const word = await storage.getWordById(parsed.wordId);
-      // Final approval/rejection is always made by the moderator
-      return res.json({ vote, word, xpEarned });
+
+      // Auto-approve if net votes reach threshold
+      let autoApproved = false;
+      if (word && !word.verified && word.upvotesCount >= AUTO_APPROVE_THRESHOLD) {
+        await storage.approveWord(word.id);
+        autoApproved = true;
+      }
+
+      return res.json({ vote, word: autoApproved ? { ...word, verified: true } : word, xpEarned, autoApproved });
     } catch (e: any) {
       return res.status(400).json({ error: e.message });
     }
@@ -204,10 +233,19 @@ export async function registerRoutes(
 
   // ===== WORD SUGGESTIONS =====
 
-  // Get suggestions for a word
+  // Get suggestions for a word (optionally with user's votes)
   app.get("/api/words/:id/suggestions", async (req, res) => {
+    const userId = req.query.userId as string | undefined;
     const suggestions = await storage.getSuggestionsForWord(Number(req.params.id));
-    return res.json(suggestions);
+    if (!userId) return res.json(suggestions);
+
+    // Attach user's vote to each suggestion
+    const enriched = await Promise.all(suggestions.map(async (s) => {
+      const votes = await storage.getSuggestionVotesForSuggestion(s.id);
+      const userVote = votes.find(v => v.userId === userId);
+      return { ...s, userVoteType: userVote?.voteType || null };
+    }));
+    return res.json(enriched);
   });
 
   // Submit a correction suggestion
