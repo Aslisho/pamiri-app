@@ -155,10 +155,6 @@ export async function registerRoutes(
     return res.json({ success: true });
   });
 
-  // Vote thresholds for community auto-verification
-  const APPROVE_THRESHOLD = 3;  // net +3 upvotes → auto-approve
-  const REJECT_THRESHOLD  = -2; // net -2 → auto-reject
-
   app.post("/api/words/:id/vote", async (req, res) => {
     try {
       const parsed = insertVoteSchema.parse({
@@ -196,19 +192,8 @@ export async function registerRoutes(
 
       // Fetch updated word (recalcVotes already ran inside createVote)
       const word = await storage.getWordById(parsed.wordId);
-      let autoAction: string | null = null;
-
-      if (word && !word.verified) {
-        if (word.upvotesCount >= APPROVE_THRESHOLD) {
-          await storage.approveWord(parsed.wordId);
-          autoAction = "approved";
-        } else if (word.upvotesCount <= REJECT_THRESHOLD) {
-          await storage.rejectWord(parsed.wordId);
-          autoAction = "rejected";
-        }
-      }
-
-      return res.json({ vote, word, autoAction, xpEarned });
+      // Final approval/rejection is always made by the moderator
+      return res.json({ vote, word, xpEarned });
     } catch (e: any) {
       return res.status(400).json({ error: e.message });
     }

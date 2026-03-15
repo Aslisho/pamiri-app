@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Check, X, Shield, Users, BookOpen, Megaphone, Trash2, Plus, UserX } from "lucide-react";
+import { Check, X, Shield, Users, BookOpen, Megaphone, Trash2, Plus, UserX, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -182,9 +182,25 @@ function WordsTab() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap">
                     <Badge variant="outline" className="text-[10px]">{word.category}</Badge>
                     <span className="text-[10px] text-muted-foreground">{word.source}</span>
+                    {/* Community vote score — only shown for unverified community words */}
+                    {!word.verified && word.source === "community" && (
+                      <span
+                        className={`text-[10px] font-semibold flex items-center gap-0.5 px-1.5 py-0.5 rounded-full ${
+                          word.upvotesCount > 0
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                            : word.upvotesCount < 0
+                            ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                        title="Оценка сообщества"
+                      >
+                        {word.upvotesCount > 0 ? <ThumbsUp size={9} /> : word.upvotesCount < 0 ? <ThumbsDown size={9} /> : null}
+                        {word.upvotesCount > 0 ? `+${word.upvotesCount}` : word.upvotesCount === 0 ? "0 голосов" : word.upvotesCount}
+                      </span>
+                    )}
                   </div>
                   <div className="flex gap-1">
                     {!word.verified && filter === "pending" && (
