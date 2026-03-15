@@ -9,7 +9,8 @@ import { PamiriKeyboard } from "@/components/PamiriKeyboard";
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { CATEGORY_UNLOCKS, CATEGORY_RU, type PendingWordReview } from "@shared/schema";
+import { CATEGORY_UNLOCKS, CATEGORY_RU, APPROVAL_THRESHOLD, type PendingWordReview } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
 import { Check, Sparkles, CheckCircle, ThumbsUp, ThumbsDown, ClipboardList } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -256,24 +257,25 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
 
 // ─── Review Queue ────────────────────────────────────────────────────────────
 
-interface VoteFeedback {
-  netVotes: number;
-  autoApproved: boolean;
-  xpEarned: number;
-}
-
-function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"]> }) {
+export function ReviewQueue({ user, isModerator = false }: {
+  user: NonNullable<ReturnType<typeof useUser>["user"]>;
+  isModerator?: boolean;
+}) {
   const { setUser } = useUser();
   const { t } = useLanguage();
   const [index, setIndex] = useState(0);
   const [sessionXp, setSessionXp] = useState(0);
-  const [voteFeedback, setVoteFeedback] = useState<VoteFeedback | null>(null);
-  const [sessionVotes, setSessionVotes] = useState<{ wordId: number; netVotes: number }[]>([]);
+  const [xpFlash, setXpFlash] = useState(false);
+  const [voteFeedback, setVoteFeedback] = useState<{ netVotes: number } | null>(null);
+  const [sessionVotedWords, setSessionVotedWords] = useState<Array<{ id: number; netVotes: number }>>([]);
 
+  const queryKeyTag = isModerator ? "mod" : "user";
   const { data: words, isLoading } = useQuery<PendingWordReview[]>({
-    queryKey: ["/api/words/pending-review", user.id],
+    queryKey: ["/api/words/pending-review", user.id, queryKeyTag],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/words/pending-review?userId=${user.id}`);
+      const params = new URLSearchParams({ userId: user.id });
+      if (isModerator) params.set("includeVoted", "true");
+      const res = await apiRequest("GET", `/api/words/pending-review?${params}`);
       return res.json();
     },
   });
@@ -291,10 +293,37 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
       return res.json();
     },
     onSuccess: (data) => {
+      // Show vote feedback with net votes
+      const netVotes = data.word?.upvotesCount ?? 0;
+      setVoteFeedback({ netVotes });
+      setSessionVotedWords(prev => [...prev, { id: data.word.id, netVotes }]);
+
       if (data.xpEarned > 0) {
         setSessionXp(prev => prev + data.xpEarned);
         apiRequest("GET", `/api/users/${user.id}`).then(r => r.json()).then(u => setUser(u));
       }
+
+      // Invalidate cache so voted words don't reappear on next visit
+      queryClient.invalidateQueries({ queryKey: ["/api/words/pending-review"] });
+
+      // Delay card advance so feedback is visible
+      setTimeout(() => {
+        setVoteFeedback(null);
+        setIndex(prev => prev + 1);
+      }, 1200);
+    },
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async (wordId: number) => {
+      const res = await apiRequest("POST", `/api/words/${wordId}/approve`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/words/pending-review"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/words"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/words/pending"] });
+      setIndex(prev => prev + 1);
       // Track session votes for summary
       setSessionVotes(prev => [...prev, { wordId: data.word.id, netVotes: data.word.upvotesCount }]);
       // Show vote feedback flash
@@ -329,6 +358,10 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
   const closeToApproval = sessionVotes.filter(v => v.netVotes >= 3).length;
 
   if (done) {
+    const closeToApproval = sessionVotedWords.filter(
+      w => w.netVotes >= APPROVAL_THRESHOLD - 1 && w.netVotes > 0
+    ).length;
+
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -351,7 +384,9 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
           <>
             <p className="text-base font-semibold">{t("add.allReviewed")}</p>
             <p className="text-sm text-muted-foreground">
-              {t("add.sessionSummary")} {index} {index === 1 ? "слово" : index < 5 ? "слова" : "слов"}
+              {t("add.sessionSummary")
+                .replace("{x}", String(index))
+                .replace("{y}", String(closeToApproval))}
             </p>
             {closeToApproval > 0 && (
               <p className="text-sm text-green-600 font-medium">
@@ -371,6 +406,8 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
   }
 
   const word = words[index];
+  const isVoting = voteMutation.isPending || voteFeedback !== null;
+  const alreadyVoted = isModerator && word.userVote;
 
   return (
     <div className="space-y-4">
@@ -381,6 +418,21 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
       </div>
 
       {/* Vote feedback flash */}
+      <AnimatePresence>
+        {voteFeedback && (
+          <motion.div
+            key="vote-feedback"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="text-center text-sm font-medium text-green-600 dark:text-green-400"
+          >
+            {t("add.voteRecorded").replace("{n}", voteFeedback.netVotes > 0 ? `+${voteFeedback.netVotes}` : String(voteFeedback.netVotes))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* XP flash */}
       <AnimatePresence>
         {voteFeedback && (
           <motion.div
@@ -437,11 +489,18 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
                 </div>
               </div>
 
-              {/* Category + current vote tally */}
+              {/* Category + current vote tally + mod prior vote */}
               <div className="flex items-center justify-between pt-1">
-                <span className="text-xs bg-muted px-2 py-1 rounded-full">
-                  {CATEGORY_RU[word.category] || word.category}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs bg-muted px-2 py-1 rounded-full">
+                    {CATEGORY_RU[word.category] || word.category}
+                  </span>
+                  {alreadyVoted && (
+                    <Badge variant="secondary" className="text-[10px]">
+                      {word.userVote === "up" ? "Вы: +" : "Вы: -"}
+                    </Badge>
+                  )}
+                </div>
                 <div className="flex gap-3 text-xs">
                   <span className="flex items-center gap-1 text-green-500 font-medium">
                     <ThumbsUp size={12} /> {word.upVotes}
@@ -462,25 +521,51 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
       </p>
 
       {/* Vote buttons */}
-      <div className="grid grid-cols-2 gap-3">
+      {!alreadyVoted && (
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            variant="outline"
+            className="h-12 text-sm font-semibold border-red-500/40 text-red-500 hover:bg-red-500/10"
+            disabled={isVoting}
+            onClick={() => voteMutation.mutate({ wordId: word.id, voteType: "down" })}
+          >
+            <ThumbsDown size={16} className="mr-2" />
+            {t("add.incorrect")}
+          </Button>
+          <Button
+            className="h-12 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white"
+            disabled={isVoting}
+            onClick={() => voteMutation.mutate({ wordId: word.id, voteType: "up" })}
+          >
+            <ThumbsUp size={16} className="mr-2" />
+            {t("add.correct")}
+          </Button>
+        </div>
+      )}
+
+      {/* Mod: approve button */}
+      {isModerator && (
         <Button
-          variant="outline"
-          className="h-12 text-sm font-semibold border-red-500/40 text-red-500 hover:bg-red-500/10"
-          disabled={voteMutation.isPending || !!voteFeedback}
-          onClick={() => voteMutation.mutate({ wordId: word.id, voteType: "down" })}
+          className="w-full h-10 text-sm font-semibold"
+          disabled={approveMutation.isPending}
+          onClick={() => approveMutation.mutate(word.id)}
         >
-          <ThumbsDown size={16} className="mr-2" />
-          {t("add.incorrect")}
+          <Check size={16} className="mr-2" />
+          {t("add.markReady")}
         </Button>
+      )}
+
+      {/* Mod: skip button for already-voted words */}
+      {alreadyVoted && !isModerator && null}
+      {alreadyVoted && (
         <Button
-          className="h-12 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white"
-          disabled={voteMutation.isPending || !!voteFeedback}
-          onClick={() => voteMutation.mutate({ wordId: word.id, voteType: "up" })}
+          variant="ghost"
+          className="w-full h-8 text-xs text-muted-foreground"
+          onClick={() => setIndex(prev => prev + 1)}
         >
-          <ThumbsUp size={16} className="mr-2" />
-          {t("add.correct")}
+          Пропустить
         </Button>
-      </div>
+      )}
 
       {/* Error / rate limit */}
       {voteMutation.isError && (
@@ -492,9 +577,11 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
       )}
 
       {/* XP info */}
-      <p className="text-[11px] text-center text-muted-foreground">
-        {t("add.xpPerReview")}
-      </p>
+      {!alreadyVoted && (
+        <p className="text-[11px] text-center text-muted-foreground">
+          {t("add.xpPerReview")}
+        </p>
+      )}
     </div>
   );
 }
