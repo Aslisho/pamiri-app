@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
-import { CreatedByAttribution } from "@/components/CreatedByAttribution";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CATEGORY_RU, type QuizQuestion, type Word } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
@@ -298,7 +297,6 @@ export default function LearnPage() {
           </div>
         )}
 
-        <CreatedByAttribution />
       </div>
     );
   }
@@ -578,7 +576,6 @@ export default function LearnPage() {
           </div>
         </motion.div>
 
-        <CreatedByAttribution />
       </div>
     );
   }

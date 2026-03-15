@@ -7,20 +7,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ZivLogo } from "@/components/ZivLogo";
 import { useUser } from "@/contexts/UserContext";
 import { apiRequest } from "@/lib/queryClient";
-import { CreatedByAttribution } from "@/components/CreatedByAttribution";
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const { setUser } = useUser();
   const [username, setUsername] = useState("");
-  const [targetLang, setTargetLang] = useState<"en" | "ru">("ru");
   const [script, setScript] = useState<"latin" | "cyrillic">("latin");
 
   const loginMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/auth/login", {
         username: username.trim(),
-        preferredLanguage: targetLang,
+        preferredLanguage: "ru",
         preferredScript: script,
       });
       return res.json();
@@ -56,35 +54,6 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 className="h-11 text-center text-base"
               />
-            </div>
-
-            {/* Learning target language */}
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Изучаю перевод на
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  type="button"
-                  variant={targetLang === "en" ? "default" : "secondary"}
-                  size="sm"
-                  onClick={() => setTargetLang("en")}
-                  data-testid="lang-en"
-                  className="h-9"
-                >
-                  English
-                </Button>
-                <Button
-                  type="button"
-                  variant={targetLang === "ru" ? "default" : "secondary"}
-                  size="sm"
-                  onClick={() => setTargetLang("ru")}
-                  data-testid="lang-ru"
-                  className="h-9"
-                >
-                  Русский
-                </Button>
-              </div>
             </div>
 
             {/* Script Selection */}
@@ -133,9 +102,6 @@ export default function LoginPage() {
             )}
           </CardContent>
         </Card>
-      </div>
-      <div className="mt-8">
-        <CreatedByAttribution />
       </div>
     </div>
   );

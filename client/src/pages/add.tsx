@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { PamiriKeyboard } from "@/components/PamiriKeyboard";
 import { useUser } from "@/contexts/UserContext";
-import { CreatedByAttribution } from "@/components/CreatedByAttribution";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CATEGORY_UNLOCKS, CATEGORY_RU, type PendingWordReview } from "@shared/schema";
 import { Check, Sparkles, CheckCircle, ThumbsUp, ThumbsDown, ClipboardList } from "lucide-react";
@@ -58,8 +57,6 @@ export default function AddPage() {
       </div>
 
       {tab === "add" ? <AddForm user={user} /> : <ReviewQueue user={user} />}
-
-      <CreatedByAttribution />
     </div>
   );
 }

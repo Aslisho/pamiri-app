@@ -1,13 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Flame, BookOpen, Star, Globe, Megaphone } from "lucide-react";
+import { Flame, BookOpen, Star, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
-import { CreatedByAttribution } from "@/components/CreatedByAttribution";
-import { getXpForNextLevel, getXpForLevel, type Word, type NewsItem } from "@shared/schema";
+import { getXpForNextLevel, getXpForLevel, type Word } from "@shared/schema";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -156,9 +154,6 @@ export default function HomePage() {
         </Card>
       )}
 
-      {/* News Section */}
-      <NewsSection />
-
       {/* Start Lesson CTA */}
       <Link href="/learn">
         <Button
@@ -169,46 +164,6 @@ export default function HomePage() {
         </Button>
       </Link>
 
-      <CreatedByAttribution />
-    </div>
-  );
-}
-
-function NewsSection() {
-  const { data: news, isLoading } = useQuery<NewsItem[]>({
-    queryKey: ["/api/news"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", "/api/news");
-      return res.json();
-    },
-  });
-
-  if (isLoading || !news || news.length === 0) return null;
-
-  // Show latest 3 news items
-  const latestNews = news.slice(0, 3);
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Megaphone size={14} className="text-primary" />
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-          Новости
-        </span>
-      </div>
-      {latestNews.map(item => (
-        <Card key={item.id} data-testid={`home-news-${item.id}`}>
-          <CardContent className="pt-3 pb-3">
-            <p className="text-sm font-semibold">{item.title}</p>
-            <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap line-clamp-3">{item.content}</p>
-            <p className="text-[10px] text-muted-foreground mt-1.5">
-              {new Date(item.createdAt).toLocaleDateString("ru-RU", {
-                day: "numeric", month: "long"
-              })}
-            </p>
-          </CardContent>
-        </Card>
-      ))}
     </div>
   );
 }

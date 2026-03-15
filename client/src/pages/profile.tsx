@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
-import { CreatedByAttribution } from "@/components/CreatedByAttribution";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import type { Badge as BadgeType, XpLog } from "@shared/schema";
@@ -171,7 +170,6 @@ export default function ProfilePage() {
         Выйти
       </Button>
 
-      <CreatedByAttribution />
     </div>
   );
 }

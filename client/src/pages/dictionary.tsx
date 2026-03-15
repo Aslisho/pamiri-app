@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Search, Lock, ThumbsUp, ThumbsDown, ChevronDown, ChevronUp } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Search, Lock, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
-import { CreatedByAttribution } from "@/components/CreatedByAttribution";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { CATEGORY_UNLOCKS, CATEGORY_RU, type Word } from "@shared/schema";
 
 export default function DictionaryPage() {
@@ -25,19 +24,6 @@ export default function DictionaryPage() {
       return res.json();
     },
     enabled: !!user,
-  });
-
-  const voteMutation = useMutation({
-    mutationFn: async ({ wordId, voteType }: { wordId: number; voteType: string }) => {
-      const res = await apiRequest("POST", `/api/words/${wordId}/vote`, {
-        userId: user!.id,
-        voteType,
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/words"] });
-    },
   });
 
   const script = user?.preferredScript || "latin";
@@ -193,35 +179,6 @@ export default function DictionaryPage() {
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span>Источник: {word.source === "community" ? "сообщество" : word.source === "zarubin" ? "Зарубин" : "словарь"}</span>
-                        {word.source === "community" && (
-                          <div className="flex items-center gap-1 ml-auto">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 px-2"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                voteMutation.mutate({ wordId: word.id, voteType: "up" });
-                              }}
-                              data-testid={`vote-up-${word.id}`}
-                            >
-                              <ThumbsUp size={12} />
-                            </Button>
-                            <span>{word.upvotesCount}</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 px-2"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                voteMutation.mutate({ wordId: word.id, voteType: "down" });
-                              }}
-                              data-testid={`vote-down-${word.id}`}
-                            >
-                              <ThumbsDown size={12} />
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}
@@ -232,7 +189,6 @@ export default function DictionaryPage() {
         </div>
       )}
 
-      <CreatedByAttribution />
     </div>
   );
 }

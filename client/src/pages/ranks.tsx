@@ -3,7 +3,6 @@ import { Trophy, Flame } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
-import { CreatedByAttribution } from "@/components/CreatedByAttribution";
 import { apiRequest } from "@/lib/queryClient";
 import type { User } from "@shared/schema";
 
@@ -106,7 +105,6 @@ export default function RanksPage() {
         </div>
       )}
 
-      <CreatedByAttribution />
     </div>
   );
 }

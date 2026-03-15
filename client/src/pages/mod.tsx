@@ -1,18 +1,15 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Check, X, Shield, Users, BookOpen, Megaphone, Trash2, Plus, UserX, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Check, X, Shield, Users, BookOpen, Trash2, UserX, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
-import { CreatedByAttribution } from "@/components/CreatedByAttribution";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Word, User, NewsItem } from "@shared/schema";
+import type { Word, User } from "@shared/schema";
 
-type Tab = "words" | "users" | "news";
+type Tab = "words" | "users";
 
 export default function ModPage() {
   const { user } = useUser();
@@ -29,7 +26,6 @@ export default function ModPage() {
   const tabs: { id: Tab; label: string; icon: typeof Shield }[] = [
     { id: "words", label: "Слова", icon: BookOpen },
     { id: "users", label: "Пользователи", icon: Users },
-    { id: "news", label: "Новости", icon: Megaphone },
   ];
 
   return (
@@ -60,9 +56,6 @@ export default function ModPage() {
 
       {activeTab === "words" && <WordsTab />}
       {activeTab === "users" && <UsersTab />}
-      {activeTab === "news" && <NewsTab userId={user.id} />}
-
-      <CreatedByAttribution />
     </div>
   );
 }
@@ -335,140 +328,3 @@ function UsersTab() {
   );
 }
 
-/* ===== NEWS TAB ===== */
-function NewsTab({ userId }: { userId: string }) {
-  const [showForm, setShowForm] = useState(false);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-
-  const { data: news, isLoading } = useQuery<NewsItem[]>({
-    queryKey: ["/api/news"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", "/api/news");
-      return res.json();
-    },
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/news", {
-        title: title.trim(),
-        content: content.trim(),
-        authorId: userId,
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
-      setTitle("");
-      setContent("");
-      setShowForm(false);
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (newsId: number) => {
-      const res = await apiRequest("DELETE", `/api/news/${newsId}`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
-    },
-  });
-
-  return (
-    <div className="space-y-3">
-      {!showForm ? (
-        <Button
-          size="sm"
-          onClick={() => setShowForm(true)}
-          className="w-full"
-          data-testid="button-add-news"
-        >
-          <Plus size={14} className="mr-1" /> Добавить новость
-        </Button>
-      ) : (
-        <Card>
-          <CardContent className="pt-4 pb-4 space-y-3">
-            <Input
-              placeholder="Заголовок"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              data-testid="input-news-title"
-            />
-            <Textarea
-              placeholder="Текст новости..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={4}
-              data-testid="input-news-content"
-            />
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                className="flex-1"
-                onClick={() => createMutation.mutate()}
-                disabled={!title.trim() || !content.trim() || createMutation.isPending}
-                data-testid="button-submit-news"
-              >
-                Опубликовать
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => { setShowForm(false); setTitle(""); setContent(""); }}
-              >
-                Отмена
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {isLoading ? (
-        <div className="space-y-3">
-          {[1, 2].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}
-        </div>
-      ) : !news || news.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">
-          Нет новостей
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {news.map(item => (
-            <Card key={item.id} data-testid={`news-${item.id}`}>
-              <CardContent className="pt-3 pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold">{item.title}</p>
-                    <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{item.content}</p>
-                    <p className="text-[10px] text-muted-foreground mt-2">
-                      {new Date(item.createdAt).toLocaleDateString("ru-RU", {
-                        day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
-                      })}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 text-destructive hover:text-destructive shrink-0"
-                    onClick={() => {
-                      if (confirm("Удалить эту новость?")) {
-                        deleteMutation.mutate(item.id);
-                      }
-                    }}
-                    disabled={deleteMutation.isPending}
-                    data-testid={`delete-news-${item.id}`}
-                  >
-                    <Trash2 size={12} />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
