@@ -256,12 +256,19 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
 
 // ─── Review Queue ────────────────────────────────────────────────────────────
 
+interface VoteFeedback {
+  netVotes: number;
+  autoApproved: boolean;
+  xpEarned: number;
+}
+
 function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"]> }) {
   const { setUser } = useUser();
   const { t } = useLanguage();
   const [index, setIndex] = useState(0);
   const [sessionXp, setSessionXp] = useState(0);
-  const [xpFlash, setXpFlash] = useState(false);
+  const [voteFeedback, setVoteFeedback] = useState<VoteFeedback | null>(null);
+  const [sessionVotes, setSessionVotes] = useState<{ wordId: number; netVotes: number }[]>([]);
 
   const { data: words, isLoading } = useQuery<PendingWordReview[]>({
     queryKey: ["/api/words/pending-review", user.id],
@@ -277,16 +284,29 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
         userId: user.id,
         voteType,
       });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Vote failed");
+      }
       return res.json();
     },
     onSuccess: (data) => {
       if (data.xpEarned > 0) {
         setSessionXp(prev => prev + data.xpEarned);
-        setXpFlash(true);
-        setTimeout(() => setXpFlash(false), 1200);
         apiRequest("GET", `/api/users/${user.id}`).then(r => r.json()).then(u => setUser(u));
       }
-      setIndex(prev => prev + 1);
+      // Track session votes for summary
+      setSessionVotes(prev => [...prev, { wordId: data.word.id, netVotes: data.word.upvotesCount }]);
+      // Show vote feedback flash
+      setVoteFeedback({
+        netVotes: data.word.upvotesCount,
+        autoApproved: data.autoApproved,
+        xpEarned: data.xpEarned,
+      });
+      setTimeout(() => {
+        setVoteFeedback(null);
+        setIndex(prev => prev + 1);
+      }, 1500);
     },
   });
 
@@ -304,6 +324,9 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
 
   const totalWords = words?.length ?? 0;
   const done = !words || totalWords === 0 || index >= totalWords;
+
+  // Count words close to auto-approval (net votes >= 3)
+  const closeToApproval = sessionVotes.filter(v => v.netVotes >= 3).length;
 
   if (done) {
     return (
@@ -328,8 +351,13 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
           <>
             <p className="text-base font-semibold">{t("add.allReviewed")}</p>
             <p className="text-sm text-muted-foreground">
-              Вы проверили {index} {index === 1 ? "слово" : index < 5 ? "слова" : "слов"}
+              {t("add.sessionSummary")} {index} {index === 1 ? "слово" : index < 5 ? "слова" : "слов"}
             </p>
+            {closeToApproval > 0 && (
+              <p className="text-sm text-green-600 font-medium">
+                {closeToApproval} {t("add.closeToApproval")}
+              </p>
+            )}
             {sessionXp > 0 && (
               <div className="flex items-center justify-center gap-1 text-primary font-bold text-lg">
                 <Sparkles size={18} />
@@ -352,18 +380,28 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
         <span className="font-medium">{index + 1} / {totalWords}</span>
       </div>
 
-      {/* XP flash */}
+      {/* Vote feedback flash */}
       <AnimatePresence>
-        {xpFlash && (
+        {voteFeedback && (
           <motion.div
-            key="xp-flash"
+            key="vote-feedback"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center justify-center gap-1 text-primary font-bold text-sm"
+            className="text-center space-y-1"
           >
-            <Sparkles size={14} />
-            +5 XP
+            <p className="text-sm font-semibold text-foreground">
+              {t("add.voteRecorded")} {t("add.netVotes")} {voteFeedback.netVotes > 0 ? "+" : ""}{voteFeedback.netVotes} {t("add.netVotesUnit")}
+            </p>
+            {voteFeedback.autoApproved && (
+              <p className="text-xs font-medium text-green-600">{t("add.wordAutoApproved")}</p>
+            )}
+            {voteFeedback.xpEarned > 0 && (
+              <div className="flex items-center justify-center gap-1 text-primary font-bold text-sm">
+                <Sparkles size={14} />
+                +{voteFeedback.xpEarned} XP
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -428,7 +466,7 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
         <Button
           variant="outline"
           className="h-12 text-sm font-semibold border-red-500/40 text-red-500 hover:bg-red-500/10"
-          disabled={voteMutation.isPending}
+          disabled={voteMutation.isPending || !!voteFeedback}
           onClick={() => voteMutation.mutate({ wordId: word.id, voteType: "down" })}
         >
           <ThumbsDown size={16} className="mr-2" />
@@ -436,13 +474,22 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
         </Button>
         <Button
           className="h-12 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white"
-          disabled={voteMutation.isPending}
+          disabled={voteMutation.isPending || !!voteFeedback}
           onClick={() => voteMutation.mutate({ wordId: word.id, voteType: "up" })}
         >
           <ThumbsUp size={16} className="mr-2" />
           {t("add.correct")}
         </Button>
       </div>
+
+      {/* Error / rate limit */}
+      {voteMutation.isError && (
+        <p className="text-destructive text-xs text-center">
+          {voteMutation.error?.message?.includes("Too many")
+            ? t("add.rateLimited")
+            : voteMutation.error?.message || t("add.error")}
+        </p>
+      )}
 
       {/* XP info */}
       <p className="text-[11px] text-center text-muted-foreground">

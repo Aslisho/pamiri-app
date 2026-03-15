@@ -319,12 +319,14 @@ function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string;
 }
 
 /* ===== SUGGESTIONS LIST ===== */
+type SuggestionWithVote = WordSuggestion & { userVoteType?: string | null };
+
 function SuggestionsList({ wordId, userId }: { wordId: number; userId: string }) {
   const { t } = useLanguage();
-  const { data: suggestions } = useQuery<WordSuggestion[]>({
-    queryKey: ["/api/words", wordId, "suggestions"],
+  const { data: suggestions } = useQuery<SuggestionWithVote[]>({
+    queryKey: ["/api/words", wordId, "suggestions", userId],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/words/${wordId}/suggestions`);
+      const res = await apiRequest("GET", `/api/words/${wordId}/suggestions?userId=${userId}`);
       return res.json();
     },
   });
@@ -338,7 +340,7 @@ function SuggestionsList({ wordId, userId }: { wordId: number; userId: string })
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/words", wordId, "suggestions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/words", wordId, "suggestions", userId] });
     },
   });
 
@@ -349,39 +351,42 @@ function SuggestionsList({ wordId, userId }: { wordId: number; userId: string })
       <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
         {t("dict.suggestions")} ({suggestions.length})
       </span>
-      {suggestions.map(s => (
-        <div key={s.id} className="flex items-center gap-2 bg-muted/40 rounded-md p-2">
-          <div className="flex-1 min-w-0 text-xs">
-            <span className="font-medium">{s.latinPamiri}</span>
-            <span className="text-muted-foreground"> — {s.russian} / {s.english}</span>
+      {suggestions.map(s => {
+        const userVoted = s.userVoteType;
+        return (
+          <div key={s.id} className="flex items-center gap-2 bg-muted/40 rounded-md p-2">
+            <div className="flex-1 min-w-0 text-xs">
+              <span className="font-medium">{s.latinPamiri}</span>
+              <span className="text-muted-foreground"> — {s.russian} / {s.english}</span>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`h-6 w-6 p-0 ${userVoted === "up" ? "text-green-600 bg-green-100 dark:bg-green-900/40" : ""}`}
+                onClick={() => voteMutation.mutate({ suggestionId: s.id, voteType: "up" })}
+                disabled={s.userId === userId}
+              >
+                <ThumbsUp size={11} />
+              </Button>
+              <span className={`text-[10px] font-bold min-w-[16px] text-center ${
+                s.upvotesCount > 0 ? "text-green-600" : s.upvotesCount < 0 ? "text-red-600" : "text-muted-foreground"
+              }`}>
+                {s.upvotesCount > 0 ? `+${s.upvotesCount}` : s.upvotesCount}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`h-6 w-6 p-0 ${userVoted === "down" ? "text-red-600 bg-red-100 dark:bg-red-900/40" : ""}`}
+                onClick={() => voteMutation.mutate({ suggestionId: s.id, voteType: "down" })}
+                disabled={s.userId === userId}
+              >
+                <ThumbsDown size={11} />
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={() => voteMutation.mutate({ suggestionId: s.id, voteType: "up" })}
-              disabled={s.userId === userId}
-            >
-              <ThumbsUp size={11} />
-            </Button>
-            <span className={`text-[10px] font-bold min-w-[16px] text-center ${
-              s.upvotesCount > 0 ? "text-green-600" : s.upvotesCount < 0 ? "text-red-600" : "text-muted-foreground"
-            }`}>
-              {s.upvotesCount > 0 ? `+${s.upvotesCount}` : s.upvotesCount}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={() => voteMutation.mutate({ suggestionId: s.id, voteType: "down" })}
-              disabled={s.userId === userId}
-            >
-              <ThumbsDown size={11} />
-            </Button>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

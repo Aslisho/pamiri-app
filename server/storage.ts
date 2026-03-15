@@ -75,6 +75,7 @@ export interface IStorage {
   getSuggestionsForWord(wordId: number): Promise<WordSuggestion[]>;
   getSuggestionById(id: number): Promise<WordSuggestion | undefined>;
   createSuggestionVote(vote: InsertSuggestionVote): Promise<SuggestionVote>;
+  getSuggestionVotesForSuggestion(suggestionId: number): Promise<SuggestionVote[]>;
   approveSuggestion(id: number): Promise<Word | undefined>;
   rejectSuggestion(id: number): Promise<boolean>;
   getAllPendingSuggestions(): Promise<(WordSuggestion & { originalWord?: Word })[]>;
@@ -810,6 +811,13 @@ export class PostgresStorage implements IStorage {
     );
   }
 
+  async getSuggestionVotesForSuggestion(suggestionId: number): Promise<SuggestionVote[]> {
+    const { rows } = await this.pool.query(
+      "SELECT * FROM suggestion_votes WHERE suggestion_id = $1", [suggestionId]
+    );
+    return rows.map(r => this.rowToSuggestionVote(r));
+  }
+
   async approveSuggestion(id: number): Promise<Word | undefined> {
     const suggestion = await this.getSuggestionById(id);
     if (!suggestion) return undefined;
@@ -987,6 +995,7 @@ if (process.env.DATABASE_URL) {
     async getSuggestionById(id: number): Promise<WordSuggestion | undefined> { const row = this.db.prepare("SELECT * FROM word_suggestions WHERE id = ?").get(id) as any; return row ? this.rowToSuggestion(row) : undefined; }
     async createSuggestionVote(vote: InsertSuggestionVote): Promise<SuggestionVote> { const now = new Date().toISOString(); const existing = this.db.prepare("SELECT * FROM suggestion_votes WHERE suggestion_id = ? AND user_id = ?").get(vote.suggestionId, vote.userId) as any; if (existing) { this.db.prepare("UPDATE suggestion_votes SET vote_type = ? WHERE id = ?").run(vote.voteType, existing.id); this.recalcSuggestionVotes(vote.suggestionId); const row = this.db.prepare("SELECT * FROM suggestion_votes WHERE id = ?").get(existing.id) as any; return this.rowToSuggestionVote(row); } const result = this.db.prepare(`INSERT INTO suggestion_votes (suggestion_id, user_id, vote_type, created_at) VALUES (?, ?, ?, ?)`).run(vote.suggestionId, vote.userId, vote.voteType, now); this.recalcSuggestionVotes(vote.suggestionId); const row = this.db.prepare("SELECT * FROM suggestion_votes WHERE id = ?").get(Number(result.lastInsertRowid)) as any; return this.rowToSuggestionVote(row); }
     private recalcSuggestionVotes(suggestionId: number) { const ups = (this.db.prepare("SELECT COUNT(*) as c FROM suggestion_votes WHERE suggestion_id = ? AND vote_type = 'up'").get(suggestionId) as any).c; const downs = (this.db.prepare("SELECT COUNT(*) as c FROM suggestion_votes WHERE suggestion_id = ? AND vote_type = 'down'").get(suggestionId) as any).c; this.db.prepare("UPDATE word_suggestions SET upvotes_count = ? WHERE id = ?").run(ups - downs, suggestionId); }
+    async getSuggestionVotesForSuggestion(suggestionId: number): Promise<SuggestionVote[]> { const rows = this.db.prepare("SELECT * FROM suggestion_votes WHERE suggestion_id = ?").all(suggestionId) as any[]; return rows.map(r => this.rowToSuggestionVote(r)); }
     async approveSuggestion(id: number): Promise<Word | undefined> { const suggestion = await this.getSuggestionById(id); if (!suggestion) return undefined; this.db.prepare(`UPDATE words SET latin_pamiri = ?, cyrillic_pamiri = ?, english = ?, russian = ? WHERE id = ?`).run(suggestion.latinPamiri, suggestion.cyrillicPamiri, suggestion.english, suggestion.russian, suggestion.wordId); this.db.prepare("UPDATE word_suggestions SET status = 'approved' WHERE id = ?").run(id); this.db.prepare("UPDATE word_suggestions SET status = 'rejected' WHERE word_id = ? AND id != ? AND status = 'pending'").run(suggestion.wordId, id); return this.getWordById(suggestion.wordId); }
     async rejectSuggestion(id: number): Promise<boolean> { const result = this.db.prepare("UPDATE word_suggestions SET status = 'rejected' WHERE id = ?").run(id); return result.changes > 0; }
     async getAllPendingSuggestions(): Promise<(WordSuggestion & { originalWord?: Word })[]> { const rows = this.db.prepare(`SELECT s.*, w.latin_pamiri AS orig_latin, w.cyrillic_pamiri AS orig_cyrillic, w.english AS orig_english, w.russian AS orig_russian, w.category AS orig_category FROM word_suggestions s LEFT JOIN words w ON w.id = s.word_id WHERE s.status = 'pending' ORDER BY s.upvotes_count DESC, s.created_at ASC`).all() as any[]; return rows.map(r => ({ ...this.rowToSuggestion(r), originalWord: r.orig_latin ? { id: r.word_id, latinPamiri: r.orig_latin, cyrillicPamiri: r.orig_cyrillic, english: r.orig_english, russian: r.orig_russian, category: r.orig_category, source: "", addedByUserId: null, verified: true, upvotesCount: 0, createdAt: "" } as Word : undefined })); }
