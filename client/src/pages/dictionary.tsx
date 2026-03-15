@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CATEGORY_UNLOCKS, CATEGORY_RU, type Word, type WordSuggestion } from "@shared/schema";
 
 export default function DictionaryPage() {
   const { user } = useUser();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [expandedWord, setExpandedWord] = useState<number | null>(null);
@@ -67,7 +69,7 @@ export default function DictionaryPage() {
     <div className="pt-16 pb-20 px-4 max-w-lg mx-auto space-y-4">
       <div className="pt-4">
         <h2 className="text-lg font-bold" data-testid="text-dictionary-title">
-          Словарь
+          {t("dict.title")}
         </h2>
       </div>
 
@@ -76,7 +78,7 @@ export default function DictionaryPage() {
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <Input
           data-testid="input-search"
-          placeholder="Поиск..."
+          placeholder={t("dict.search")}
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           className="h-10 pl-9"
@@ -93,7 +95,7 @@ export default function DictionaryPage() {
             onClick={() => setSelectedCategory(null)}
             data-testid="filter-all"
           >
-            Все
+            {t("dict.all")}
           </Button>
           {categories.map(cat => (
             <Button
@@ -118,7 +120,7 @@ export default function DictionaryPage() {
         </div>
       ) : sortedWords.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground text-sm">
-          Слова не найдены
+          {t("dict.noWords")}
         </div>
       ) : (
         <div className="space-y-2">
@@ -136,7 +138,7 @@ export default function DictionaryPage() {
                         {word.latinPamiri}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Нужен уровень {CATEGORY_UNLOCKS[word.category]?.level}
+                        {t("dict.needLevel")} {CATEGORY_UNLOCKS[word.category]?.level}
                       </p>
                     </div>
                   </CardContent>
@@ -178,12 +180,12 @@ export default function DictionaryPage() {
                     <div className="mt-3 pt-3 border-t border-border space-y-3" onClick={e => e.stopPropagation()}>
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
-                          <span className="text-muted-foreground">Латиница: </span>
+                          <span className="text-muted-foreground">{t("dict.latin")}: </span>
                           <span className="font-medium">{word.latinPamiri}</span>
                         </div>
                         {word.cyrillicPamiri && (
                           <div>
-                            <span className="text-muted-foreground">Кириллица: </span>
+                            <span className="text-muted-foreground">{t("dict.cyrillic")}: </span>
                             <span className="font-medium">{word.cyrillicPamiri}</span>
                           </div>
                         )}
@@ -197,7 +199,7 @@ export default function DictionaryPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>Источник: {word.source === "community" ? "сообщество" : word.source === "zarubin" ? "Зарубин" : "словарь"}</span>
+                        <span>{t("dict.source")}: {word.source === "community" ? t("dict.sourceCommunity") : word.source === "zarubin" ? t("dict.sourceZarubin") : t("dict.sourceDictionary")}</span>
                       </div>
 
                       {/* Suggest correction button */}
@@ -208,7 +210,7 @@ export default function DictionaryPage() {
                           className="w-full h-8 text-xs gap-1"
                           onClick={() => setSuggestingFor(word.id)}
                         >
-                          <Edit3 size={12} /> Предложить исправление
+                          <Edit3 size={12} /> {t("dict.suggestCorrection")}
                         </Button>
                       ) : (
                         <SuggestionForm word={word} userId={user.id} onClose={() => setSuggestingFor(null)} />
@@ -231,6 +233,7 @@ export default function DictionaryPage() {
 
 /* ===== SUGGESTION FORM ===== */
 function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string; onClose: () => void }) {
+  const { t } = useLanguage();
   const [latin, setLatin] = useState(word.latinPamiri);
   const [cyrillic, setCyrillic] = useState(word.cyrillicPamiri);
   const [english, setEnglish] = useState(word.english);
@@ -264,7 +267,7 @@ function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string;
   if (submitted) {
     return (
       <div className="text-center py-2 text-xs text-green-600 font-medium">
-        Исправление отправлено! +5 XP
+        {t("dict.correctionSent")}
       </div>
     );
   }
@@ -272,20 +275,20 @@ function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string;
   return (
     <div className="space-y-2 bg-muted/50 rounded-lg p-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium">Ваш вариант:</span>
+        <span className="text-xs font-medium">{t("dict.yourVariant")}</span>
         <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onClose}>
           <X size={12} />
         </Button>
       </div>
       <div className="grid grid-cols-2 gap-2">
         <Input
-          placeholder="Латиница"
+          placeholder={t("dict.latin")}
           value={latin}
           onChange={e => setLatin(e.target.value)}
           className="h-8 text-xs"
         />
         <Input
-          placeholder="Кириллица"
+          placeholder={t("dict.cyrillic")}
           value={cyrillic}
           onChange={e => setCyrillic(e.target.value)}
           className="h-8 text-xs"
@@ -309,7 +312,7 @@ function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string;
         disabled={!hasChanges || !latin.trim() || !english.trim() || !russian.trim() || submitMutation.isPending}
         onClick={() => submitMutation.mutate()}
       >
-        <Send size={12} /> Отправить
+        <Send size={12} /> {t("dict.submit")}
       </Button>
     </div>
   );
@@ -317,6 +320,7 @@ function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string;
 
 /* ===== SUGGESTIONS LIST ===== */
 function SuggestionsList({ wordId, userId }: { wordId: number; userId: string }) {
+  const { t } = useLanguage();
   const { data: suggestions } = useQuery<WordSuggestion[]>({
     queryKey: ["/api/words", wordId, "suggestions"],
     queryFn: async () => {
@@ -343,7 +347,7 @@ function SuggestionsList({ wordId, userId }: { wordId: number; userId: string })
   return (
     <div className="space-y-1.5">
       <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-        Предложения ({suggestions.length})
+        {t("dict.suggestions")} ({suggestions.length})
       </span>
       {suggestions.map(s => (
         <div key={s.id} className="flex items-center gap-2 bg-muted/40 rounded-md p-2">

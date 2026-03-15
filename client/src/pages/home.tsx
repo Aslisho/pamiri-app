@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useUser } from "@/contexts/UserContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { getXpForNextLevel, getXpForLevel, type Word } from "@shared/schema";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function HomePage() {
   const { user } = useUser();
+  const { t } = useLanguage();
   const [flipped, setFlipped] = useState(false);
 
   const { data: stats, isLoading: statsLoading } = useQuery({
@@ -51,10 +53,10 @@ export default function HomePage() {
       {/* Welcome */}
       <div className="pt-4">
         <h2 className="text-lg font-bold" data-testid="text-welcome">
-          Добро пожаловать, {user.displayName}!
+          {t("home.welcome")}, {user.displayName}!
         </h2>
         <p className="text-sm text-muted-foreground">
-          Давайте учить шугнанский
+          {t("home.subtitle")}
         </p>
       </div>
 
@@ -63,7 +65,7 @@ export default function HomePage() {
         <CardContent className="pt-4 pb-4 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">
-              Уровень {stats?.level || user.level}
+              {t("home.level")} {stats?.level || user.level}
             </span>
             <span className="text-xs font-medium text-primary">
               {stats?.totalXp || user.totalXp} XP
@@ -71,7 +73,7 @@ export default function HomePage() {
           </div>
           <Progress value={xpProgress} className="h-2" data-testid="xp-progress" />
           <div className="text-[10px] text-muted-foreground text-right">
-            {xpForNext - (stats?.totalXp || user.totalXp)} XP до уровня {Math.min(17, user.level + 1)}
+            {xpForNext - (stats?.totalXp || user.totalXp)} {t("home.xpToLevel")} {Math.min(17, user.level + 1)}
           </div>
         </CardContent>
       </Card>
@@ -86,7 +88,7 @@ export default function HomePage() {
                 {stats?.currentStreak || user.currentStreak}
               </span>
             </div>
-            <p className="text-[10px] text-muted-foreground">Серия дней</p>
+            <p className="text-[10px] text-muted-foreground">{t("home.streak")}</p>
           </CardContent>
         </Card>
         <Card>
@@ -97,7 +99,7 @@ export default function HomePage() {
                 {stats?.wordsLearned || 0}
               </span>
             </div>
-            <p className="text-[10px] text-muted-foreground">Изучено</p>
+            <p className="text-[10px] text-muted-foreground">{t("home.learned")}</p>
           </CardContent>
         </Card>
         <Card>
@@ -108,7 +110,7 @@ export default function HomePage() {
                 #{stats?.globalRank || "—"}
               </span>
             </div>
-            <p className="text-[10px] text-muted-foreground">Ранг</p>
+            <p className="text-[10px] text-muted-foreground">{t("home.rank")}</p>
           </CardContent>
         </Card>
       </div>
@@ -124,7 +126,7 @@ export default function HomePage() {
             <div className="flex items-center gap-2 mb-2">
               <Star size={14} className="text-primary" />
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Слово дня
+                {t("home.wordOfDay")}
               </span>
             </div>
             <div className="text-center py-3 min-h-[64px] flex flex-col items-center justify-center">
@@ -135,7 +137,7 @@ export default function HomePage() {
                       ? wordOfTheDay.cyrillicPamiri
                       : wordOfTheDay.latinPamiri}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">Нажмите, чтобы увидеть перевод</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("home.tapToFlip")}</p>
                 </>
               ) : (
                 <>
@@ -160,7 +162,7 @@ export default function HomePage() {
           className="w-full h-14 text-base font-semibold rounded-xl"
           data-testid="button-start-lesson"
         >
-          Начать урок
+          {t("home.startLesson")}
         </Button>
       </Link>
 

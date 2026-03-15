@@ -3,6 +3,7 @@ import { Trophy, Flame } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest } from "@/lib/queryClient";
 import type { User } from "@shared/schema";
 
@@ -10,6 +11,7 @@ const TROPHY_COLORS = ["text-yellow-500", "text-gray-400", "text-amber-600"];
 
 export default function RanksPage() {
   const { user } = useUser();
+  const { t } = useLanguage();
 
   const { data: leaderboard, isLoading } = useQuery<User[]>({
     queryKey: ["/api/leaderboard"],
@@ -26,10 +28,10 @@ export default function RanksPage() {
     <div className="pt-16 pb-20 px-4 max-w-lg mx-auto space-y-4">
       <div className="pt-4 text-center">
         <h2 className="text-lg font-bold" data-testid="text-ranks-title">
-          Лучшие ученики
+          {t("ranks.title")}
         </h2>
         <p className="text-sm text-muted-foreground">
-          Таблица лидеров
+          {t("ranks.subtitle")}
         </p>
       </div>
 
@@ -39,7 +41,7 @@ export default function RanksPage() {
         </div>
       ) : !leaderboard || leaderboard.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground text-sm">
-          Пока нет участников
+          {t("ranks.noParticipants")}
         </div>
       ) : (
         <div className="space-y-2">
@@ -78,16 +80,16 @@ export default function RanksPage() {
                       {u.displayName}
                       {isCurrentUser && (
                         <span className="text-xs text-primary ml-1">
-                          (вы)
+                          {t("ranks.you")}
                         </span>
                       )}
                     </p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>Уровень {u.level}</span>
+                      <span>{t("ranks.level")} {u.level}</span>
                       {u.currentStreak > 0 && (
                         <span className="flex items-center gap-0.5 text-orange-500 font-medium">
                           <Flame size={11} />
-                          {u.currentStreak} дн.
+                          {u.currentStreak} {t("ranks.days")}
                         </span>
                       )}
                     </div>

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { PamiriKeyboard } from "@/components/PamiriKeyboard";
 import { useUser } from "@/contexts/UserContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CATEGORY_UNLOCKS, CATEGORY_RU, type PendingWordReview } from "@shared/schema";
 import { Check, Sparkles, CheckCircle, ThumbsUp, ThumbsDown, ClipboardList } from "lucide-react";
@@ -14,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function AddPage() {
   const { user } = useUser();
+  const { t } = useLanguage();
   const [tab, setTab] = useState<"add" | "review">("add");
 
   if (!user) return null;
@@ -22,12 +24,12 @@ export default function AddPage() {
     <div className="pt-16 pb-20 px-4 max-w-lg mx-auto space-y-5">
       <div className="pt-4">
         <h2 className="text-lg font-bold">
-          {tab === "add" ? "Добавить слово" : "Проверить слова"}
+          {tab === "add" ? t("add.addWord") : t("add.reviewWords")}
         </h2>
         <p className="text-sm text-muted-foreground">
           {tab === "add"
-            ? "Поделитесь словом, которое вы знаете"
-            : "Помогите сообществу проверить новые слова"}
+            ? t("add.addSubtitle")
+            : t("add.reviewSubtitle")}
         </p>
       </div>
 
@@ -41,7 +43,7 @@ export default function AddPage() {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          Добавить
+          {t("add.tabAdd")}
         </button>
         <button
           onClick={() => setTab("review")}
@@ -52,7 +54,7 @@ export default function AddPage() {
           }`}
         >
           <ClipboardList size={14} />
-          Проверить
+          {t("add.tabReview")}
         </button>
       </div>
 
@@ -65,6 +67,7 @@ export default function AddPage() {
 
 function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"]> }) {
   const { setUser } = useUser();
+  const { t } = useLanguage();
   const [latinPamiri, setLatinPamiri] = useState("");
   const [cyrillicPamiri, setCyrillicPamiri] = useState("");
   const [english, setEnglish] = useState("");
@@ -132,13 +135,13 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
                 <Check size={32} className="text-primary" />
               </div>
             </div>
-            <p className="text-base font-semibold">Спасибо!</p>
+            <p className="text-base font-semibold">{t("add.thanks")}</p>
             <div className="flex items-center justify-center gap-1 text-primary font-bold">
               <Sparkles size={16} />
               <span>+50 XP</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Ваше слово отправлено на проверку сообществу
+              {t("add.sentForReview")}
             </p>
           </motion.div>
         ) : (
@@ -146,7 +149,7 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
             <Card>
               <CardContent className="pt-4 pb-4 space-y-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Памирский (латиница)</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t("add.pamiriLatin")}</label>
                   <Input
                     ref={latinRef}
                     data-testid="input-latin"
@@ -158,7 +161,7 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Памирский (кириллица)</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t("add.pamiriCyrillic")}</label>
                   <Input
                     ref={cyrillicRef}
                     data-testid="input-cyrillic"
@@ -170,7 +173,7 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Английский</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t("add.english")}</label>
                   <Input
                     data-testid="input-english"
                     placeholder="Перевод на английский"
@@ -181,7 +184,7 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Русский</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t("add.russian")}</label>
                   <Input
                     data-testid="input-russian"
                     placeholder="Перевод на русский"
@@ -192,10 +195,10 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Категория</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t("add.category")}</label>
                   <Select value={category} onValueChange={setCategory}>
                     <SelectTrigger data-testid="select-category" className="h-10">
-                      <SelectValue placeholder="Выберите категорию" />
+                      <SelectValue placeholder={t("add.selectCategory")} />
                     </SelectTrigger>
                     <SelectContent>
                       {allCategories.map(c => (
@@ -210,7 +213,7 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
             {latinPamiri && (
               <Card className="border-primary/20">
                 <CardContent className="pt-3 pb-3">
-                  <p className="text-xs text-muted-foreground mb-1">Предпросмотр</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("add.preview")}</p>
                   <p className="text-base font-bold">{latinPamiri}</p>
                   {cyrillicPamiri && <p className="text-sm text-muted-foreground">{cyrillicPamiri}</p>}
                   <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
@@ -227,12 +230,12 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
               onClick={() => submitMutation.mutate()}
               data-testid="button-submit-word"
             >
-              {submitMutation.isPending ? "..." : "Отправить (+50 XP)"}
+              {submitMutation.isPending ? "..." : t("add.submit")}
             </Button>
 
             {submitMutation.isError && (
               <p className="text-destructive text-xs text-center">
-                {submitMutation.error?.message || "Что-то пошло не так"}
+                {submitMutation.error?.message || t("add.error")}
               </p>
             )}
           </motion.div>
@@ -255,6 +258,7 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
 
 function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"]> }) {
   const { setUser } = useUser();
+  const { t } = useLanguage();
   const [index, setIndex] = useState(0);
   const [sessionXp, setSessionXp] = useState(0);
   const [xpFlash, setXpFlash] = useState(false);
@@ -315,21 +319,21 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
         </div>
         {totalWords === 0 ? (
           <>
-            <p className="text-base font-semibold">Нет слов для проверки</p>
+            <p className="text-base font-semibold">{t("add.noWordsToReview")}</p>
             <p className="text-sm text-muted-foreground">
-              Пока никто не добавил новых слов. Вернитесь позже!
+              {t("add.comeBackLater")}
             </p>
           </>
         ) : (
           <>
-            <p className="text-base font-semibold">Всё проверено!</p>
+            <p className="text-base font-semibold">{t("add.allReviewed")}</p>
             <p className="text-sm text-muted-foreground">
               Вы проверили {index} {index === 1 ? "слово" : index < 5 ? "слова" : "слов"}
             </p>
             {sessionXp > 0 && (
               <div className="flex items-center justify-center gap-1 text-primary font-bold text-lg">
                 <Sparkles size={18} />
-                <span>+{sessionXp} XP заработано</span>
+                <span>+{sessionXp} {t("add.xpEarned")}</span>
               </div>
             )}
           </>
@@ -344,7 +348,7 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
     <div className="space-y-4">
       {/* Progress header */}
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>{totalWords - index} слов ждут проверки</span>
+        <span>{totalWords - index} {t("add.wordsWaiting")}</span>
         <span className="font-medium">{index + 1} / {totalWords}</span>
       </div>
 
@@ -386,11 +390,11 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
               {/* Translations */}
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="space-y-0.5">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Английский</p>
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{t("add.english")}</p>
                   <p className="font-medium">{word.english}</p>
                 </div>
                 <div className="space-y-0.5">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Русский</p>
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{t("add.russian")}</p>
                   <p className="font-medium">{word.russian}</p>
                 </div>
               </div>
@@ -416,7 +420,7 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
 
       {/* Explanation */}
       <p className="text-xs text-center text-muted-foreground">
-        Это слово верное на памирском языке?
+        {t("add.isCorrect")}
       </p>
 
       {/* Vote buttons */}
@@ -428,7 +432,7 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
           onClick={() => voteMutation.mutate({ wordId: word.id, voteType: "down" })}
         >
           <ThumbsDown size={16} className="mr-2" />
-          Неверно
+          {t("add.incorrect")}
         </Button>
         <Button
           className="h-12 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white"
@@ -436,13 +440,13 @@ function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["u
           onClick={() => voteMutation.mutate({ wordId: word.id, voteType: "up" })}
         >
           <ThumbsUp size={16} className="mr-2" />
-          Верно
+          {t("add.correct")}
         </Button>
       </div>
 
       {/* XP info */}
       <p className="text-[11px] text-center text-muted-foreground">
-        +5 XP за каждое проверенное слово
+        {t("add.xpPerReview")}
       </p>
     </div>
   );

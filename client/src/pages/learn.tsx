@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CATEGORY_RU, type QuizQuestion, type Word } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,6 +15,7 @@ type View = "categories" | "quiz" | "match" | "results";
 
 export default function LearnPage() {
   const { user, setUser } = useUser();
+  const { t } = useLanguage();
   const [view, setView]   = useState<View>("categories");
   const [gameMode, setGameMode] = useState<"quiz" | "match">("quiz");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -228,8 +230,8 @@ export default function LearnPage() {
     return (
       <div className="pt-16 pb-20 px-4 max-w-lg mx-auto space-y-4">
         <div className="pt-4">
-          <h2 className="text-lg font-bold" data-testid="text-learn-title">Выберите категорию</h2>
-          <p className="text-sm text-muted-foreground">Проверьте свои знания</p>
+          <h2 className="text-lg font-bold" data-testid="text-learn-title">{t("learn.title")}</h2>
+          <p className="text-sm text-muted-foreground">{t("learn.subtitle")}</p>
         </div>
 
         {isLoading ? (
@@ -248,7 +250,7 @@ export default function LearnPage() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold">{CATEGORY_RU[cat.category] || cat.category}</p>
-                      <p className="text-xs text-muted-foreground">{cat.wordCount} слов</p>
+                      <p className="text-xs text-muted-foreground">{cat.wordCount} {t("learn.words")}</p>
                     </div>
 
                     {cat.unlocked && cat.wordCount >= 4 ? (
@@ -263,10 +265,10 @@ export default function LearnPage() {
                             startMatchMutation.mutate(cat.category);
                           }}
                           disabled={startMatchMutation.isPending}
-                          title="Соединить пары"
+                          title={t("learn.match")}
                         >
                           <Shuffle size={12} />
-                          Матч
+                          {t("learn.match")}
                         </Button>
                         {/* Quiz mode button */}
                         <Button
@@ -278,15 +280,15 @@ export default function LearnPage() {
                           }}
                           disabled={startQuizMutation.isPending}
                         >
-                          Тест
+                          {t("learn.test")}
                           <ArrowRight size={12} />
                         </Button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-1 text-muted-foreground shrink-0">
                         {cat.unlocked
-                          ? <span className="text-xs">мало слов</span>
-                          : <><Lock size={14} /><span className="text-xs">Ур. {cat.level}</span></>
+                          ? <span className="text-xs">{t("learn.fewWords")}</span>
+                          : <><Lock size={14} /><span className="text-xs">{t("learn.lvl")} {cat.level}</span></>
                         }
                       </div>
                     )}
@@ -314,7 +316,7 @@ export default function LearnPage() {
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
             data-testid="button-back-categories"
           >
-            <ChevronLeft size={16} /> Назад
+            <ChevronLeft size={16} /> {t("learn.back")}
           </button>
           <div className="space-y-1">
             <div className="flex justify-between text-xs text-muted-foreground">
@@ -335,7 +337,7 @@ export default function LearnPage() {
           >
             <Card className="mb-4">
               <CardContent className="pt-6 pb-6 text-center">
-                <p className="text-xs text-muted-foreground mb-2">Что означает?</p>
+                <p className="text-xs text-muted-foreground mb-2">{t("learn.whatMeans")}</p>
                 <p className="text-xl font-bold" data-testid="text-quiz-prompt">{q.prompt}</p>
               </CardContent>
             </Card>
@@ -383,7 +385,7 @@ export default function LearnPage() {
               data-testid="button-next"
               disabled={completeGameMutation.isPending}
             >
-              {currentQ >= questions.length - 1 ? "Завершить" : "Далее"}
+              {currentQ >= questions.length - 1 ? t("learn.finish") : t("learn.next")}
             </Button>
           </motion.div>
         )}
@@ -425,7 +427,7 @@ export default function LearnPage() {
             onClick={() => setView("categories")}
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
-            <ChevronLeft size={16} /> Назад
+            <ChevronLeft size={16} /> {t("learn.back")}
           </button>
           <div className="space-y-1">
             <div className="flex justify-between text-xs text-muted-foreground">
@@ -433,7 +435,7 @@ export default function LearnPage() {
                 <Shuffle size={12} />
                 {selectedCategory ? (CATEGORY_RU[selectedCategory] || selectedCategory) : ""}
               </span>
-              <span>Раунд {matchRound + 1}/{totalMatchRounds}</span>
+              <span>{t("learn.round")} {matchRound + 1}/{totalMatchRounds}</span>
             </div>
             <Progress
               value={(matchedIds.size / matchWords.length) * 100}
@@ -443,7 +445,7 @@ export default function LearnPage() {
         </div>
 
         <p className="text-xs text-center text-muted-foreground">
-          Нажмите слово слева, затем его перевод справа
+          {t("learn.matchInstruction")}
         </p>
 
         {/* Match grid */}
@@ -497,7 +499,7 @@ export default function LearnPage() {
         {/* Pair counter */}
         {matchedIds.size > 0 && (
           <p className="text-center text-xs text-muted-foreground">
-            {matchedIds.size} / {matchWords.length} пар
+            {matchedIds.size} / {matchWords.length} {t("learn.pairs")}
           </p>
         )}
       </div>
@@ -518,24 +520,24 @@ export default function LearnPage() {
         >
           <div className="text-5xl mb-2">{emoji}</div>
           <h2 className="text-xl font-bold" data-testid="text-quiz-score">
-            {resultScore}/{resultTotal} правильно
+            {resultScore}/{resultTotal} {t("learn.correct")}
           </h2>
 
           <Card>
             <CardContent className="pt-4 pb-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Получено XP</span>
+                <span className="text-muted-foreground">{t("learn.xpEarned")}</span>
                 <span className="font-bold text-primary" data-testid="text-xp-earned">+{quizResult.xpEarned} XP</span>
               </div>
               {quizResult.newLevel > (user?.level || 1) && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Новый уровень!</span>
-                  <span className="font-bold">Уровень {quizResult.newLevel}</span>
+                  <span className="text-muted-foreground">{t("learn.newLevel")}</span>
+                  <span className="font-bold">{t("home.level")} {quizResult.newLevel}</span>
                 </div>
               )}
               {quizResult.newUnlocks?.length > 0 && (
                 <div className="pt-2 border-t border-border">
-                  <p className="text-xs text-muted-foreground mb-1">Открыты новые категории:</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("learn.newCategories")}</p>
                   {quizResult.newUnlocks.map((cat: string) => (
                     <p key={cat} className="text-sm font-medium text-primary">{CATEGORY_RU[cat] || cat}</p>
                   ))}
@@ -543,7 +545,7 @@ export default function LearnPage() {
               )}
               {quizResult.newBadges?.length > 0 && (
                 <div className="pt-2 border-t border-border">
-                  <p className="text-xs text-muted-foreground mb-1">Новые значки:</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("learn.newBadges")}</p>
                   {quizResult.newBadges.map((b: string) => (
                     <p key={b} className="text-sm font-medium">{b.replace(/_/g, " ")}</p>
                   ))}
@@ -559,7 +561,7 @@ export default function LearnPage() {
               onClick={() => { setView("categories"); setQuizResult(null); }}
               data-testid="button-back-to-categories"
             >
-              Категории
+              {t("learn.categories")}
             </Button>
             <Button
               className="flex-1 h-11"
@@ -571,7 +573,7 @@ export default function LearnPage() {
               }}
               data-testid="button-retry"
             >
-              Ещё раз
+              {t("learn.retry")}
             </Button>
           </div>
         </motion.div>

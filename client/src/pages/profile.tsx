@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import type { Badge as BadgeType, XpLog } from "@shared/schema";
@@ -30,6 +31,7 @@ const BADGE_INFO: Record<string, { label: string; icon: typeof Star; description
 
 export default function ProfilePage() {
   const { user, setUser } = useUser();
+  const { t } = useLanguage();
   const [, navigate] = useLocation();
 
   const { data: stats, isLoading } = useQuery({
@@ -80,11 +82,11 @@ export default function ProfilePage() {
         </div>
         <h2 className="text-lg font-bold" data-testid="text-profile-name">{user.displayName}</h2>
         <p className="text-sm text-muted-foreground">
-          Уровень {user.level} — {levelTitle}
+          {t("profile.level")} {user.level} — {levelTitle}
         </p>
         {user.role === "moderator" && (
           <Badge variant="secondary" className="text-xs">
-            <Shield size={12} className="mr-1" /> Модератор
+            <Shield size={12} className="mr-1" /> {t("profile.moderator")}
           </Badge>
         )}
       </div>
@@ -97,12 +99,12 @@ export default function ProfilePage() {
       ) : (
         <div className="grid grid-cols-3 gap-2">
           {[
-            { label: "Всего XP", value: stats?.totalXp || user.totalXp, icon: Zap },
-            { label: "Серия", value: stats?.currentStreak || user.currentStreak, icon: Flame },
-            { label: "Макс. серия", value: stats?.longestStreak || user.longestStreak, icon: Trophy },
-            { label: "Изучено", value: stats?.wordsLearned || 0, icon: BookOpen },
-            { label: "Добавлено", value: stats?.wordsContributed || 0, icon: Award },
-            { label: "Ранг", value: `#${stats?.globalRank || "—"}`, icon: Medal },
+            { label: t("profile.totalXp"), value: stats?.totalXp || user.totalXp, icon: Zap },
+            { label: t("profile.streak"), value: stats?.currentStreak || user.currentStreak, icon: Flame },
+            { label: t("profile.maxStreak"), value: stats?.longestStreak || user.longestStreak, icon: Trophy },
+            { label: t("profile.learned"), value: stats?.wordsLearned || 0, icon: BookOpen },
+            { label: t("profile.contributed"), value: stats?.wordsContributed || 0, icon: Award },
+            { label: t("profile.rank"), value: `#${stats?.globalRank || "—"}`, icon: Medal },
           ].map((s, i) => {
             const Icon = s.icon;
             return (
@@ -120,7 +122,7 @@ export default function ProfilePage() {
 
       {/* Badges */}
       <div>
-        <h3 className="text-sm font-semibold mb-2">Значки</h3>
+        <h3 className="text-sm font-semibold mb-2">{t("profile.badges")}</h3>
         <div className="grid grid-cols-3 gap-2">
           {Object.entries(BADGE_INFO).map(([type, info]) => {
             const earned = earnedBadgeTypes.includes(type);
@@ -145,7 +147,7 @@ export default function ProfilePage() {
       {xpLog && xpLog.length > 0 && (
         <div>
           <h3 className="text-sm font-semibold mb-2">
-            Последние действия
+            {t("profile.recentActions")}
           </h3>
           <Card>
             <CardContent className="pt-3 pb-3 space-y-2">
@@ -167,7 +169,7 @@ export default function ProfilePage() {
         onClick={handleLogout}
         data-testid="button-logout"
       >
-        Выйти
+        {t("profile.logout")}
       </Button>
 
     </div>

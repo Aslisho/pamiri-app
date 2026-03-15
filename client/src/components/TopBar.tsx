@@ -1,13 +1,15 @@
 import { Link } from "wouter";
-import { Moon, Sun, Shield, User as UserIcon } from "lucide-react";
+import { Moon, Sun, Shield, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ZivLogo } from "./ZivLogo";
 import { useUser } from "@/contexts/UserContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function TopBar() {
   const { user } = useUser();
   const { theme, toggleTheme } = useTheme();
+  const { lang, toggleLang, t } = useLanguage();
 
   if (!user) return null;
 
@@ -22,6 +24,18 @@ export function TopBar() {
         </Link>
 
         <div className="flex items-center gap-1">
+          {/* Language toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleLang}
+            className="h-8 px-2 text-xs font-bold gap-1"
+            data-testid="lang-toggle"
+          >
+            <Languages size={14} />
+            {lang === "ru" ? t("lang.sgh") : t("lang.ru")}
+          </Button>
+
           <Button
             variant="ghost"
             size="icon"
