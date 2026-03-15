@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Check, X, Shield, Users, BookOpen, Trash2, UserX, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Check, X, Shield, Users, BookOpen, Trash2, UserX, ThumbsUp, ThumbsDown, Edit3 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Word, User } from "@shared/schema";
+import type { Word, User, WordSuggestion } from "@shared/schema";
 
-type Tab = "words" | "users";
+type Tab = "words" | "suggestions" | "users";
 
 export default function ModPage() {
   const { user } = useUser();
@@ -25,7 +25,8 @@ export default function ModPage() {
 
   const tabs: { id: Tab; label: string; icon: typeof Shield }[] = [
     { id: "words", label: "Слова", icon: BookOpen },
-    { id: "users", label: "Пользователи", icon: Users },
+    { id: "suggestions", label: "Исправления", icon: Edit3 },
+    { id: "users", label: "Юзеры", icon: Users },
   ];
 
   return (
@@ -55,6 +56,7 @@ export default function ModPage() {
       </div>
 
       {activeTab === "words" && <WordsTab />}
+      {activeTab === "suggestions" && <SuggestionsTab />}
       {activeTab === "users" && <UsersTab />}
     </div>
   );
@@ -178,7 +180,7 @@ function WordsTab() {
                   <div className="flex items-center gap-1 flex-wrap">
                     <Badge variant="outline" className="text-[10px]">{word.category}</Badge>
                     <span className="text-[10px] text-muted-foreground">{word.source}</span>
-                    {/* Community vote score — only shown for unverified community words */}
+                    {/* Community vote score */}
                     {!word.verified && word.source === "community" && (
                       <span
                         className={`text-[10px] font-semibold flex items-center gap-0.5 px-1.5 py-0.5 rounded-full ${
@@ -240,6 +242,158 @@ function WordsTab() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ===== SUGGESTIONS TAB ===== */
+function SuggestionsTab() {
+  const { data: suggestions, isLoading } = useQuery<(WordSuggestion & { originalWord?: Word })[]>({
+    queryKey: ["/api/admin/suggestions"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/admin/suggestions");
+      return res.json();
+    },
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async (suggestionId: number) => {
+      const res = await apiRequest("POST", `/api/suggestions/${suggestionId}/approve`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/suggestions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/words"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/words"] });
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async (suggestionId: number) => {
+      const res = await apiRequest("POST", `/api/suggestions/${suggestionId}/reject`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/suggestions"] });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 rounded-lg" />)}
+      </div>
+    );
+  }
+
+  if (!suggestions || suggestions.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground text-sm">
+        Нет предложенных исправлений
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="text-xs text-muted-foreground">
+        {suggestions.length} исправлений ожидают проверки
+      </div>
+      {suggestions.map(s => {
+        const orig = s.originalWord;
+        const changed = orig ? {
+          latin: s.latinPamiri !== orig.latinPamiri,
+          cyrillic: s.cyrillicPamiri !== orig.cyrillicPamiri,
+          english: s.english !== orig.english,
+          russian: s.russian !== orig.russian,
+        } : { latin: false, cyrillic: false, english: false, russian: false };
+
+        return (
+          <Card key={s.id}>
+            <CardContent className="pt-3 pb-3 space-y-2">
+              {/* Original word */}
+              {orig && (
+                <div className="space-y-1">
+                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Текущее:</span>
+                  <div className="text-xs grid grid-cols-2 gap-1">
+                    <div className={changed.latin ? "line-through text-muted-foreground" : ""}>
+                      <span className="text-muted-foreground">Лат: </span>{orig.latinPamiri}
+                    </div>
+                    <div className={changed.cyrillic ? "line-through text-muted-foreground" : ""}>
+                      <span className="text-muted-foreground">Кир: </span>{orig.cyrillicPamiri || "—"}
+                    </div>
+                    <div className={changed.english ? "line-through text-muted-foreground" : ""}>
+                      <span className="text-muted-foreground">EN: </span>{orig.english}
+                    </div>
+                    <div className={changed.russian ? "line-through text-muted-foreground" : ""}>
+                      <span className="text-muted-foreground">RU: </span>{orig.russian}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Suggested changes */}
+              <div className="space-y-1">
+                <span className="text-[10px] font-medium text-primary uppercase tracking-wider">Предложение:</span>
+                <div className="text-xs grid grid-cols-2 gap-1">
+                  <div className={changed.latin ? "font-bold text-green-700 dark:text-green-400" : ""}>
+                    <span className="text-muted-foreground">Лат: </span>{s.latinPamiri}
+                  </div>
+                  <div className={changed.cyrillic ? "font-bold text-green-700 dark:text-green-400" : ""}>
+                    <span className="text-muted-foreground">Кир: </span>{s.cyrillicPamiri || "—"}
+                  </div>
+                  <div className={changed.english ? "font-bold text-green-700 dark:text-green-400" : ""}>
+                    <span className="text-muted-foreground">EN: </span>{s.english}
+                  </div>
+                  <div className={changed.russian ? "font-bold text-green-700 dark:text-green-400" : ""}>
+                    <span className="text-muted-foreground">RU: </span>{s.russian}
+                  </div>
+                </div>
+              </div>
+
+              {/* Vote count + actions */}
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-xs font-bold flex items-center gap-0.5 px-2 py-0.5 rounded-full ${
+                      s.upvotesCount > 0
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                        : s.upvotesCount < 0
+                        ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {s.upvotesCount > 0 ? <ThumbsUp size={10} /> : s.upvotesCount < 0 ? <ThumbsDown size={10} /> : null}
+                    {s.upvotesCount > 0 ? `+${s.upvotesCount}` : s.upvotesCount === 0 ? "0" : s.upvotesCount}
+                  </span>
+                  {orig && (
+                    <Badge variant="outline" className="text-[10px]">{orig.category}</Badge>
+                  )}
+                </div>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    className="h-7 px-3 text-xs"
+                    onClick={() => approveMutation.mutate(s.id)}
+                    disabled={approveMutation.isPending}
+                  >
+                    <Check size={12} className="mr-0.5" /> Принять
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="h-7 px-3 text-xs"
+                    onClick={() => rejectMutation.mutate(s.id)}
+                    disabled={rejectMutation.isPending}
+                  >
+                    <X size={12} className="mr-0.5" /> Отклонить
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }
@@ -327,4 +481,3 @@ function UsersTab() {
     </div>
   );
 }
-

@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import {
   insertWordSchema, insertVoteSchema, insertNewsSchema,
+  insertSuggestionSchema, insertSuggestionVoteSchema,
   CATEGORY_UNLOCKS, getLevelFromXp, getXpForNextLevel,
   type QuizQuestion, type Word,
 } from "@shared/schema";
@@ -197,6 +198,88 @@ export async function registerRoutes(
     } catch (e: any) {
       return res.status(400).json({ error: e.message });
     }
+  });
+
+  // ===== WORD SUGGESTIONS =====
+
+  // Get suggestions for a word
+  app.get("/api/words/:id/suggestions", async (req, res) => {
+    const suggestions = await storage.getSuggestionsForWord(Number(req.params.id));
+    return res.json(suggestions);
+  });
+
+  // Submit a correction suggestion
+  app.post("/api/words/:id/suggest", async (req, res) => {
+    try {
+      const parsed = insertSuggestionSchema.parse({
+        wordId: Number(req.params.id),
+        userId: req.body.userId,
+        latinPamiri: req.body.latinPamiri,
+        cyrillicPamiri: req.body.cyrillicPamiri || "",
+        english: req.body.english,
+        russian: req.body.russian,
+      });
+
+      // Verify the word exists
+      const word = await storage.getWordById(parsed.wordId);
+      if (!word) return res.status(404).json({ error: "Word not found" });
+
+      const suggestion = await storage.createSuggestion(parsed);
+
+      // Award 5 XP for submitting a suggestion
+      await storage.updateUserXp(parsed.userId, 5);
+      await storage.updateUserStreak(parsed.userId);
+      await storage.createXpLog({
+        userId: parsed.userId,
+        actionType: "word_suggestion",
+        xpEarned: 5,
+        details: `Suggested correction for: ${word.latinPamiri}`,
+      });
+
+      return res.json({ suggestion, xpEarned: 5 });
+    } catch (e: any) {
+      return res.status(400).json({ error: e.message });
+    }
+  });
+
+  // Vote on a suggestion
+  app.post("/api/suggestions/:id/vote", async (req, res) => {
+    try {
+      const parsed = insertSuggestionVoteSchema.parse({
+        suggestionId: Number(req.params.id),
+        userId: req.body.userId,
+        voteType: req.body.voteType,
+      });
+
+      const suggestion = await storage.getSuggestionById(parsed.suggestionId);
+      if (!suggestion) return res.status(404).json({ error: "Suggestion not found" });
+
+      const vote = await storage.createSuggestionVote(parsed);
+      const updated = await storage.getSuggestionById(parsed.suggestionId);
+      return res.json({ vote, suggestion: updated });
+    } catch (e: any) {
+      return res.status(400).json({ error: e.message });
+    }
+  });
+
+  // Mod: approve a suggestion (applies changes to word)
+  app.post("/api/suggestions/:id/approve", async (req, res) => {
+    const word = await storage.approveSuggestion(Number(req.params.id));
+    if (!word) return res.status(404).json({ error: "Suggestion not found" });
+    return res.json(word);
+  });
+
+  // Mod: reject a suggestion
+  app.post("/api/suggestions/:id/reject", async (req, res) => {
+    const rejected = await storage.rejectSuggestion(Number(req.params.id));
+    if (!rejected) return res.status(404).json({ error: "Suggestion not found" });
+    return res.json({ success: true });
+  });
+
+  // Mod: get all pending suggestions
+  app.get("/api/admin/suggestions", async (_req, res) => {
+    const suggestions = await storage.getAllPendingSuggestions();
+    return res.json(suggestions);
   });
 
   // Progress

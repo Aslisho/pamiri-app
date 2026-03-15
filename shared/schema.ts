@@ -145,6 +145,48 @@ export interface PendingWordReview extends Word {
   downVotes: number;
 }
 
+// Word Suggestions schema (corrections submitted by users)
+export const insertSuggestionSchema = z.object({
+  wordId: z.number(),
+  userId: z.string(),
+  latinPamiri: z.string().min(1),
+  cyrillicPamiri: z.string().default(""),
+  english: z.string().min(1),
+  russian: z.string().min(1),
+});
+
+export type InsertSuggestion = z.infer<typeof insertSuggestionSchema>;
+
+export interface WordSuggestion {
+  id: number;
+  wordId: number;
+  userId: string;
+  latinPamiri: string;
+  cyrillicPamiri: string;
+  english: string;
+  russian: string;
+  upvotesCount: number;
+  status: string; // 'pending' | 'approved' | 'rejected'
+  createdAt: string;
+}
+
+// Suggestion Votes schema
+export const insertSuggestionVoteSchema = z.object({
+  suggestionId: z.number(),
+  userId: z.string(),
+  voteType: z.enum(["up", "down"]),
+});
+
+export type InsertSuggestionVote = z.infer<typeof insertSuggestionVoteSchema>;
+
+export interface SuggestionVote {
+  id: number;
+  suggestionId: number;
+  userId: string;
+  voteType: string;
+  createdAt: string;
+}
+
 // Quiz types
 export interface QuizQuestion {
   wordId: number;
