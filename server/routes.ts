@@ -135,6 +135,14 @@ export async function registerRoutes(
     return res.json(words);
   });
 
+  // Community review queue: unverified community words the user hasn't voted on yet
+  app.get("/api/words/pending-review", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    const words = await storage.getPendingCommunityWords(userId);
+    return res.json(words);
+  });
+
   app.post("/api/words/:id/approve", async (req, res) => {
     const word = await storage.approveWord(Number(req.params.id));
     if (!word) return res.status(404).json({ error: "Word not found" });
@@ -147,6 +155,10 @@ export async function registerRoutes(
     return res.json({ success: true });
   });
 
+  // Vote thresholds for community auto-verification
+  const APPROVE_THRESHOLD = 3;  // net +3 upvotes → auto-approve
+  const REJECT_THRESHOLD  = -2; // net -2 → auto-reject
+
   app.post("/api/words/:id/vote", async (req, res) => {
     try {
       const parsed = insertVoteSchema.parse({
@@ -154,9 +166,49 @@ export async function registerRoutes(
         userId: req.body.userId,
         voteType: req.body.voteType,
       });
+
+      // Check word state before vote (to detect if it's an unverified review)
+      const wordBefore = await storage.getWordById(parsed.wordId);
+      const isUnverifiedReview = wordBefore && !wordBefore.verified;
+
+      // Check whether user has already voted (first-time vote earns XP)
+      const existingVotes = isUnverifiedReview
+        ? await storage.getVotesForWord(parsed.wordId)
+        : [];
+      const isFirstVote = !existingVotes.some(v => v.userId === parsed.userId);
+
+      // Record the vote
       const vote = await storage.createVote(parsed);
+
+      // Award XP for first-time review of an unverified community word
+      let xpEarned = 0;
+      if (isUnverifiedReview && isFirstVote) {
+        xpEarned = 5;
+        await storage.updateUserXp(parsed.userId, xpEarned);
+        await storage.updateUserStreak(parsed.userId);
+        await storage.createXpLog({
+          userId: parsed.userId,
+          actionType: "word_review",
+          xpEarned,
+          details: `Reviewed community word: ${wordBefore!.latinPamiri}`,
+        });
+      }
+
+      // Fetch updated word (recalcVotes already ran inside createVote)
       const word = await storage.getWordById(parsed.wordId);
-      return res.json({ vote, word });
+      let autoAction: string | null = null;
+
+      if (word && !word.verified) {
+        if (word.upvotesCount >= APPROVE_THRESHOLD) {
+          await storage.approveWord(parsed.wordId);
+          autoAction = "approved";
+        } else if (word.upvotesCount <= REJECT_THRESHOLD) {
+          await storage.rejectWord(parsed.wordId);
+          autoAction = "rejected";
+        }
+      }
+
+      return res.json({ vote, word, autoAction, xpEarned });
     } catch (e: any) {
       return res.status(400).json({ error: e.message });
     }

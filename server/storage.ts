@@ -6,6 +6,7 @@ import {
   type XpLog, type InsertXpLog,
   type Badge, type InsertBadge,
   type NewsItem, type InsertNews,
+  type PendingWordReview,
   CATEGORY_UNLOCKS, getLevelFromXp,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
@@ -43,6 +44,7 @@ export interface IStorage {
   // Votes
   createVote(vote: InsertVote): Promise<WordVote>;
   getVotesForWord(wordId: number): Promise<WordVote[]>;
+  getPendingCommunityWords(userId: string): Promise<PendingWordReview[]>;
 
   // XP Log
   createXpLog(entry: InsertXpLog): Promise<XpLog>;
@@ -561,6 +563,31 @@ export class PostgresStorage implements IStorage {
     return rows.map(r => this.rowToVote(r));
   }
 
+  async getPendingCommunityWords(userId: string): Promise<PendingWordReview[]> {
+    const { rows } = await this.pool.query(
+      `SELECT w.*,
+              uv.vote_type AS user_vote,
+              COALESCE(u.cnt, 0)::int AS up_votes,
+              COALESCE(d.cnt, 0)::int AS down_votes
+       FROM words w
+       LEFT JOIN word_votes uv ON uv.word_id = w.id AND uv.user_id = $1
+       LEFT JOIN (SELECT word_id, COUNT(*) AS cnt FROM word_votes WHERE vote_type = 'up'   GROUP BY word_id) u ON u.word_id = w.id
+       LEFT JOIN (SELECT word_id, COUNT(*) AS cnt FROM word_votes WHERE vote_type = 'down' GROUP BY word_id) d ON d.word_id = w.id
+       WHERE w.verified = 0
+         AND w.source = 'community'
+         AND (w.added_by_user_id IS NULL OR w.added_by_user_id != $1)
+         AND uv.vote_type IS NULL
+       ORDER BY w.created_at ASC`,
+      [userId]
+    );
+    return rows.map(r => ({
+      ...this.rowToWord(r),
+      userVote: r.user_vote || null,
+      upVotes: parseInt(r.up_votes) || 0,
+      downVotes: parseInt(r.down_votes) || 0,
+    }));
+  }
+
   // ─── XP Log ─────────────────────────────────────────────────────
 
   async createXpLog(entry: InsertXpLog): Promise<XpLog> {
@@ -760,6 +787,10 @@ if (process.env.DATABASE_URL) {
     async createVote(vote: InsertVote): Promise<WordVote> { const now = new Date().toISOString(); const existing = this.db.prepare("SELECT * FROM word_votes WHERE word_id = ? AND user_id = ?").get(vote.wordId, vote.userId) as any; if (existing) { this.db.prepare("UPDATE word_votes SET vote_type = ? WHERE id = ?").run(vote.voteType, existing.id); this.recalcVotes(vote.wordId); const row = this.db.prepare("SELECT * FROM word_votes WHERE id = ?").get(existing.id) as any; return this.rowToVote(row); } const result = this.db.prepare(`INSERT INTO word_votes (word_id, user_id, vote_type, created_at) VALUES (?, ?, ?, ?)`).run(vote.wordId, vote.userId, vote.voteType, now); this.recalcVotes(vote.wordId); const row = this.db.prepare("SELECT * FROM word_votes WHERE id = ?").get(Number(result.lastInsertRowid)) as any; return this.rowToVote(row); }
     private recalcVotes(wordId: number) { const ups = (this.db.prepare("SELECT COUNT(*) as c FROM word_votes WHERE word_id = ? AND vote_type = 'up'").get(wordId) as any).c; const downs = (this.db.prepare("SELECT COUNT(*) as c FROM word_votes WHERE word_id = ? AND vote_type = 'down'").get(wordId) as any).c; this.db.prepare("UPDATE words SET upvotes_count = ? WHERE id = ?").run(ups - downs, wordId); }
     async getVotesForWord(wordId: number): Promise<WordVote[]> { const rows = this.db.prepare("SELECT * FROM word_votes WHERE word_id = ?").all(wordId) as any[]; return rows.map(r => this.rowToVote(r)); }
+    async getPendingCommunityWords(userId: string): Promise<PendingWordReview[]> {
+      const rows = this.db.prepare(`SELECT w.*, uv.vote_type AS user_vote, COALESCE(u.cnt, 0) AS up_votes, COALESCE(d.cnt, 0) AS down_votes FROM words w LEFT JOIN word_votes uv ON uv.word_id = w.id AND uv.user_id = ? LEFT JOIN (SELECT word_id, COUNT(*) AS cnt FROM word_votes WHERE vote_type = 'up' GROUP BY word_id) u ON u.word_id = w.id LEFT JOIN (SELECT word_id, COUNT(*) AS cnt FROM word_votes WHERE vote_type = 'down' GROUP BY word_id) d ON d.word_id = w.id WHERE w.verified = 0 AND w.source = 'community' AND (w.added_by_user_id IS NULL OR w.added_by_user_id != ?) AND uv.vote_type IS NULL ORDER BY w.created_at ASC`).all(userId, userId) as any[];
+      return rows.map(r => ({ ...this.rowToWord(r), userVote: r.user_vote || null, upVotes: r.up_votes || 0, downVotes: r.down_votes || 0 }));
+    }
     async createXpLog(entry: InsertXpLog): Promise<XpLog> { const now = new Date().toISOString(); const result = this.db.prepare(`INSERT INTO xp_logs (user_id, action_type, xp_earned, details, created_at) VALUES (?, ?, ?, ?, ?)`).run(entry.userId, entry.actionType, entry.xpEarned, entry.details || "", now); const row = this.db.prepare("SELECT * FROM xp_logs WHERE id = ?").get(Number(result.lastInsertRowid)) as any; return this.rowToXpLog(row); }
     async getXpLogForUser(userId: string): Promise<XpLog[]> { const rows = this.db.prepare("SELECT * FROM xp_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 50").all(userId) as any[]; return rows.map(r => this.rowToXpLog(r)); }
     async createBadge(badge: InsertBadge): Promise<Badge> { const now = new Date().toISOString(); this.db.prepare(`INSERT OR IGNORE INTO badges (user_id, badge_type, earned_at) VALUES (?, ?, ?)`).run(badge.userId, badge.badgeType, now); const row = this.db.prepare("SELECT * FROM badges WHERE user_id = ? AND badge_type = ?").get(badge.userId, badge.badgeType) as any; return this.rowToBadge(row); }

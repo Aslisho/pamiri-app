@@ -1,19 +1,73 @@
 import { useState, useRef } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PamiriKeyboard } from "@/components/PamiriKeyboard";
 import { useUser } from "@/contexts/UserContext";
 import { CreatedByAttribution } from "@/components/CreatedByAttribution";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { CATEGORY_UNLOCKS, CATEGORY_RU } from "@shared/schema";
-import { Check, Sparkles } from "lucide-react";
+import { CATEGORY_UNLOCKS, CATEGORY_RU, type PendingWordReview } from "@shared/schema";
+import { Check, Sparkles, CheckCircle, ThumbsUp, ThumbsDown, ClipboardList } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AddPage() {
-  const { user, setUser } = useUser();
+  const { user } = useUser();
+  const [tab, setTab] = useState<"add" | "review">("add");
+
+  if (!user) return null;
+
+  return (
+    <div className="pt-16 pb-20 px-4 max-w-lg mx-auto space-y-5">
+      <div className="pt-4">
+        <h2 className="text-lg font-bold">
+          {tab === "add" ? "Добавить слово" : "Проверить слова"}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          {tab === "add"
+            ? "Поделитесь словом, которое вы знаете"
+            : "Помогите сообществу проверить новые слова"}
+        </p>
+      </div>
+
+      {/* Tab switcher */}
+      <div className="grid grid-cols-2 rounded-xl overflow-hidden border border-border">
+        <button
+          onClick={() => setTab("add")}
+          className={`py-2.5 text-sm font-medium transition-colors ${
+            tab === "add"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Добавить
+        </button>
+        <button
+          onClick={() => setTab("review")}
+          className={`py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
+            tab === "review"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <ClipboardList size={14} />
+          Проверить
+        </button>
+      </div>
+
+      {tab === "add" ? <AddForm user={user} /> : <ReviewQueue user={user} />}
+
+      <CreatedByAttribution />
+    </div>
+  );
+}
+
+// ─── Add Form ───────────────────────────────────────────────────────────────
+
+function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"]> }) {
+  const { setUser } = useUser();
   const [latinPamiri, setLatinPamiri] = useState("");
   const [cyrillicPamiri, setCyrillicPamiri] = useState("");
   const [english, setEnglish] = useState("");
@@ -33,7 +87,7 @@ export default function AddPage() {
         russian,
         category,
         source: "community",
-        addedByUserId: user!.id,
+        addedByUserId: user.id,
       });
       return res.json();
     },
@@ -41,8 +95,7 @@ export default function AddPage() {
       setSubmitted(true);
       queryClient.invalidateQueries({ queryKey: ["/api/words"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      // Refetch user to get updated XP
-      apiRequest("GET", `/api/users/${user!.id}`).then(r => r.json()).then(u => setUser(u));
+      apiRequest("GET", `/api/users/${user.id}`).then(r => r.json()).then(u => setUser(u));
       setTimeout(() => {
         setSubmitted(false);
         setLatinPamiri("");
@@ -67,19 +120,8 @@ export default function AddPage() {
   const allCategories = Object.keys(CATEGORY_UNLOCKS);
   const canSubmit = latinPamiri.trim() && english.trim() && russian.trim() && category;
 
-  if (!user) return null;
-
   return (
-    <div className="pt-16 pb-20 px-4 max-w-lg mx-auto space-y-5">
-      <div className="pt-4">
-        <h2 className="text-lg font-bold" data-testid="text-add-title">
-          Добавить слово
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Поделитесь словом, которое вы знаете
-        </p>
-      </div>
-
+    <>
       <AnimatePresence>
         {submitted ? (
           <motion.div
@@ -93,26 +135,21 @@ export default function AddPage() {
                 <Check size={32} className="text-primary" />
               </div>
             </div>
-            <p className="text-base font-semibold">
-              Спасибо!
-            </p>
+            <p className="text-base font-semibold">Спасибо!</p>
             <div className="flex items-center justify-center gap-1 text-primary font-bold">
               <Sparkles size={16} />
               <span>+50 XP</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Ваше слово будет проверено модератором
+              Ваше слово отправлено на проверку сообществу
             </p>
           </motion.div>
         ) : (
           <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
             <Card>
               <CardContent className="pt-4 pb-4 space-y-3">
-                {/* Latin Pamiri */}
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">
-                    Памирский (латиница)
-                  </label>
+                  <label className="text-xs font-medium text-muted-foreground">Памирский (латиница)</label>
                   <Input
                     ref={latinRef}
                     data-testid="input-latin"
@@ -123,12 +160,8 @@ export default function AddPage() {
                     className="h-10"
                   />
                 </div>
-
-                {/* Cyrillic Pamiri */}
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">
-                    Памирский (кириллица)
-                  </label>
+                  <label className="text-xs font-medium text-muted-foreground">Памирский (кириллица)</label>
                   <Input
                     ref={cyrillicRef}
                     data-testid="input-cyrillic"
@@ -139,8 +172,6 @@ export default function AddPage() {
                     className="h-10"
                   />
                 </div>
-
-                {/* English */}
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-muted-foreground">Английский</label>
                   <Input
@@ -152,8 +183,6 @@ export default function AddPage() {
                     className="h-10"
                   />
                 </div>
-
-                {/* Russian */}
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-muted-foreground">Русский</label>
                   <Input
@@ -165,12 +194,8 @@ export default function AddPage() {
                     className="h-10"
                   />
                 </div>
-
-                {/* Category */}
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">
-                    Категория
-                  </label>
+                  <label className="text-xs font-medium text-muted-foreground">Категория</label>
                   <Select value={category} onValueChange={setCategory}>
                     <SelectTrigger data-testid="select-category" className="h-10">
                       <SelectValue placeholder="Выберите категорию" />
@@ -185,7 +210,6 @@ export default function AddPage() {
               </CardContent>
             </Card>
 
-            {/* Preview */}
             {latinPamiri && (
               <Card className="border-primary/20">
                 <CardContent className="pt-3 pb-3">
@@ -206,9 +230,7 @@ export default function AddPage() {
               onClick={() => submitMutation.mutate()}
               data-testid="button-submit-word"
             >
-              {submitMutation.isPending
-                ? "..."
-                : "Отправить (+50 XP)"}
+              {submitMutation.isPending ? "..." : "Отправить (+50 XP)"}
             </Button>
 
             {submitMutation.isError && (
@@ -220,7 +242,6 @@ export default function AddPage() {
         )}
       </AnimatePresence>
 
-      {/* Custom keyboard */}
       {focusedField && !submitted && (
         <div className="fixed bottom-16 left-0 right-0">
           <PamiriKeyboard
@@ -229,8 +250,203 @@ export default function AddPage() {
           />
         </div>
       )}
+    </>
+  );
+}
 
-      <CreatedByAttribution />
+// ─── Review Queue ────────────────────────────────────────────────────────────
+
+function ReviewQueue({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"]> }) {
+  const { setUser } = useUser();
+  const [index, setIndex] = useState(0);
+  const [sessionXp, setSessionXp] = useState(0);
+  const [xpFlash, setXpFlash] = useState(false);
+
+  const { data: words, isLoading } = useQuery<PendingWordReview[]>({
+    queryKey: ["/api/words/pending-review", user.id],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/words/pending-review?userId=${user.id}`);
+      return res.json();
+    },
+  });
+
+  const voteMutation = useMutation({
+    mutationFn: async ({ wordId, voteType }: { wordId: number; voteType: "up" | "down" }) => {
+      const res = await apiRequest("POST", `/api/words/${wordId}/vote`, {
+        userId: user.id,
+        voteType,
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data.xpEarned > 0) {
+        setSessionXp(prev => prev + data.xpEarned);
+        setXpFlash(true);
+        setTimeout(() => setXpFlash(false), 1200);
+        apiRequest("GET", `/api/users/${user.id}`).then(r => r.json()).then(u => setUser(u));
+      }
+      setIndex(prev => prev + 1);
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-48 rounded-xl" />
+        <div className="grid grid-cols-2 gap-3">
+          <Skeleton className="h-12 rounded-xl" />
+          <Skeleton className="h-12 rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
+  const totalWords = words?.length ?? 0;
+  const done = !words || totalWords === 0 || index >= totalWords;
+
+  if (done) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-center py-12 space-y-4"
+      >
+        <div className="flex justify-center">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <CheckCircle size={32} className="text-primary" />
+          </div>
+        </div>
+        {totalWords === 0 ? (
+          <>
+            <p className="text-base font-semibold">Нет слов для проверки</p>
+            <p className="text-sm text-muted-foreground">
+              Пока никто не добавил новых слов. Вернитесь позже!
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-base font-semibold">Всё проверено!</p>
+            <p className="text-sm text-muted-foreground">
+              Вы проверили {index} {index === 1 ? "слово" : index < 5 ? "слова" : "слов"}
+            </p>
+            {sessionXp > 0 && (
+              <div className="flex items-center justify-center gap-1 text-primary font-bold text-lg">
+                <Sparkles size={18} />
+                <span>+{sessionXp} XP заработано</span>
+              </div>
+            )}
+          </>
+        )}
+      </motion.div>
+    );
+  }
+
+  const word = words[index];
+
+  return (
+    <div className="space-y-4">
+      {/* Progress header */}
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>{totalWords - index} слов ждут проверки</span>
+        <span className="font-medium">{index + 1} / {totalWords}</span>
+      </div>
+
+      {/* XP flash */}
+      <AnimatePresence>
+        {xpFlash && (
+          <motion.div
+            key="xp-flash"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex items-center justify-center gap-1 text-primary font-bold text-sm"
+          >
+            <Sparkles size={14} />
+            +5 XP
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Word card */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={word.id}
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -30 }}
+          transition={{ duration: 0.2 }}
+        >
+          <Card>
+            <CardContent className="pt-5 pb-5 space-y-4">
+              {/* Pamiri word */}
+              <div>
+                <p className="text-2xl font-bold tracking-wide">{word.latinPamiri}</p>
+                {word.cyrillicPamiri && (
+                  <p className="text-base text-muted-foreground mt-0.5">{word.cyrillicPamiri}</p>
+                )}
+              </div>
+
+              {/* Translations */}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Английский</p>
+                  <p className="font-medium">{word.english}</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Русский</p>
+                  <p className="font-medium">{word.russian}</p>
+                </div>
+              </div>
+
+              {/* Category + current vote tally */}
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs bg-muted px-2 py-1 rounded-full">
+                  {CATEGORY_RU[word.category] || word.category}
+                </span>
+                <div className="flex gap-3 text-xs">
+                  <span className="flex items-center gap-1 text-green-500 font-medium">
+                    <ThumbsUp size={12} /> {word.upVotes}
+                  </span>
+                  <span className="flex items-center gap-1 text-red-500 font-medium">
+                    <ThumbsDown size={12} /> {word.downVotes}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Explanation */}
+      <p className="text-xs text-center text-muted-foreground">
+        Это слово верное на памирском языке?
+      </p>
+
+      {/* Vote buttons */}
+      <div className="grid grid-cols-2 gap-3">
+        <Button
+          variant="outline"
+          className="h-12 text-sm font-semibold border-red-500/40 text-red-500 hover:bg-red-500/10"
+          disabled={voteMutation.isPending}
+          onClick={() => voteMutation.mutate({ wordId: word.id, voteType: "down" })}
+        >
+          <ThumbsDown size={16} className="mr-2" />
+          Неверно
+        </Button>
+        <Button
+          className="h-12 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white"
+          disabled={voteMutation.isPending}
+          onClick={() => voteMutation.mutate({ wordId: word.id, voteType: "up" })}
+        >
+          <ThumbsUp size={16} className="mr-2" />
+          Верно
+        </Button>
+      </div>
+
+      {/* XP info */}
+      <p className="text-[11px] text-center text-muted-foreground">
+        +5 XP за каждое проверенное слово
+      </p>
     </div>
   );
 }

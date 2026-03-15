@@ -138,6 +138,13 @@ export interface NewsItem {
   createdAt: string;
 }
 
+// Community review type (Word + vote metadata)
+export interface PendingWordReview extends Word {
+  userVote: string | null;  // 'up' | 'down' | null
+  upVotes: number;
+  downVotes: number;
+}
+
 // Quiz types
 export interface QuizQuestion {
   wordId: number;
