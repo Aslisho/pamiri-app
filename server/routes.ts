@@ -177,9 +177,9 @@ export async function registerRoutes(
     return res.json(prog);
   });
 
-  // Normalize string for deduplication and comparison (trim + Unicode NFC)
+  // Normalize string for deduplication and comparison (trim + lowercase + Unicode NFC)
   const normalizeAnswer = (s: string) =>
-    (s || "").trim().normalize("NFC");
+    (s || "").trim().normalize("NFC").toLowerCase();
 
   // Quiz generation
   app.get("/api/quiz/:userId", async (req, res) => {
@@ -232,8 +232,14 @@ export async function registerRoutes(
       if (direction === "pamiri_to_meaning") {
         const pamiriText = script === "cyrillic" && word.cyrillicPamiri ? word.cyrillicPamiri : word.latinPamiri;
         const correctAnswer = `${word.russian} / ${word.english}`;
-        const wrongOptions = otherWords.map(w => `${w.russian} / ${w.english}`);
-        const options = [correctAnswer, ...wrongOptions].sort(() => Math.random() - 0.5);
+        const wrongOptions = otherWords
+          .map(w => `${w.russian} / ${w.english}`)
+          .filter(o => normalizeAnswer(o) !== normalizeAnswer(correctAnswer));
+        const seen = new Set<string>([normalizeAnswer(correctAnswer)]);
+        const uniqueWrong = wrongOptions.filter(o => {
+          const k = normalizeAnswer(o); if (seen.has(k)) return false; seen.add(k); return true;
+        });
+        const options = [correctAnswer, ...uniqueWrong].sort(() => Math.random() - 0.5);
 
         return {
           wordId: word.id,
@@ -245,8 +251,14 @@ export async function registerRoutes(
       } else {
         const meaningText = `${word.russian} / ${word.english}`;
         const correctAnswer = script === "cyrillic" && word.cyrillicPamiri ? word.cyrillicPamiri : word.latinPamiri;
-        const wrongOptions = otherWords.map(w => script === "cyrillic" && w.cyrillicPamiri ? w.cyrillicPamiri : w.latinPamiri);
-        const options = [correctAnswer, ...wrongOptions].sort(() => Math.random() - 0.5);
+        const wrongOptions = otherWords
+          .map(w => script === "cyrillic" && w.cyrillicPamiri ? w.cyrillicPamiri : w.latinPamiri)
+          .filter(o => normalizeAnswer(o) !== normalizeAnswer(correctAnswer));
+        const seen2 = new Set<string>([normalizeAnswer(correctAnswer)]);
+        const uniqueWrong2 = wrongOptions.filter(o => {
+          const k = normalizeAnswer(o); if (seen2.has(k)) return false; seen2.add(k); return true;
+        });
+        const options = [correctAnswer, ...uniqueWrong2].sort(() => Math.random() - 0.5);
 
         return {
           wordId: word.id,

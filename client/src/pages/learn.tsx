@@ -80,8 +80,8 @@ export default function LearnPage() {
     },
   });
 
-  // Normalize for comparison (trim + Unicode NFC) so correct answer always counts
-  const normalizeOption = (s: string) => (s || "").trim().normalize("NFC");
+  // Normalize for comparison (trim + lowercase + Unicode NFC) so correct answer always counts
+  const normalizeOption = (s: string) => (s || "").trim().normalize("NFC").toLowerCase();
 
   const handleAnswer = (answer: string) => {
     if (showFeedback) return;
