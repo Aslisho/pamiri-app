@@ -119,7 +119,14 @@ function WordsTab() {
   });
 
   const isLoading = filter === "pending" ? pendingLoading : allLoading;
-  const words = filter === "pending" ? pendingWords : allWords;
+  // Sort pending words by vote score (highest first) so mods see community-approved words on top
+  const rawWords = filter === "pending" ? pendingWords : allWords;
+  const words = rawWords
+    ? [...rawWords].sort((a, b) => {
+        if (filter === "pending") return b.upvotesCount - a.upvotesCount;
+        return 0; // keep default order for "all"
+      })
+    : rawWords;
 
   return (
     <div className="space-y-3">
