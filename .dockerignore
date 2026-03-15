@@ -1,0 +1,8 @@
+node_modules
+dist
+deve.db
+deve.db-wal
+deve.db-shm
+.git
+*.md
+skills

@@ -1,0 +1,2954 @@
+[
+  {
+    "latin_pamiri": "n ān",
+    "cyrillic_pamiri": "",
+    "english": "mother",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "t āt / d ōd",
+    "cyrillic_pamiri": "",
+    "english": "father",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "b ōb",
+    "cyrillic_pamiri": "",
+    "english": "grandfather",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "b ōbi",
+    "cyrillic_pamiri": "",
+    "english": "grandmother",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "vr ōd",
+    "cyrillic_pamiri": "",
+    "english": "brother",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "riz īn",
+    "cyrillic_pamiri": "",
+    "english": "daughter;",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "wife puc",
+    "cyrillic_pamiri": "",
+    "english": "son",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "am āk",
+    "cyrillic_pamiri": "",
+    "english": "uncle (father's",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "brother) am ā",
+    "cyrillic_pamiri": "",
+    "english": "aunt (father's",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "sister) bacgal ā",
+    "cyrillic_pamiri": "",
+    "english": "children",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "k ūdak / k ūdak ēn",
+    "cyrillic_pamiri": "",
+    "english": "child /",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "children mard ūm",
+    "cyrillic_pamiri": "",
+    "english": "people;",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "relatives s ōyib",
+    "cyrillic_pamiri": "",
+    "english": "owner; master;",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "husband s ōyibx ūna",
+    "cyrillic_pamiri": "",
+    "english": "host;",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "head of household x ē š",
+    "cyrillic_pamiri": "",
+    "english": "relative;",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "kinsman ams ōy ā",
+    "cyrillic_pamiri": "",
+    "english": "neighbour",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "d ōdej",
+    "cyrillic_pamiri": "",
+    "english": "stepfather",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "d ūm ōd",
+    "cyrillic_pamiri": "",
+    "english": "son-in-law",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "d ōya",
+    "cyrillic_pamiri": "",
+    "english": "wet nurse;",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "midwife abin",
+    "cyrillic_pamiri": "",
+    "english": "co-wife (wife of a polygamist, in relation to his other wives)",
+    "russian": "",
+    "category": "Family and Kinship",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "k āl",
+    "cyrillic_pamiri": "",
+    "english": "head",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "cim",
+    "cyrillic_pamiri": "",
+    "english": "eye",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "g ō š",
+    "cyrillic_pamiri": "",
+    "english": "ear",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "bini",
+    "cyrillic_pamiri": "",
+    "english": "nose",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "dahan",
+    "cyrillic_pamiri": "",
+    "english": "mouth",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ziv",
+    "cyrillic_pamiri": "",
+    "english": "tongue",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "dand",
+    "cyrillic_pamiri": "",
+    "english": "tooth",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "bun",
+    "cyrillic_pamiri": "",
+    "english": "chin;",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "beard par čam ēn",
+    "cyrillic_pamiri": "",
+    "english": "curls;",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "locks of hair dust",
+    "cyrillic_pamiri": "",
+    "english": "hand",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "p ā",
+    "cyrillic_pamiri": "",
+    "english": "foot;",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "leg perg",
+    "cyrillic_pamiri": "",
+    "english": "rib",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "bat",
+    "cyrillic_pamiri": "",
+    "english": "chest; bosom;",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "embrace šil",
+    "cyrillic_pamiri": "",
+    "english": "breast (of",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "a woman) dil",
+    "cyrillic_pamiri": "",
+    "english": "heart (in",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "figurative senses only) x ūn",
+    "cyrillic_pamiri": "",
+    "english": "blood",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "obi did ā",
+    "cyrillic_pamiri": "",
+    "english": "tear (from",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "the eye) did ā",
+    "cyrillic_pamiri": "",
+    "english": "eye (poetic)",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "silg",
+    "cyrillic_pamiri": "",
+    "english": "temple (of",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "the head) pernak",
+    "cyrillic_pamiri": "",
+    "english": "heel",
+    "russian": "",
+    "category": "The Human Body",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "č īd",
+    "cyrillic_pamiri": "",
+    "english": "house;",
+    "russian": "",
+    "category": "House and Home",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "home qi šl ōq",
+    "cyrillic_pamiri": "",
+    "english": "village;",
+    "russian": "",
+    "category": "House and Home",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "settlement diw ī / div ū",
+    "cyrillic_pamiri": "",
+    "english": "door",
+    "russian": "",
+    "category": "House and Home",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "div ī-zib ō",
+    "cyrillic_pamiri": "",
+    "english": "part",
+    "russian": "",
+    "category": "House and Home",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "of the dwelling behind the doorpost b ār-nex",
+    "cyrillic_pamiri": "",
+    "english": "main",
+    "russian": "",
+    "category": "House and Home",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "place of honour opposite the hearth di šid",
+    "cyrillic_pamiri": "",
+    "english": "roof",
+    "russian": "",
+    "category": "House and Home",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "di šid-naxtid",
+    "cyrillic_pamiri": "",
+    "english": "second day of the New Year ('going up to the roof')",
+    "russian": "",
+    "category": "House and Home",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "dup e č ā",
+    "cyrillic_pamiri": "",
+    "english": "small",
+    "russian": "",
+    "category": "House and Home",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "č ōg",
+    "cyrillic_pamiri": "",
+    "english": "fireplace;",
+    "russian": "",
+    "category": "House and Home",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "hearth bijind ān",
+    "cyrillic_pamiri": "",
+    "english": "chaff-store",
+    "russian": "",
+    "category": "House and Home",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "tuxad ān",
+    "cyrillic_pamiri": "",
+    "english": "sack",
+    "russian": "",
+    "category": "House and Home",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "for provisions čir ōyd ān",
+    "cyrillic_pamiri": "",
+    "english": "lamp-holder;",
+    "russian": "",
+    "category": "House and Home",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "zax",
+    "cyrillic_pamiri": "",
+    "english": "hell (borrowed)",
+    "russian": "",
+    "category": "House and Home",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "wil ūm",
+    "cyrillic_pamiri": "",
+    "english": "household belongings; luggage; all one's",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "worldly goods d ī",
+    "cyrillic_pamiri": "",
+    "english": "knife",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "s ēx",
+    "cyrillic_pamiri": "",
+    "english": "spit; skewer;",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "rod m ūx / m āx",
+    "cyrillic_pamiri": "",
+    "english": "nail",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "qamc ī",
+    "cyrillic_pamiri": "",
+    "english": "whip;",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "lash fay",
+    "cyrillic_pamiri": "",
+    "english": "wooden",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "shovel (for clearing snow) qec ī",
+    "cyrillic_pamiri": "",
+    "english": "scissors",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "barm āy",
+    "cyrillic_pamiri": "",
+    "english": "drill;",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "srand",
+    "cyrillic_pamiri": "",
+    "english": "plane; scraper;",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "spokeshave amb ūr / anb ūr",
+    "cyrillic_pamiri": "",
+    "english": "pincers; tongs;",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "pliers g īgurd",
+    "cyrillic_pamiri": "",
+    "english": "matches",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "stak ān",
+    "cyrillic_pamiri": "",
+    "english": "glass;",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "cup r ūcka",
+    "cyrillic_pamiri": "",
+    "english": "pen",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "baxm āl",
+    "cyrillic_pamiri": "",
+    "english": "velvet",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "t ōq ī",
+    "cyrillic_pamiri": "",
+    "english": "skullcap (tyubeteika) d üd",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ān",
+    "cyrillic_pamiri": "",
+    "english": "quiver (for arrows)",
+    "russian": "",
+    "category": "Household Objects and Tools",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "kurt ā",
+    "cyrillic_pamiri": "",
+    "english": "shirt",
+    "russian": "",
+    "category": "Clothing and Appearance",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "jir īb",
+    "cyrillic_pamiri": "",
+    "english": "stockings;",
+    "russian": "",
+    "category": "Clothing and Appearance",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "socks p ēx",
+    "cyrillic_pamiri": "",
+    "english": "high",
+    "russian": "",
+    "category": "Clothing and Appearance",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "soft boots of local make zib",
+    "cyrillic_pamiri": "",
+    "english": "gold",
+    "russian": "",
+    "category": "Clothing and Appearance",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "embroidery alw ān",
+    "cyrillic_pamiri": "",
+    "english": "bright red cotton cloth;",
+    "russian": "",
+    "category": "Clothing and Appearance",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "calico t ōq ī",
+    "cyrillic_pamiri": "",
+    "english": "skullcap",
+    "russian": "",
+    "category": "Clothing and Appearance",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "baxm āl",
+    "cyrillic_pamiri": "",
+    "english": "velvet",
+    "russian": "",
+    "category": "Clothing and Appearance",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "t ūd",
+    "cyrillic_pamiri": "",
+    "english": "mulberry",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ž ūvd",
+    "cyrillic_pamiri": "",
+    "english": "milk",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "m āsk ā",
+    "cyrillic_pamiri": "",
+    "english": "butter",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "r ūy ān",
+    "cyrillic_pamiri": "",
+    "english": "clarified butter;",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "cooking oil kl ē šc āk",
+    "cyrillic_pamiri": "",
+    "english": "millet",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "flatbread qam ō č",
+    "cyrillic_pamiri": "",
+    "english": "large",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "round loaf of bread qam ō č-tar īd",
+    "cyrillic_pamiri": "",
+    "english": "bread",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "soaked in clarified butter x ūmnig ūl",
+    "cyrillic_pamiri": "",
+    "english": "walnut-flour",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "soup with crumbled bread b āt",
+    "cyrillic_pamiri": "",
+    "english": "porridge; jelly;",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "gruel mar ūb-bat",
+    "cyrillic_pamiri": "",
+    "english": "cream",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "jelly alw ō",
+    "cyrillic_pamiri": "",
+    "english": "starchy",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "jelly (made from flour) gardd",
+    "cyrillic_pamiri": "",
+    "english": "bread;",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "food m ēwa",
+    "cyrillic_pamiri": "",
+    "english": "fruit",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "alfanj ōl",
+    "cyrillic_pamiri": "",
+    "english": "plum",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "angan",
+    "cyrillic_pamiri": "",
+    "english": "grape",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "aly ōk",
+    "cyrillic_pamiri": "",
+    "english": "cheese (=",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "Tajik panir) x ārb ūza",
+    "cyrillic_pamiri": "",
+    "english": "melon",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "piy ōz",
+    "cyrillic_pamiri": "",
+    "english": "onion",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "kartu šk",
+    "cyrillic_pamiri": "",
+    "english": "potato",
+    "russian": "",
+    "category": "Food and Drink",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "m āl",
+    "cyrillic_pamiri": "",
+    "english": "livestock; wealth;",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "cattle g ōw",
+    "cyrillic_pamiri": "",
+    "english": "cow; bull;",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ox xij",
+    "cyrillic_pamiri": "",
+    "english": "ox (for",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ploughing) aly ōw",
+    "cyrillic_pamiri": "",
+    "english": "co-ploughing —",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "v ōrz",
+    "cyrillic_pamiri": "",
+    "english": "mare",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "žit ūr",
+    "cyrillic_pamiri": "",
+    "english": "camel",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "m ūrg",
+    "cyrillic_pamiri": "",
+    "english": "hen;",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "chicken buz",
+    "cyrillic_pamiri": "",
+    "english": "goat",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "d ōq",
+    "cyrillic_pamiri": "",
+    "english": "moulting",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "hair and wool of animals amb ōr / anb ōr",
+    "cyrillic_pamiri": "",
+    "english": "grain",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "and flour in the storehouse amb ān / anb ān",
+    "cyrillic_pamiri": "",
+    "english": "unit of grain measure, approx. 80 kg (= 4",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "kaf če) zind ām",
+    "cyrillic_pamiri": "",
+    "english": "wheat d ösdiraw",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ī",
+    "cyrillic_pamiri": "",
+    "english": "harvest;",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "reaping dirawg ār",
+    "cyrillic_pamiri": "",
+    "english": "reaper;",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "harvester div ēnt ōw",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "winnow grain du ōb ā",
+    "cyrillic_pamiri": "",
+    "english": "second irrigation of fields",
+    "russian": "",
+    "category": "Agriculture and Livestock",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "āb",
+    "cyrillic_pamiri": "",
+    "english": "water (in",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "compounds) x āc",
+    "cyrillic_pamiri": "",
+    "english": "water",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "x ūz",
+    "cyrillic_pamiri": "",
+    "english": "wind",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "žinij",
+    "cyrillic_pamiri": "",
+    "english": "snow",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "dinyo",
+    "cyrillic_pamiri": "",
+    "english": "rain; snow;",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "bad weather (also",
+    "cyrillic_pamiri": "",
+    "english": "world;",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "universe) diny ōd āx",
+    "cyrillic_pamiri": "",
+    "english": "bad weather; rain;",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "snowfall āf",
+    "cyrillic_pamiri": "",
+    "english": "fire",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "al ōw",
+    "cyrillic_pamiri": "",
+    "english": "fire;",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "flame x āk",
+    "cyrillic_pamiri": "",
+    "english": "dust; earth;",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "soil al āf",
+    "cyrillic_pamiri": "",
+    "english": "grass;",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "hay al āfz ōr",
+    "cyrillic_pamiri": "",
+    "english": "meadow;",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "field d(i)r āxt",
+    "cyrillic_pamiri": "",
+    "english": "tree",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "diraxtz ōr",
+    "cyrillic_pamiri": "",
+    "english": "forest;",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "grove diyor",
+    "cyrillic_pamiri": "",
+    "english": "settlement; district; country;",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "homeland d ī",
+    "cyrillic_pamiri": "",
+    "english": "village;",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "hamlet amb āxc / anb āxc",
+    "cyrillic_pamiri": "",
+    "english": "juniper; archa tree;",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "fir ambaxc īn",
+    "cyrillic_pamiri": "",
+    "english": "made",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "of juniper or fir wood k ūh",
+    "cyrillic_pamiri": "",
+    "english": "mountain",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "t āx",
+    "cyrillic_pamiri": "",
+    "english": "cliff; gorge;",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ravine darya",
+    "cyrillic_pamiri": "",
+    "english": "river",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ča šm ā",
+    "cyrillic_pamiri": "",
+    "english": "spring; source",
+    "russian": "",
+    "category": "Nature and Landscape",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "v ōrj",
+    "cyrillic_pamiri": "",
+    "english": "horse",
+    "russian": "",
+    "category": "Animals and Birds",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "g ōw",
+    "cyrillic_pamiri": "",
+    "english": "cow;",
+    "russian": "",
+    "category": "Animals and Birds",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "bull buz",
+    "cyrillic_pamiri": "",
+    "english": "goat",
+    "russian": "",
+    "category": "Animals and Birds",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "gurj",
+    "cyrillic_pamiri": "",
+    "english": "wolf",
+    "russian": "",
+    "category": "Animals and Birds",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "r ūb ōh",
+    "cyrillic_pamiri": "",
+    "english": "fox",
+    "russian": "",
+    "category": "Animals and Birds",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "xirs",
+    "cyrillic_pamiri": "",
+    "english": "bear",
+    "russian": "",
+    "category": "Animals and Birds",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ab ūb āk",
+    "cyrillic_pamiri": "",
+    "english": "hoopoe bird (cf.",
+    "russian": "",
+    "category": "Animals and Birds",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "type of kite (bird of prey) m ūrg",
+    "cyrillic_pamiri": "",
+    "english": "hen",
+    "russian": "",
+    "category": "Animals and Birds",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ltoy",
+    "cyrillic_pamiri": "",
+    "english": "wolf-dog",
+    "russian": "",
+    "category": "Animals and Birds",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "hybrid ž ōw āk",
+    "cyrillic_pamiri": "",
+    "english": "beetle",
+    "russian": "",
+    "category": "Animals and Birds",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "div ūsk",
+    "cyrillic_pamiri": "",
+    "english": "snake",
+    "russian": "",
+    "category": "Animals and Birds",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "zar īg āk",
+    "cyrillic_pamiri": "",
+    "english": "partridge",
+    "russian": "",
+    "category": "Animals and Birds",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "m ēd",
+    "cyrillic_pamiri": "",
+    "english": "day",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ž āb",
+    "cyrillic_pamiri": "",
+    "english": "night",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "s ōl",
+    "cyrillic_pamiri": "",
+    "english": "year",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "m āh",
+    "cyrillic_pamiri": "",
+    "english": "month;",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "moon am āl",
+    "cyrillic_pamiri": "",
+    "english": "March;",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "the sign of Aries s ōya-d ēd",
+    "cyrillic_pamiri": "",
+    "english": "late afternoon;",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "before sunset p ē ž īn",
+    "cyrillic_pamiri": "",
+    "english": "afternoon",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "sub ūnill ō / subad ām",
+    "cyrillic_pamiri": "",
+    "english": "early morning;",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "at dawn x ābak ī",
+    "cyrillic_pamiri": "",
+    "english": "at",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "night s ārak ī",
+    "cyrillic_pamiri": "",
+    "english": "in",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "the morning v ēgak ī",
+    "cyrillic_pamiri": "",
+    "english": "in",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "the evening arm ēdak ī",
+    "cyrillic_pamiri": "",
+    "english": "every day;",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "daily aft ā",
+    "cyrillic_pamiri": "",
+    "english": "week",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "aft āyl",
+    "cyrillic_pamiri": "",
+    "english": "weekly",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "du šanb ī / du šanb ī",
+    "cyrillic_pamiri": "",
+    "english": "Monday bar öb",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ār-x āb",
+    "cyrillic_pamiri": "",
+    "english": "midnight",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "am ēx ā",
+    "cyrillic_pamiri": "",
+    "english": "always",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "d ōyim",
+    "cyrillic_pamiri": "",
+    "english": "always",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "d ūsg ūn ā",
+    "cyrillic_pamiri": "",
+    "english": "a little;",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "a bit d ūs-d ūs(ik)",
+    "cyrillic_pamiri": "",
+    "english": "little by little; gradually",
+    "russian": "",
+    "category": "Time and Seasons",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "yak / yi",
+    "cyrillic_pamiri": "",
+    "english": "one;",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "a (indefinite article) du",
+    "cyrillic_pamiri": "",
+    "english": "two",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "se",
+    "cyrillic_pamiri": "",
+    "english": "three",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "caw ōr",
+    "cyrillic_pamiri": "",
+    "english": "four",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "panj",
+    "cyrillic_pamiri": "",
+    "english": "five",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ša š",
+    "cyrillic_pamiri": "",
+    "english": "six",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "aft",
+    "cyrillic_pamiri": "",
+    "english": "seven",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "a št",
+    "cyrillic_pamiri": "",
+    "english": "eight",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "naw",
+    "cyrillic_pamiri": "",
+    "english": "nine",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "das",
+    "cyrillic_pamiri": "",
+    "english": "ten",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "panjo",
+    "cyrillic_pamiri": "",
+    "english": "fifty",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "duw ōzd ā / diw ōzd ā",
+    "cyrillic_pamiri": "",
+    "english": "twelve",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "dund",
+    "cyrillic_pamiri": "",
+    "english": "so much;",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "such a quantity yik-d ūnd",
+    "cyrillic_pamiri": "",
+    "english": "exactly this much;",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "precisely this amount am āg ī",
+    "cyrillic_pamiri": "",
+    "english": "all; everything;",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "completely lap",
+    "cyrillic_pamiri": "",
+    "english": "much; very;",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "s-ik",
+    "cyrillic_pamiri": "",
+    "english": "a very small amount;",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "the least bit b āz ī",
+    "cyrillic_pamiri": "",
+    "english": "some; several; sometimes",
+    "russian": "",
+    "category": "Numbers and Quantities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "yul(l) ā / katt ā",
+    "cyrillic_pamiri": "",
+    "english": "big; large;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "great dundik",
+    "cyrillic_pamiri": "",
+    "english": "small;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "little xub",
+    "cyrillic_pamiri": "",
+    "english": "good;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "well ba š ānd",
+    "cyrillic_pamiri": "",
+    "english": "good;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "beautiful b ē č ōr ā",
+    "cyrillic_pamiri": "",
+    "english": "poor; helpless;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "unfortunate saf ēd",
+    "cyrillic_pamiri": "",
+    "english": "white",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "qin",
+    "cyrillic_pamiri": "",
+    "english": "difficult;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "heavy ba-ra ōt",
+    "cyrillic_pamiri": "",
+    "english": "comfortable; at ease;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "well ba-raw āx",
+    "cyrillic_pamiri": "",
+    "english": "clever; capable;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "competent ba-z ēb",
+    "cyrillic_pamiri": "",
+    "english": "beautiful;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "elegant ba-sam ār",
+    "cyrillic_pamiri": "",
+    "english": "ripe;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "fully developed dir ūy",
+    "cyrillic_pamiri": "",
+    "english": "false; lying;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "wrong dirdst / durdst",
+    "cyrillic_pamiri": "",
+    "english": "correct; right;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "just d(i)r ūxt",
+    "cyrillic_pamiri": "",
+    "english": "rough; coarse; harsh;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "stiff al ōl",
+    "cyrillic_pamiri": "",
+    "english": "truthful; honest; righteous;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "lawful al ōlk ōr",
+    "cyrillic_pamiri": "",
+    "english": "conscientious;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "honest diler",
+    "cyrillic_pamiri": "",
+    "english": "brave; courageous;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "bold dil ōw ār",
+    "cyrillic_pamiri": "",
+    "english": "brave; courageous;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "bold dilb ār",
+    "cyrillic_pamiri": "",
+    "english": "(poetic) beautiful;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ravishing diny ōd ōr",
+    "cyrillic_pamiri": "",
+    "english": "rich;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "wealthy m ā šh ūr / m āl ūm",
+    "cyrillic_pamiri": "",
+    "english": "famous;",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "well-known all ā",
+    "cyrillic_pamiri": "",
+    "english": "piebald (of a horse — white with black patches)",
+    "russian": "",
+    "category": "Adjectives and Qualities",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "yat / yattow",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "come tiydow / tizd",
+    "cyrillic_pamiri": "",
+    "english": "to go;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to depart č īd ōw / č ūd",
+    "cyrillic_pamiri": "",
+    "english": "to do;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to make luvdow / l ūvd",
+    "cyrillic_pamiri": "",
+    "english": "to say; to speak;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to sing mint / m ēd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "see and ōyd / and ōydow",
+    "cyrillic_pamiri": "",
+    "english": "to stand up; to rise;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to set off sittow",
+    "cyrillic_pamiri": "",
+    "english": "to become;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to be (past/result) b āf / b īft",
+    "cyrillic_pamiri": "",
+    "english": "to be possible; to be able;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "can z ōxt / z ōxt ōw",
+    "cyrillic_pamiri": "",
+    "english": "to take; to seize; to buy p ər",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ōd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "sell fripton / fript",
+    "cyrillic_pamiri": "",
+    "english": "to arrive;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to reach dizd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "steal nivi št ōw",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "write niw ōzd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "play (a musical instrument) vazd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "run dil-dil č īd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to soothe;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to calm b ā č īd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "kiss dil- ōs ō b īd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to calm;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to console bar ām č īd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to tear off;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to dig up ba-s ēr sittow",
+    "cyrillic_pamiri": "",
+    "english": "to get fed up;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to be repulsed aga sittow",
+    "cyrillic_pamiri": "",
+    "english": "to wake up;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to awaken ag ā č īd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "wake (someone) b āf / b īft",
+    "cyrillic_pamiri": "",
+    "english": "to be possible;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to be able ak āk č īd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to tremble;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to shiver aks č īd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to be frightened;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to take fright d ō š č īd ōw / d ō š sittow",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "complain duo č īd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "pray al ōk č īd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to destroy;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to ruin al ōk sittow",
+    "cyrillic_pamiri": "",
+    "english": "to perish;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to be destroyed all ōz č īd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to jump;",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to leap d ōw š ēd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to set (animals) against each other; to incite to fight",
+    "russian": "",
+    "category": "Verbs and Actions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "w ūz-um",
+    "cyrillic_pamiri": "",
+    "english": "I (first-person pronoun + auxiliary 'am')",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "m ā š",
+    "cyrillic_pamiri": "",
+    "english": "we",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "tu",
+    "cyrillic_pamiri": "",
+    "english": "you (singular)",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "tam ā",
+    "cyrillic_pamiri": "",
+    "english": "you (plural)",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "yi / yid",
+    "cyrillic_pamiri": "",
+    "english": "he; she; it; this;",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "that di",
+    "cyrillic_pamiri": "",
+    "english": "he (oblique case,",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "short form of yid) as",
+    "cyrillic_pamiri": "",
+    "english": "from; since;",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "than (comparative) ar",
+    "cyrillic_pamiri": "",
+    "english": "in; into; at;",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "towards ba",
+    "cyrillic_pamiri": "",
+    "english": "to; for; with;",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "at (directional/dative preposition) pi",
+    "cyrillic_pamiri": "",
+    "english": "to; towards;",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "onto tar",
+    "cyrillic_pamiri": "",
+    "english": "towards; to;",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "for qatir",
+    "cyrillic_pamiri": "",
+    "english": "with;",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "together with b ē",
+    "cyrillic_pamiri": "",
+    "english": "without (prefix",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "and preposition) na",
+    "cyrillic_pamiri": "",
+    "english": "not (negation)",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ag ā / ag ār",
+    "cyrillic_pamiri": "",
+    "english": "if",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "didi / yidi",
+    "cyrillic_pamiri": "",
+    "english": "that; so that; as if;",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "because (conjunction) di",
+    "cyrillic_pamiri": "",
+    "english": "when;",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "if (subordinating conjunction) alqiss ā",
+    "cyrillic_pamiri": "",
+    "english": "so; in short; finally;",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "at last alb āt",
+    "cyrillic_pamiri": "",
+    "english": "probably; presumably;",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "it seems alb ātt ā",
+    "cyrillic_pamiri": "",
+    "english": "certainly;",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "without doubt dig ā(r)",
+    "cyrillic_pamiri": "",
+    "english": "more; besides; another;",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "other am-r ō",
+    "cyrillic_pamiri": "",
+    "english": "together; jointly; fellow-traveller",
+    "russian": "",
+    "category": "Pronouns, Particles and Postpositions",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "s ūr",
+    "cyrillic_pamiri": "",
+    "english": "wedding;",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "wedding feast nik ō",
+    "cyrillic_pamiri": "",
+    "english": "wedding; marriage;",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "the act of marrying off q āl īng",
+    "cyrillic_pamiri": "",
+    "english": "bride-price",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "bax-bust",
+    "cyrillic_pamiri": "",
+    "english": "wedding",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "gift maz ār / ōst ūn",
+    "cyrillic_pamiri": "",
+    "english": "shrine;",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "holy place panjt ān",
+    "cyrillic_pamiri": "",
+    "english": "the",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "Holy Five (Islamic invocation) gun ō",
+    "cyrillic_pamiri": "",
+    "english": "sin;",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "guilt d īn",
+    "cyrillic_pamiri": "",
+    "english": "faith;",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "religion duo",
+    "cyrillic_pamiri": "",
+    "english": "prayer;",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "supplication du ō-x ūn",
+    "cyrillic_pamiri": "",
+    "english": "one who recites prayers;",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "exorcist imam",
+    "cyrillic_pamiri": "",
+    "english": "imam;",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "religious leader amir",
+    "cyrillic_pamiri": "",
+    "english": "emir;",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ruler am āld ōr",
+    "cyrillic_pamiri": "",
+    "english": "official;",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "functionary barakall ō",
+    "cyrillic_pamiri": "",
+    "english": "praise be to God! bravo! (exclamation",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "of approval or encouragement) al-amdu-l-ill ō",
+    "cyrillic_pamiri": "",
+    "english": "praise be to God! (Arabic",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "loanword) akb ār",
+    "cyrillic_pamiri": "",
+    "english": "only",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "in",
+    "cyrillic_pamiri": "",
+    "english": "ul(l) ō akb ār — God is great!",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "alifb ē",
+    "cyrillic_pamiri": "",
+    "english": "primer; alphabet;",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ABC book millo",
+    "cyrillic_pamiri": "",
+    "english": "literate or educated person;",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "mullah al ōw-zibid āk",
+    "cyrillic_pamiri": "",
+    "english": "jumping over fire (performed on the last Wednesday of the month of Safar)",
+    "russian": "",
+    "category": "Social Life and Ceremonies",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "b āy",
+    "cyrillic_pamiri": "",
+    "english": "price; cost d ük",
+    "russian": "",
+    "category": "Trade and Money",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ān",
+    "cyrillic_pamiri": "",
+    "english": "shop; stall; bazaar d ük",
+    "russian": "",
+    "category": "Trade and Money",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ānd ōr",
+    "cyrillic_pamiri": "",
+    "english": "shopkeeper; merchant;",
+    "russian": "",
+    "category": "Trade and Money",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "trader p ūl",
+    "cyrillic_pamiri": "",
+    "english": "money",
+    "russian": "",
+    "category": "Trade and Money",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "bast",
+    "cyrillic_pamiri": "",
+    "english": "portion; allotment; norm;",
+    "russian": "",
+    "category": "Trade and Money",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "share dur",
+    "cyrillic_pamiri": "",
+    "english": "pearl",
+    "russian": "",
+    "category": "Trade and Money",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "alm ōs",
+    "cyrillic_pamiri": "",
+    "english": "diamond;",
+    "russian": "",
+    "category": "Trade and Money",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "gem durdga",
+    "cyrillic_pamiri": "",
+    "english": "hybrid; crossbreed (also figurative)",
+    "russian": "",
+    "category": "Trade and Money",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "al ām",
+    "cyrillic_pamiri": "",
+    "english": "sadness; grief;",
+    "russian": "",
+    "category": "Emotions and Mental States",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "sorrow alam ī",
+    "cyrillic_pamiri": "",
+    "english": "sad; sorrowful;",
+    "russian": "",
+    "category": "Emotions and Mental States",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "distressed dil-sard ī",
+    "cyrillic_pamiri": "",
+    "english": "indifference; negligence;",
+    "russian": "",
+    "category": "Emotions and Mental States",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "apathy duq āt",
+    "cyrillic_pamiri": "",
+    "english": "worry; fear; anxiety;",
+    "russian": "",
+    "category": "Emotions and Mental States",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "grief aj āb",
+    "cyrillic_pamiri": "",
+    "english": "wonderful; amazing;",
+    "russian": "",
+    "category": "Emotions and Mental States",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "surprisingly aj ōyib",
+    "cyrillic_pamiri": "",
+    "english": "wonderful; interesting;",
+    "russian": "",
+    "category": "Emotions and Mental States",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "remarkable aj āl",
+    "cyrillic_pamiri": "",
+    "english": "death; end; one's",
+    "russian": "",
+    "category": "Emotions and Mental States",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "appointed time al ō- āwl ī",
+    "cyrillic_pamiri": "",
+    "english": "shame! how shameful! (exclamation);",
+    "russian": "",
+    "category": "Emotions and Mental States",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to be ashamed ablag ī",
+    "cyrillic_pamiri": "",
+    "english": "stupidity;",
+    "russian": "",
+    "category": "Emotions and Mental States",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "foolishness abl ā",
+    "cyrillic_pamiri": "",
+    "english": "fool; foolish;",
+    "russian": "",
+    "category": "Emotions and Mental States",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "stupid b āy ēl ā š ēd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to rush joyfully;",
+    "russian": "",
+    "category": "Emotions and Mental States",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "kasal / b ēm ōr",
+    "cyrillic_pamiri": "",
+    "english": "sick;",
+    "russian": "",
+    "category": "Health and Illness",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ill gul āk",
+    "cyrillic_pamiri": "",
+    "english": "smallpox",
+    "russian": "",
+    "category": "Health and Illness",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "akim",
+    "cyrillic_pamiri": "",
+    "english": "doctor;",
+    "russian": "",
+    "category": "Health and Illness",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "physician duxt ūr",
+    "cyrillic_pamiri": "",
+    "english": "doctor;",
+    "russian": "",
+    "category": "Health and Illness",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "physician duxt ūr-x ūna",
+    "cyrillic_pamiri": "",
+    "english": "clinic;",
+    "russian": "",
+    "category": "Health and Illness",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "outpatient department d ōr ī",
+    "cyrillic_pamiri": "",
+    "english": "medicine;",
+    "russian": "",
+    "category": "Health and Illness",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "remedy d ōr ī-x ūna",
+    "cyrillic_pamiri": "",
+    "english": "pharmacy",
+    "russian": "",
+    "category": "Health and Illness",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "dar š-at dar š",
+    "cyrillic_pamiri": "",
+    "english": "illnesses",
+    "russian": "",
+    "category": "Health and Illness",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "and infirmities (set phrase) ba-ux yattow",
+    "cyrillic_pamiri": "",
+    "english": "to come to one's senses;",
+    "russian": "",
+    "category": "Health and Illness",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "al ā",
+    "cyrillic_pamiri": "",
+    "english": "they say; reportedly; apparently;",
+    "russian": "",
+    "category": "Speech and Communication",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "as if (hearsay marker) g āp č īd ōw / g āp sittow",
+    "cyrillic_pamiri": "",
+    "english": "to talk; to converse;",
+    "russian": "",
+    "category": "Speech and Communication",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to speak nib ē št ōw",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Speech and Communication",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "write gazit",
+    "cyrillic_pamiri": "",
+    "english": "newspaper",
+    "russian": "",
+    "category": "Speech and Communication",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "kit ōb",
+    "cyrillic_pamiri": "",
+    "english": "book",
+    "russian": "",
+    "category": "Speech and Communication",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "d ō ška",
+    "cyrillic_pamiri": "",
+    "english": "blackboard (modern)",
+    "russian": "",
+    "category": "Speech and Communication",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "niv ē št d ō šk ā-t ī",
+    "cyrillic_pamiri": "",
+    "english": "write on the board!",
+    "russian": "",
+    "category": "Speech and Communication",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "b ā-l āj ā",
+    "cyrillic_pamiri": "",
+    "english": "eloquently; expressively;",
+    "russian": "",
+    "category": "Speech and Communication",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "with feeling dis",
+    "cyrillic_pamiri": "",
+    "english": "so; in this way;",
+    "russian": "",
+    "category": "Speech and Communication",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "thus didi",
+    "cyrillic_pamiri": "",
+    "english": "(conjunction) that; so that; as if;",
+    "russian": "",
+    "category": "Speech and Communication",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "deskhat luvdow",
+    "cyrillic_pamiri": "",
+    "english": "to say; to speak; to sing",
+    "russian": "",
+    "category": "Speech and Communication",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "p ūnd",
+    "cyrillic_pamiri": "",
+    "english": "road;",
+    "russian": "",
+    "category": "Movement and Travel",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "path and ōyd",
+    "cyrillic_pamiri": "",
+    "english": "started; departed;",
+    "russian": "",
+    "category": "Movement and Travel",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "set off raw ūn",
+    "cyrillic_pamiri": "",
+    "english": "on the way;",
+    "russian": "",
+    "category": "Movement and Travel",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "going saw ōr",
+    "cyrillic_pamiri": "",
+    "english": "riding;",
+    "russian": "",
+    "category": "Movement and Travel",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "mounted on a horse dic ōr / duc ōr",
+    "cyrillic_pamiri": "",
+    "english": "meeting face to face;",
+    "russian": "",
+    "category": "Movement and Travel",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "towards each other dic ōr č īd ōw / sittow",
+    "cyrillic_pamiri": "",
+    "english": "to meet; to encounter;",
+    "russian": "",
+    "category": "Movement and Travel",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to come across bar-j ōy",
+    "cyrillic_pamiri": "",
+    "english": "in place; firmly; in one's",
+    "russian": "",
+    "category": "Movement and Travel",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "position bar-j ōy sittow",
+    "cyrillic_pamiri": "",
+    "english": "to stay in place; to settle;",
+    "russian": "",
+    "category": "Movement and Travel",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to stop p ēx īne p āst",
+    "cyrillic_pamiri": "",
+    "english": "on the way down;",
+    "russian": "",
+    "category": "Movement and Travel",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "downstream diw ēnt",
+    "cyrillic_pamiri": "",
+    "english": "to drive; to chase;",
+    "russian": "",
+    "category": "Movement and Travel",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to gallop vazd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to",
+    "russian": "",
+    "category": "Movement and Travel",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "run all ōz č īd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to jump;",
+    "russian": "",
+    "category": "Movement and Travel",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to leap duq-duq",
+    "cyrillic_pamiri": "",
+    "english": "trot (gait of a horse)",
+    "russian": "",
+    "category": "Movement and Travel",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "j āng",
+    "cyrillic_pamiri": "",
+    "english": "fight; quarrel;",
+    "russian": "",
+    "category": "War and Conflict",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "war d ōr",
+    "cyrillic_pamiri": "",
+    "english": "gallows;",
+    "russian": "",
+    "category": "War and Conflict",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "scaffold d ōr t īzd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to hang;",
+    "russian": "",
+    "category": "War and Conflict",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to execute by hanging duxm ān",
+    "cyrillic_pamiri": "",
+    "english": "enemy;",
+    "russian": "",
+    "category": "War and Conflict",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "foe duxman ī",
+    "cyrillic_pamiri": "",
+    "english": "hostile;",
+    "russian": "",
+    "category": "War and Conflict",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "hostility duxman ōy ī",
+    "cyrillic_pamiri": "",
+    "english": "enmity; hostility;",
+    "russian": "",
+    "category": "War and Conflict",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "quarrel d ōw š ēd ōw ( š ā š)",
+    "cyrillic_pamiri": "",
+    "english": "to incite to fight;",
+    "russian": "",
+    "category": "War and Conflict",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to set against one another barzang ī",
+    "cyrillic_pamiri": "",
+    "english": "bardzangi — evil spirit; giant;",
+    "russian": "",
+    "category": "War and Conflict",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "a person of large build almast ī",
+    "cyrillic_pamiri": "",
+    "english": "almaste —",
+    "russian": "",
+    "category": "War and Conflict",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "evil spirit aj īn ā",
+    "cyrillic_pamiri": "",
+    "english": "evil spirit; djinn",
+    "russian": "",
+    "category": "War and Conflict",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "ad āb",
+    "cyrillic_pamiri": "",
+    "english": "good manners; courtesy;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "politeness ad ōl āt",
+    "cyrillic_pamiri": "",
+    "english": "justice;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "fairness amk ōniy āt",
+    "cyrillic_pamiri": "",
+    "english": "possibility;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "opportunity amd ōd",
+    "cyrillic_pamiri": "",
+    "english": "help;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "assistance amb ōj",
+    "cyrillic_pamiri": "",
+    "english": "replacement; substitution;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "instead of diq āt",
+    "cyrillic_pamiri": "",
+    "english": "attention;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "care bard ōxt",
+    "cyrillic_pamiri": "",
+    "english": "endurance;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "patience bard ōxt č īd ōw",
+    "cyrillic_pamiri": "",
+    "english": "to endure;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to tolerate ba-waf ō",
+    "cyrillic_pamiri": "",
+    "english": "faithful; loyal;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "devoted b āy ēl ā",
+    "cyrillic_pamiri": "",
+    "english": "barely; just slightly;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "almost b āsi",
+    "cyrillic_pamiri": "",
+    "english": "sufficiency; b āsi č īd ōw —",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "to be sufficient b āz ī",
+    "cyrillic_pamiri": "",
+    "english": "some; several;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "sometimes b ē-ad āb",
+    "cyrillic_pamiri": "",
+    "english": "rude;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "impolite b ē-adab ī",
+    "cyrillic_pamiri": "",
+    "english": "rudeness;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "impoliteness b ē-d āst ā",
+    "cyrillic_pamiri": "",
+    "english": "without",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "a handle (of tools) b ēd ār āk",
+    "cyrillic_pamiri": "",
+    "english": "without a trace; pointlessly;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "in vain b ēd ārak ī",
+    "cyrillic_pamiri": "",
+    "english": "pointlessness;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "nonsense bar-d ūr ūy",
+    "cyrillic_pamiri": "",
+    "english": "falsely;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "dishonestly disid",
+    "cyrillic_pamiri": "",
+    "english": "roof;",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "in compounds",
+    "cyrillic_pamiri": "",
+    "english": "memory,",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "recollection dill ā",
+    "cyrillic_pamiri": "",
+    "english": "core; centre; middle part",
+    "russian": "",
+    "category": "Descriptive and Abstract Terms",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "suffix for adjectives (after vowels",
+    "cyrillic_pamiri": "",
+    "english": "-yak",
+    "russian": "",
+    "category": "Word-Formation Elements",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "forming time adverbs",
+    "cyrillic_pamiri": "",
+    "english": "ca-waxtak ī — at what time exactly; v ēgak ī — in the evening; s ārak ī — in the morning; x ābak ī —",
+    "russian": "",
+    "category": "Word-Formation Elements",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "at night -barf ā",
+    "cyrillic_pamiri": "",
+    "english": "second",
+    "russian": "",
+    "category": "Word-Formation Elements",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "element in compounds indicating the age of dogs",
+    "cyrillic_pamiri": "",
+    "english": "yak-barf ā — one-year-old; du-barf ā —",
+    "russian": "",
+    "category": "Word-Formation Elements",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "panjbarg ā -di",
+    "cyrillic_pamiri": "",
+    "english": "comparative",
+    "russian": "",
+    "category": "Word-Formation Elements",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "suffix",
+    "cyrillic_pamiri": "",
+    "english": "as f ūkaf yull ā-di — bigger than all; as f ūka š b ē č ōr ā-di —",
+    "russian": "",
+    "category": "Word-Formation Elements",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "owner of milk -d ūn",
+    "cyrillic_pamiri": "",
+    "english": "suffix",
+    "russian": "",
+    "category": "Word-Formation Elements",
+    "source": "zarubin"
+  },
+  {
+    "latin_pamiri": "forming names of containers",
+    "cyrillic_pamiri": "",
+    "english": "čir ōyd ān — lamp-holder; bijind ān — chaff-store; tuxad ān —",
+    "russian": "",
+    "category": "Word-Formation Elements",
+    "source": "zarubin"
+  }
+]

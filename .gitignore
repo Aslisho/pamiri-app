@@ -1,0 +1,6 @@
+node_modules
+dist
+deve.db
+deve.db-wal
+deve.db-shm
+*.log
