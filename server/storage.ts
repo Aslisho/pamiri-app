@@ -21,9 +21,10 @@ const { Pool } = pg;
 
 export interface IStorage {
   // Users
-  createUser(user: InsertUser): Promise<User>;
+  createUser(user: InsertUser, passwordHash?: string): Promise<User>;
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserPasswordHash(username: string): Promise<string | null>;
   updateUserXp(id: string, xp: number): Promise<User | undefined>;
   updateUserStreak(id: string): Promise<User | undefined>;
   updateUserPreferences(id: string, lang: string, script: string): Promise<User | undefined>;
@@ -48,7 +49,7 @@ export interface IStorage {
   // Votes
   createVote(vote: InsertVote): Promise<WordVote>;
   getVotesForWord(wordId: number): Promise<WordVote[]>;
-  getPendingCommunityWords(userId: string): Promise<PendingWordReview[]>;
+  getPendingCommunityWords(userId: string, includeVoted?: boolean): Promise<PendingWordReview[]>;
 
   // XP Log
   createXpLog(entry: InsertXpLog): Promise<XpLog>;
@@ -77,6 +78,7 @@ export interface IStorage {
   getSuggestionsForWord(wordId: number): Promise<WordSuggestion[]>;
   getSuggestionById(id: number): Promise<WordSuggestion | undefined>;
   createSuggestionVote(vote: InsertSuggestionVote): Promise<SuggestionVote>;
+  getSuggestionVotesForSuggestion(suggestionId: number): Promise<SuggestionVote[]>;
   approveSuggestion(id: number): Promise<Word | undefined>;
   rejectSuggestion(id: number): Promise<boolean>;
   getAllPendingSuggestions(): Promise<(WordSuggestion & { originalWord?: Word })[]>;
@@ -94,6 +96,9 @@ export class PostgresStorage implements IStorage {
       ssl: process.env.DATABASE_URL?.includes("render.com")
         ? { rejectUnauthorized: false }
         : undefined,
+    });
+    this.pool.on("error", (err) => {
+      console.error("Unexpected PostgreSQL pool error:", err.message);
     });
     this.initialized = this.init();
   }
@@ -114,6 +119,7 @@ export class PostgresStorage implements IStorage {
         id TEXT PRIMARY KEY,
         username TEXT UNIQUE NOT NULL,
         display_name TEXT NOT NULL,
+        password_hash TEXT NOT NULL DEFAULT '',
         preferred_language TEXT NOT NULL DEFAULT 'ru',
         preferred_script TEXT NOT NULL DEFAULT 'latin',
         role TEXT NOT NULL DEFAULT 'user',
@@ -209,6 +215,13 @@ export class PostgresStorage implements IStorage {
 
     // Add password column to users if it doesn't exist (migration)
     await this.pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS password TEXT`);
+    // Migrate: add password_hash column if missing (for existing databases)
+    await this.pool.query(`
+      DO $$ BEGIN
+        ALTER TABLE users ADD COLUMN password_hash TEXT NOT NULL DEFAULT '';
+      EXCEPTION WHEN duplicate_column THEN NULL;
+      END $$;
+    `);
 
     // Create indexes (using IF NOT EXISTS)
     await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_words_category ON words(category)`);
@@ -217,6 +230,10 @@ export class PostgresStorage implements IStorage {
     await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_xp_logs_user ON xp_logs(user_id)`);
     await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_badges_user ON badges(user_id)`);
     await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_users_xp ON users(total_xp DESC)`);
+    await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_votes_word ON word_votes(word_id)`);
+    await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_votes_user ON word_votes(user_id)`);
+    await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_suggestions_word ON word_suggestions(word_id)`);
+    await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_suggestion_votes_suggestion ON suggestion_votes(suggestion_id)`);
   }
 
   private async loadSeedData() {
@@ -396,7 +413,7 @@ export class PostgresStorage implements IStorage {
 
   // ─── Users ──────────────────────────────────────────────────────
 
-  async createUser(insert: InsertUser): Promise<User> {
+  async createUser(insert: InsertUser, passwordHash?: string): Promise<User> {
     const id = randomUUID();
     const now = new Date().toISOString();
     const role = insert.username === "kalkut2014" ? "moderator" : "user";
@@ -405,6 +422,9 @@ export class PostgresStorage implements IStorage {
       `INSERT INTO users (id, username, display_name, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at, password)
        VALUES ($1, $2, $3, $4, $5, $6, 0, 1, 0, 0, NULL, $7, $8)`,
       [id, insert.username, insert.displayName, insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now, hashedPw]
+      `INSERT INTO users (id, username, display_name, password_hash, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 1, 0, 0, NULL, $8)`,
+      [id, insert.username, insert.displayName, passwordHash || "", insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now]
     );
     return (await this.getUser(id))!;
   }
@@ -419,12 +439,18 @@ export class PostgresStorage implements IStorage {
     return rows[0] ? this.rowToUser(rows[0]) : undefined;
   }
 
+  async getUserPasswordHash(username: string): Promise<string | null> {
+    const { rows } = await this.pool.query("SELECT password_hash FROM users WHERE username = $1", [username]);
+    return rows[0] ? (rows[0].password_hash || null) : null;
+  }
+
   async updateUserXp(id: string, xp: number): Promise<User | undefined> {
-    const user = await this.getUser(id);
-    if (!user) return undefined;
-    const newXp = user.totalXp + xp;
-    const newLevel = getLevelFromXp(newXp);
-    await this.pool.query("UPDATE users SET total_xp = $1, level = $2 WHERE id = $3", [newXp, newLevel, id]);
+    // Atomic update to prevent race conditions
+    await this.pool.query("UPDATE users SET total_xp = total_xp + $1 WHERE id = $2", [xp, id]);
+    const { rows } = await this.pool.query("SELECT total_xp FROM users WHERE id = $1", [id]);
+    if (!rows[0]) return undefined;
+    const newLevel = getLevelFromXp(rows[0].total_xp);
+    await this.pool.query("UPDATE users SET level = $1 WHERE id = $2", [newLevel, id]);
     return this.getUser(id);
   }
 
@@ -632,7 +658,9 @@ export class PostgresStorage implements IStorage {
     return rows.map(r => this.rowToVote(r));
   }
 
-  async getPendingCommunityWords(userId: string): Promise<PendingWordReview[]> {
+  async getPendingCommunityWords(userId: string, includeVoted = false): Promise<PendingWordReview[]> {
+    const voteFilter = includeVoted ? '' : 'AND uv.vote_type IS NULL';
+    const orderBy = includeVoted ? 'ORDER BY w.upvotes_count DESC, w.created_at ASC' : 'ORDER BY w.created_at ASC';
     const { rows } = await this.pool.query(
       `SELECT w.*,
               uv.vote_type AS user_vote,
@@ -645,8 +673,8 @@ export class PostgresStorage implements IStorage {
        WHERE w.verified = 0
          AND w.source = 'community'
          AND (w.added_by_user_id IS NULL OR w.added_by_user_id != $1)
-         AND uv.vote_type IS NULL
-       ORDER BY w.created_at ASC`,
+         ${voteFilter}
+       ${orderBy}`,
       [userId]
     );
     return rows.map(r => ({
@@ -821,6 +849,13 @@ export class PostgresStorage implements IStorage {
     );
   }
 
+  async getSuggestionVotesForSuggestion(suggestionId: number): Promise<SuggestionVote[]> {
+    const { rows } = await this.pool.query(
+      "SELECT * FROM suggestion_votes WHERE suggestion_id = $1", [suggestionId]
+    );
+    return rows.map(r => this.rowToSuggestionVote(r));
+  }
+
   async approveSuggestion(id: number): Promise<Word | undefined> {
     const suggestion = await this.getSuggestionById(id);
     if (!suggestion) return undefined;
@@ -881,7 +916,12 @@ let storage: IStorage;
 if (process.env.DATABASE_URL) {
   console.log("Using PostgreSQL database");
   const pgStorage = new PostgresStorage();
-  pgStorage.ready().then(() => console.log("PostgreSQL tables initialized"));
+  pgStorage.ready()
+    .then(() => console.log("PostgreSQL tables initialized"))
+    .catch((err) => {
+      console.error("Failed to initialize PostgreSQL:", err.message);
+      process.exit(1);
+    });
   storage = pgStorage;
 } else {
   console.log("No DATABASE_URL found, falling back to SQLite");
@@ -897,12 +937,14 @@ if (process.env.DATABASE_URL) {
       this.db.pragma("journal_mode = WAL");
       this.db.pragma("foreign_keys = ON");
       this.initTables();
+      // Migrate: add password_hash column if missing (for existing databases)
+      try { this.db.exec("ALTER TABLE users ADD COLUMN password_hash TEXT NOT NULL DEFAULT ''"); } catch (_e) { /* column already exists */ }
       this.loadSeedData();
       this.updateSeedData();
     }
     private initTables() {
       this.db.exec(`
-        CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL, preferred_language TEXT NOT NULL DEFAULT 'ru', preferred_script TEXT NOT NULL DEFAULT 'latin', role TEXT NOT NULL DEFAULT 'user', total_xp INTEGER NOT NULL DEFAULT 0, level INTEGER NOT NULL DEFAULT 1, current_streak INTEGER NOT NULL DEFAULT 0, longest_streak INTEGER NOT NULL DEFAULT 0, last_active_date TEXT, created_at TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL, password_hash TEXT NOT NULL DEFAULT '', preferred_language TEXT NOT NULL DEFAULT 'ru', preferred_script TEXT NOT NULL DEFAULT 'latin', role TEXT NOT NULL DEFAULT 'user', total_xp INTEGER NOT NULL DEFAULT 0, level INTEGER NOT NULL DEFAULT 1, current_streak INTEGER NOT NULL DEFAULT 0, longest_streak INTEGER NOT NULL DEFAULT 0, last_active_date TEXT, created_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY AUTOINCREMENT, latin_pamiri TEXT NOT NULL, cyrillic_pamiri TEXT NOT NULL DEFAULT '', english TEXT NOT NULL, russian TEXT NOT NULL, category TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'community', added_by_user_id TEXT, verified INTEGER NOT NULL DEFAULT 0, upvotes_count INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS user_progress (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, word_id INTEGER NOT NULL, correct_count INTEGER NOT NULL DEFAULT 0, incorrect_count INTEGER NOT NULL DEFAULT 0, mastery_level INTEGER NOT NULL DEFAULT 0, last_reviewed_at TEXT, UNIQUE(user_id, word_id));
         CREATE TABLE IF NOT EXISTS word_votes (id INTEGER PRIMARY KEY AUTOINCREMENT, word_id INTEGER NOT NULL, user_id TEXT NOT NULL, vote_type TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(word_id, user_id));
@@ -917,6 +959,10 @@ if (process.env.DATABASE_URL) {
         CREATE INDEX IF NOT EXISTS idx_xp_logs_user ON xp_logs(user_id);
         CREATE INDEX IF NOT EXISTS idx_badges_user ON badges(user_id);
         CREATE INDEX IF NOT EXISTS idx_users_xp ON users(total_xp DESC);
+        CREATE INDEX IF NOT EXISTS idx_votes_word ON word_votes(word_id);
+        CREATE INDEX IF NOT EXISTS idx_votes_user ON word_votes(user_id);
+        CREATE INDEX IF NOT EXISTS idx_suggestions_word ON word_suggestions(word_id);
+        CREATE INDEX IF NOT EXISTS idx_suggestion_votes_suggestion ON suggestion_votes(suggestion_id);
       `);
       // Add password column if missing (migration)
       try { this.db.exec(`ALTER TABLE users ADD COLUMN password TEXT`); } catch (_) {}
@@ -956,8 +1002,10 @@ if (process.env.DATABASE_URL) {
     private rowToNews(row: any): NewsItem { return { id: row.id, title: row.title, content: row.content, authorId: row.author_id, createdAt: row.created_at }; }
 
     async createUser(insert: InsertUser): Promise<User> { const id = randomUUID(); const now = new Date().toISOString(); const role = insert.username === "kalkut2014" ? "moderator" : "user"; const hashedPw = insert.password ? PostgresStorage.hashPassword(insert.password) : null; this.db.prepare(`INSERT INTO users (id, username, display_name, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at, password) VALUES (?, ?, ?, ?, ?, ?, 0, 1, 0, 0, NULL, ?, ?)`).run(id, insert.username, insert.displayName, insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now, hashedPw); return (await this.getUser(id))!; }
+    async createUser(insert: InsertUser, passwordHash?: string): Promise<User> { const id = randomUUID(); const now = new Date().toISOString(); const role = insert.username === "kalkut2014" ? "moderator" : "user"; this.db.prepare(`INSERT INTO users (id, username, display_name, password_hash, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 1, 0, 0, NULL, ?)`).run(id, insert.username, insert.displayName, passwordHash || "", insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now); return (await this.getUser(id))!; }
     async getUser(id: string): Promise<User | undefined> { const row = this.db.prepare("SELECT * FROM users WHERE id = ?").get(id) as any; return row ? this.rowToUser(row) : undefined; }
     async getUserByUsername(username: string): Promise<User | undefined> { const row = this.db.prepare("SELECT * FROM users WHERE username = ?").get(username) as any; return row ? this.rowToUser(row) : undefined; }
+    async getUserPasswordHash(username: string): Promise<string | null> { const row = this.db.prepare("SELECT password_hash FROM users WHERE username = ?").get(username) as any; return row ? (row.password_hash || null) : null; }
     async updateUserXp(id: string, xp: number): Promise<User | undefined> { const user = await this.getUser(id); if (!user) return undefined; const newXp = user.totalXp + xp; const newLevel = getLevelFromXp(newXp); this.db.prepare("UPDATE users SET total_xp = ?, level = ? WHERE id = ?").run(newXp, newLevel, id); return this.getUser(id); }
     async updateUserStreak(id: string): Promise<User | undefined> { const user = await this.getUser(id); if (!user) return undefined; const today = new Date().toISOString().split("T")[0]; if (user.lastActiveDate === today) return user; const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0]; let newStreak: number; if (user.lastActiveDate === yesterday) { newStreak = user.currentStreak + 1; } else { newStreak = 1; } const newLongest = Math.max(newStreak, user.longestStreak); this.db.prepare("UPDATE users SET current_streak = ?, longest_streak = ?, last_active_date = ? WHERE id = ?").run(newStreak, newLongest, today, id); return this.getUser(id); }
     async updateUserPreferences(id: string, lang: string, script: string): Promise<User | undefined> { this.db.prepare("UPDATE users SET preferred_language = ?, preferred_script = ? WHERE id = ?").run(lang, script, id); return this.getUser(id); }
@@ -977,8 +1025,10 @@ if (process.env.DATABASE_URL) {
     async createVote(vote: InsertVote): Promise<WordVote> { const now = new Date().toISOString(); const existing = this.db.prepare("SELECT * FROM word_votes WHERE word_id = ? AND user_id = ?").get(vote.wordId, vote.userId) as any; if (existing) { this.db.prepare("UPDATE word_votes SET vote_type = ? WHERE id = ?").run(vote.voteType, existing.id); this.recalcVotes(vote.wordId); const row = this.db.prepare("SELECT * FROM word_votes WHERE id = ?").get(existing.id) as any; return this.rowToVote(row); } const result = this.db.prepare(`INSERT INTO word_votes (word_id, user_id, vote_type, created_at) VALUES (?, ?, ?, ?)`).run(vote.wordId, vote.userId, vote.voteType, now); this.recalcVotes(vote.wordId); const row = this.db.prepare("SELECT * FROM word_votes WHERE id = ?").get(Number(result.lastInsertRowid)) as any; return this.rowToVote(row); }
     private recalcVotes(wordId: number) { const ups = (this.db.prepare("SELECT COUNT(*) as c FROM word_votes WHERE word_id = ? AND vote_type = 'up'").get(wordId) as any).c; const downs = (this.db.prepare("SELECT COUNT(*) as c FROM word_votes WHERE word_id = ? AND vote_type = 'down'").get(wordId) as any).c; this.db.prepare("UPDATE words SET upvotes_count = ? WHERE id = ?").run(ups - downs, wordId); }
     async getVotesForWord(wordId: number): Promise<WordVote[]> { const rows = this.db.prepare("SELECT * FROM word_votes WHERE word_id = ?").all(wordId) as any[]; return rows.map(r => this.rowToVote(r)); }
-    async getPendingCommunityWords(userId: string): Promise<PendingWordReview[]> {
-      const rows = this.db.prepare(`SELECT w.*, uv.vote_type AS user_vote, COALESCE(u.cnt, 0) AS up_votes, COALESCE(d.cnt, 0) AS down_votes FROM words w LEFT JOIN word_votes uv ON uv.word_id = w.id AND uv.user_id = ? LEFT JOIN (SELECT word_id, COUNT(*) AS cnt FROM word_votes WHERE vote_type = 'up' GROUP BY word_id) u ON u.word_id = w.id LEFT JOIN (SELECT word_id, COUNT(*) AS cnt FROM word_votes WHERE vote_type = 'down' GROUP BY word_id) d ON d.word_id = w.id WHERE w.verified = 0 AND w.source = 'community' AND (w.added_by_user_id IS NULL OR w.added_by_user_id != ?) AND uv.vote_type IS NULL ORDER BY w.created_at ASC`).all(userId, userId) as any[];
+    async getPendingCommunityWords(userId: string, includeVoted = false): Promise<PendingWordReview[]> {
+      const voteFilter = includeVoted ? '' : 'AND uv.vote_type IS NULL';
+      const orderBy = includeVoted ? 'ORDER BY w.upvotes_count DESC, w.created_at ASC' : 'ORDER BY w.created_at ASC';
+      const rows = this.db.prepare(`SELECT w.*, uv.vote_type AS user_vote, COALESCE(u.cnt, 0) AS up_votes, COALESCE(d.cnt, 0) AS down_votes FROM words w LEFT JOIN word_votes uv ON uv.word_id = w.id AND uv.user_id = ? LEFT JOIN (SELECT word_id, COUNT(*) AS cnt FROM word_votes WHERE vote_type = 'up' GROUP BY word_id) u ON u.word_id = w.id LEFT JOIN (SELECT word_id, COUNT(*) AS cnt FROM word_votes WHERE vote_type = 'down' GROUP BY word_id) d ON d.word_id = w.id WHERE w.verified = 0 AND w.source = 'community' AND (w.added_by_user_id IS NULL OR w.added_by_user_id != ?) ${voteFilter} ${orderBy}`).all(userId, userId) as any[];
       return rows.map(r => ({ ...this.rowToWord(r), userVote: r.user_vote || null, upVotes: r.up_votes || 0, downVotes: r.down_votes || 0 }));
     }
     async createXpLog(entry: InsertXpLog): Promise<XpLog> { const now = new Date().toISOString(); const result = this.db.prepare(`INSERT INTO xp_logs (user_id, action_type, xp_earned, details, created_at) VALUES (?, ?, ?, ?, ?)`).run(entry.userId, entry.actionType, entry.xpEarned, entry.details || "", now); const row = this.db.prepare("SELECT * FROM xp_logs WHERE id = ?").get(Number(result.lastInsertRowid)) as any; return this.rowToXpLog(row); }
@@ -1000,6 +1050,7 @@ if (process.env.DATABASE_URL) {
     async getSuggestionById(id: number): Promise<WordSuggestion | undefined> { const row = this.db.prepare("SELECT * FROM word_suggestions WHERE id = ?").get(id) as any; return row ? this.rowToSuggestion(row) : undefined; }
     async createSuggestionVote(vote: InsertSuggestionVote): Promise<SuggestionVote> { const now = new Date().toISOString(); const existing = this.db.prepare("SELECT * FROM suggestion_votes WHERE suggestion_id = ? AND user_id = ?").get(vote.suggestionId, vote.userId) as any; if (existing) { this.db.prepare("UPDATE suggestion_votes SET vote_type = ? WHERE id = ?").run(vote.voteType, existing.id); this.recalcSuggestionVotes(vote.suggestionId); const row = this.db.prepare("SELECT * FROM suggestion_votes WHERE id = ?").get(existing.id) as any; return this.rowToSuggestionVote(row); } const result = this.db.prepare(`INSERT INTO suggestion_votes (suggestion_id, user_id, vote_type, created_at) VALUES (?, ?, ?, ?)`).run(vote.suggestionId, vote.userId, vote.voteType, now); this.recalcSuggestionVotes(vote.suggestionId); const row = this.db.prepare("SELECT * FROM suggestion_votes WHERE id = ?").get(Number(result.lastInsertRowid)) as any; return this.rowToSuggestionVote(row); }
     private recalcSuggestionVotes(suggestionId: number) { const ups = (this.db.prepare("SELECT COUNT(*) as c FROM suggestion_votes WHERE suggestion_id = ? AND vote_type = 'up'").get(suggestionId) as any).c; const downs = (this.db.prepare("SELECT COUNT(*) as c FROM suggestion_votes WHERE suggestion_id = ? AND vote_type = 'down'").get(suggestionId) as any).c; this.db.prepare("UPDATE word_suggestions SET upvotes_count = ? WHERE id = ?").run(ups - downs, suggestionId); }
+    async getSuggestionVotesForSuggestion(suggestionId: number): Promise<SuggestionVote[]> { const rows = this.db.prepare("SELECT * FROM suggestion_votes WHERE suggestion_id = ?").all(suggestionId) as any[]; return rows.map(r => this.rowToSuggestionVote(r)); }
     async approveSuggestion(id: number): Promise<Word | undefined> { const suggestion = await this.getSuggestionById(id); if (!suggestion) return undefined; this.db.prepare(`UPDATE words SET latin_pamiri = ?, cyrillic_pamiri = ?, english = ?, russian = ? WHERE id = ?`).run(suggestion.latinPamiri, suggestion.cyrillicPamiri, suggestion.english, suggestion.russian, suggestion.wordId); this.db.prepare("UPDATE word_suggestions SET status = 'approved' WHERE id = ?").run(id); this.db.prepare("UPDATE word_suggestions SET status = 'rejected' WHERE word_id = ? AND id != ? AND status = 'pending'").run(suggestion.wordId, id); return this.getWordById(suggestion.wordId); }
     async rejectSuggestion(id: number): Promise<boolean> { const result = this.db.prepare("UPDATE word_suggestions SET status = 'rejected' WHERE id = ?").run(id); return result.changes > 0; }
     async getAllPendingSuggestions(): Promise<(WordSuggestion & { originalWord?: Word })[]> { const rows = this.db.prepare(`SELECT s.*, w.latin_pamiri AS orig_latin, w.cyrillic_pamiri AS orig_cyrillic, w.english AS orig_english, w.russian AS orig_russian, w.category AS orig_category FROM word_suggestions s LEFT JOIN words w ON w.id = s.word_id WHERE s.status = 'pending' ORDER BY s.upvotes_count DESC, s.created_at ASC`).all() as any[]; return rows.map(r => ({ ...this.rowToSuggestion(r), originalWord: r.orig_latin ? { id: r.word_id, latinPamiri: r.orig_latin, cyrillicPamiri: r.orig_cyrillic, english: r.orig_english, russian: r.orig_russian, category: r.orig_category, source: "", addedByUserId: null, verified: true, upvotesCount: 0, createdAt: "" } as Word : undefined })); }

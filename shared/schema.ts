@@ -4,6 +4,7 @@ import { z } from "zod";
 export const insertUserSchema = z.object({
   username: z.string().min(1),
   displayName: z.string().min(1),
+  password: z.string().min(4).optional(),
   preferredLanguage: z.enum(["en", "ru"]).default("en"),
   preferredScript: z.enum(["latin", "cyrillic"]).default("latin"),
   password: z.string().optional(),
@@ -200,6 +201,9 @@ export interface QuizQuestion {
 }
 
 // Category unlock levels
+// Number of net upvotes required for a word to be considered "ready for approval"
+export const APPROVAL_THRESHOLD = 5;
+
 export const CATEGORY_UNLOCKS: Record<string, { level: number; xpRequired: number }> = {
   "Greetings and Basics": { level: 1, xpRequired: 0 },
   "Numbers and Quantities": { level: 2, xpRequired: 200 },

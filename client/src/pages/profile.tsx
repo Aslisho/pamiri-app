@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Flame, BookOpen, Star, Trophy, Award, Zap, Shield, Target, Medal } from "lucide-react";
+import { Flame, BookOpen, Star, Trophy, Award, Zap, Shield, Target, Medal, Languages } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ const BADGE_INFO: Record<string, { label: string; icon: typeof Star; description
 };
 
 export default function ProfilePage() {
-  const { user, setUser } = useUser();
+  const { user, setUser, logout } = useUser();
   const { t } = useLanguage();
   const [, navigate] = useLocation();
 
@@ -61,8 +61,8 @@ export default function ProfilePage() {
     enabled: !!user,
   });
 
-  const handleLogout = () => {
-    setUser(null);
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
   };
 
@@ -119,6 +119,58 @@ export default function ProfilePage() {
           })}
         </div>
       )}
+
+      {/* Script Preference */}
+      <div>
+        <h3 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+          <Languages size={14} className="text-primary" />
+          {t("profile.script")}
+        </h3>
+        <Card>
+          <CardContent className="pt-3 pb-3">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={user.preferredScript === "latin" ? "default" : "secondary"}
+                size="sm"
+                className="h-9 transition-all duration-200"
+                onClick={async () => {
+                  if (user.preferredScript === "latin") return;
+                  try {
+                    const res = await apiRequest("PUT", "/api/users/preferences", {
+                      preferredScript: "latin",
+                      preferredLanguage: user.preferredLanguage,
+                    });
+                    setUser(await res.json());
+                  } catch { /* ignore */ }
+                }}
+                data-testid="script-latin"
+              >
+                Латиница
+              </Button>
+              <Button
+                type="button"
+                variant={user.preferredScript === "cyrillic" ? "default" : "secondary"}
+                size="sm"
+                className="h-9 transition-all duration-200"
+                onClick={async () => {
+                  if (user.preferredScript === "cyrillic") return;
+                  try {
+                    const res = await apiRequest("PUT", "/api/users/preferences", {
+                      preferredScript: "cyrillic",
+                      preferredLanguage: user.preferredLanguage,
+                    });
+                    setUser(await res.json());
+                  } catch { /* ignore */ }
+                }}
+                data-testid="script-cyrillic"
+              >
+                Кириллица
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Badges */}
       <div>

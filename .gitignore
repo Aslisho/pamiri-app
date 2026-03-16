@@ -4,3 +4,6 @@ deve.db
 deve.db-wal
 deve.db-shm
 *.log
+.env
+.env.*
+!.env.example

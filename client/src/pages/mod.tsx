@@ -1,19 +1,20 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Check, X, Shield, Users, BookOpen, Trash2, UserX, ThumbsUp, ThumbsDown, Edit3 } from "lucide-react";
+import { Check, X, Shield, Users, BookOpen, Edit3, UserX } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { ReviewQueue } from "@/pages/add";
 import type { Word, User, WordSuggestion } from "@shared/schema";
 
-type Tab = "words" | "suggestions" | "users";
+type Tab = "review" | "suggestions" | "users";
 
 export default function ModPage() {
   const { user } = useUser();
-  const [activeTab, setActiveTab] = useState<Tab>("words");
+  const [activeTab, setActiveTab] = useState<Tab>("review");
 
   if (!user || user.role !== "moderator") {
     return (
@@ -24,7 +25,7 @@ export default function ModPage() {
   }
 
   const tabs: { id: Tab; label: string; icon: typeof Shield }[] = [
-    { id: "words", label: "Слова", icon: BookOpen },
+    { id: "review", label: "Слова", icon: BookOpen },
     { id: "suggestions", label: "Исправления", icon: Edit3 },
     { id: "users", label: "Юзеры", icon: Users },
   ];
@@ -55,193 +56,9 @@ export default function ModPage() {
         ))}
       </div>
 
-      {activeTab === "words" && <WordsTab />}
+      {activeTab === "review" && <ReviewQueue user={user} isModerator={true} />}
       {activeTab === "suggestions" && <SuggestionsTab />}
       {activeTab === "users" && <UsersTab />}
-    </div>
-  );
-}
-
-/* ===== WORDS TAB ===== */
-function WordsTab() {
-  const [filter, setFilter] = useState<"pending" | "all">("pending");
-
-  const { data: pendingWords, isLoading: pendingLoading } = useQuery<Word[]>({
-    queryKey: ["/api/words/pending"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", "/api/words/pending");
-      return res.json();
-    },
-  });
-
-  const { data: allWords, isLoading: allLoading } = useQuery<Word[]>({
-    queryKey: ["/api/admin/words"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", "/api/admin/words");
-      return res.json();
-    },
-    enabled: filter === "all",
-  });
-
-  const approveMutation = useMutation({
-    mutationFn: async (wordId: number) => {
-      const res = await apiRequest("POST", `/api/words/${wordId}/approve`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/words/pending"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/words"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/words"] });
-    },
-  });
-
-  const rejectMutation = useMutation({
-    mutationFn: async (wordId: number) => {
-      const res = await apiRequest("POST", `/api/words/${wordId}/reject`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/words/pending"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/words"] });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (wordId: number) => {
-      const res = await apiRequest("DELETE", `/api/admin/words/${wordId}`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/words"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/words"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/words/pending"] });
-    },
-  });
-
-  const isLoading = filter === "pending" ? pendingLoading : allLoading;
-  const words = filter === "pending" ? pendingWords : allWords;
-
-  return (
-    <div className="space-y-3">
-      <div className="flex gap-2">
-        <Button
-          size="sm"
-          variant={filter === "pending" ? "default" : "outline"}
-          onClick={() => setFilter("pending")}
-          className="text-xs"
-        >
-          На проверке {pendingWords ? `(${pendingWords.length})` : ""}
-        </Button>
-        <Button
-          size="sm"
-          variant={filter === "all" ? "default" : "outline"}
-          onClick={() => setFilter("all")}
-          className="text-xs"
-        >
-          Все слова {allWords ? `(${allWords.length})` : ""}
-        </Button>
-      </div>
-
-      {isLoading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 rounded-lg" />)}
-        </div>
-      ) : !words || words.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">
-          {filter === "pending" ? "Нет слов для проверки" : "Нет слов"}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {words.map(word => (
-            <Card key={word.id} data-testid={`word-${word.id}`}>
-              <CardContent className="pt-3 pb-3 space-y-2">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-sm font-bold truncate">{word.latinPamiri}</p>
-                      {word.cyrillicPamiri && (
-                        <span className="text-xs text-muted-foreground">/ {word.cyrillicPamiri}</span>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-1 text-xs">
-                      <div className="truncate"><span className="text-muted-foreground">EN: </span>{word.english}</div>
-                      <div className="truncate"><span className="text-muted-foreground">RU: </span>{word.russian}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 ml-2 shrink-0">
-                    {word.verified ? (
-                      <Badge variant="secondary" className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">✓</Badge>
-                    ) : (
-                      <Badge variant="secondary" className="text-[10px] bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300">Ожидает</Badge>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1 flex-wrap">
-                    <Badge variant="outline" className="text-[10px]">{word.category}</Badge>
-                    <span className="text-[10px] text-muted-foreground">{word.source}</span>
-                    {/* Community vote score */}
-                    {!word.verified && word.source === "community" && (
-                      <span
-                        className={`text-[10px] font-semibold flex items-center gap-0.5 px-1.5 py-0.5 rounded-full ${
-                          word.upvotesCount > 0
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
-                            : word.upvotesCount < 0
-                            ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                        title="Оценка сообщества"
-                      >
-                        {word.upvotesCount > 0 ? <ThumbsUp size={9} /> : word.upvotesCount < 0 ? <ThumbsDown size={9} /> : null}
-                        {word.upvotesCount > 0 ? `+${word.upvotesCount}` : word.upvotesCount === 0 ? "0 голосов" : word.upvotesCount}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex gap-1">
-                    {!word.verified && filter === "pending" && (
-                      <>
-                        <Button
-                          size="sm"
-                          className="h-7 px-2 text-xs"
-                          onClick={() => approveMutation.mutate(word.id)}
-                          disabled={approveMutation.isPending}
-                          data-testid={`approve-${word.id}`}
-                        >
-                          <Check size={12} className="mr-0.5" /> Да
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="h-7 px-2 text-xs"
-                          onClick={() => rejectMutation.mutate(word.id)}
-                          disabled={rejectMutation.isPending}
-                          data-testid={`reject-${word.id}`}
-                        >
-                          <X size={12} className="mr-0.5" /> Нет
-                        </Button>
-                      </>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2 text-xs text-destructive hover:text-destructive"
-                      onClick={() => {
-                        if (confirm("Удалить это слово?")) {
-                          deleteMutation.mutate(word.id);
-                        }
-                      }}
-                      disabled={deleteMutation.isPending}
-                      data-testid={`delete-word-${word.id}`}
-                    >
-                      <Trash2 size={12} />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -354,18 +171,6 @@ function SuggestionsTab() {
               {/* Vote count + actions */}
               <div className="flex items-center justify-between pt-1">
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`text-xs font-bold flex items-center gap-0.5 px-2 py-0.5 rounded-full ${
-                      s.upvotesCount > 0
-                        ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
-                        : s.upvotesCount < 0
-                        ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {s.upvotesCount > 0 ? <ThumbsUp size={10} /> : s.upvotesCount < 0 ? <ThumbsDown size={10} /> : null}
-                    {s.upvotesCount > 0 ? `+${s.upvotesCount}` : s.upvotesCount === 0 ? "0" : s.upvotesCount}
-                  </span>
                   {orig && (
                     <Badge variant="outline" className="text-[10px]">{orig.category}</Badge>
                   )}

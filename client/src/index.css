@@ -71,6 +71,16 @@
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
   --radius: .625rem;
+  --radius: .5rem;
+  --shadow-2xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --tracking-normal: 0em;
   --spacing: 0.25rem;
 
   /* Shadows — add depth to cards */
@@ -169,6 +179,55 @@
   --shadow-2xl: 0px 32px 64px hsl(224 47% 3% / 0.70);
 
   /* Derived borders */
+  --button-outline: rgba(255,255,255, .10);
+  --badge-outline: rgba(255,255,255, .05);
+  --opaque-button-border-intensity: 9;
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .09);
+  --background: 25 15% 10%;
+  --foreground: 30 15% 88%;
+  --border: 25 8% 20%;
+  --card: 25 12% 13%;
+  --card-foreground: 30 15% 88%;
+  --card-border: 25 10% 18%;
+  --sidebar: 25 12% 12%;
+  --sidebar-foreground: 30 15% 88%;
+  --sidebar-border: 25 8% 18%;
+  --sidebar-primary: 24 60% 55%;
+  --sidebar-primary-foreground: 30 25% 97%;
+  --sidebar-accent: 200 15% 22%;
+  --sidebar-accent-foreground: 30 15% 88%;
+  --sidebar-ring: 24 60% 55%;
+  --popover: 25 12% 14%;
+  --popover-foreground: 30 15% 88%;
+  --popover-border: 25 8% 20%;
+  --primary: 24 60% 55%;
+  --primary-foreground: 30 25% 97%;
+  --secondary: 25 10% 18%;
+  --secondary-foreground: 30 15% 88%;
+  --muted: 25 8% 20%;
+  --muted-foreground: 30 10% 55%;
+  --accent: 200 15% 22%;
+  --accent-foreground: 30 15% 88%;
+  --destructive: 0 65% 48%;
+  --destructive-foreground: 30 25% 97%;
+  --input: 25 8% 30%;
+  --ring: 24 60% 55%;
+  --chart-1: 24 60% 55%;
+  --chart-2: 43 74% 65%;
+  --chart-3: 200 25% 55%;
+  --chart-4: 140 25% 55%;
+  --chart-5: 24 50% 65%;
+  --shadow-2xs: 0 1px 2px 0 rgb(0 0 0 / 0.08);
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.12);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.15), 0 1px 2px -1px rgb(0 0 0 / 0.15);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.2), 0 8px 10px -6px rgb(0 0 0 / 0.2);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.4);
+
+  --sidebar-primary-border: hsl(var(--sidebar-primary));
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --sidebar-accent-border:  hsl(from hsl(var(--sidebar-accent))  h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --primary-border:         hsl(from hsl(var(--primary))          h s calc(l + var(--opaque-button-border-intensity)) / alpha);
@@ -434,5 +493,32 @@
   /* ── Card base shadow ── */
   .rounded-lg, .rounded-xl {
     box-shadow: var(--shadow-xs);
+  }
+}
+
+/* Login page animated gradient background */
+.login-bg {
+  background: linear-gradient(135deg,
+    hsl(var(--background)) 0%,
+    hsl(24 30% 94%) 30%,
+    hsl(30 25% 92%) 60%,
+    hsl(var(--background)) 100%
+  );
+}
+.dark .login-bg {
+  background: linear-gradient(135deg,
+    hsl(var(--background)) 0%,
+    hsl(24 15% 13%) 30%,
+    hsl(30 12% 11%) 60%,
+    hsl(var(--background)) 100%
+  );
+}
+
+/* Global smooth transitions for interactive elements */
+@layer base {
+  button:not([class*="transition"]),
+  a:not([class*="transition"]),
+  [role="button"]:not([class*="transition"]) {
+    transition: all 150ms ease;
   }
 }
