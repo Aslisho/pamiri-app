@@ -20,13 +20,18 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/auth/login", {
-        username: username.trim(),
-        password: password || undefined,
-        preferredLanguage: "ru",
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: username.trim(),
+          password: password || undefined,
+          preferredLanguage: "ru",
+        }),
+        credentials: "include",
       });
       if (!res.ok) {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         throw new Error(err.error || "Ошибка входа");
       }
       return res.json();

@@ -273,9 +273,8 @@ export function ReviewQueue({ user, isModerator = false }: {
   const { data: words, isLoading } = useQuery<PendingWordReview[]>({
     queryKey: ["/api/words/pending-review", user.id, queryKeyTag],
     queryFn: async () => {
-      const params = new URLSearchParams({ userId: user.id });
-      if (isModerator) params.set("includeVoted", "true");
-      const res = await apiRequest("GET", `/api/words/pending-review?${params}`);
+      const params = isModerator ? "?includeVoted=true" : "";
+      const res = await apiRequest("GET", `/api/words/pending-review${params}`);
       return res.json();
     },
   });

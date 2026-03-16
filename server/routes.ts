@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { randomBytes, scryptSync } from "crypto";
 import { storage } from "./storage";
@@ -9,10 +9,33 @@ import {
   type QuizQuestion, type Word,
 } from "@shared/schema";
 
-// Simple in-memory rate limiter for votes
+// ─── Session type augmentation ───────────────────────────────────────────────
+declare module "express-session" {
+  interface SessionData {
+    userId: string;
+    role: string;
+  }
+}
+
+// ─── Auth middleware ─────────────────────────────────────────────────────────
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!req.session?.userId) {
+    return res.status(401).json({ error: "Требуется авторизация" });
+  }
+  next();
+}
+
+function requireModerator(req: Request, res: Response, next: NextFunction) {
+  if (!req.session?.userId || req.session.role !== "moderator") {
+    return res.status(403).json({ error: "Доступ запрещён" });
+  }
+  next();
+}
+
+// ─── Rate limiters ───────────────────────────────────────────────────────────
 const voteRateMap = new Map<string, number[]>();
-const VOTE_RATE_LIMIT = 30; // max votes per window
-const VOTE_RATE_WINDOW = 60_000; // 1 minute
+const VOTE_RATE_LIMIT = 30;
+const VOTE_RATE_WINDOW = 60_000;
 
 function isRateLimited(userId: string): boolean {
   const now = Date.now();
@@ -23,9 +46,23 @@ function isRateLimited(userId: string): boolean {
   return false;
 }
 
-// Approval threshold: when a word reaches this net score, auto-approve
+// Login rate limiter: 10 attempts per IP per minute
+const loginRateMap = new Map<string, number[]>();
+const LOGIN_RATE_LIMIT = 10;
+const LOGIN_RATE_WINDOW = 60_000;
+
+function isLoginRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = (loginRateMap.get(ip) || []).filter(t => now - t < LOGIN_RATE_WINDOW);
+  if (timestamps.length >= LOGIN_RATE_LIMIT) return true;
+  timestamps.push(now);
+  loginRateMap.set(ip, timestamps);
+  return false;
+}
+
 const AUTO_APPROVE_THRESHOLD = 5;
 
+// ─── Password helpers ────────────────────────────────────────────────────────
 function hashPassword(password: string): string {
   const salt = randomBytes(16).toString("hex");
   const hash = scryptSync(password, salt, 64).toString("hex");
@@ -39,14 +76,21 @@ function verifyPassword(password: string, stored: string): boolean {
   return hash === attempt;
 }
 
+// ─── Routes ──────────────────────────────────────────────────────────────────
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
 
-  // Auth
+  // ===== AUTH ENDPOINTS =====
+
   app.post("/api/auth/login", async (req, res) => {
     try {
+      const ip = req.ip || req.socket.remoteAddress || "unknown";
+      if (isLoginRateLimited(ip)) {
+        return res.status(429).json({ error: "Слишком много попыток. Подождите минуту." });
+      }
+
       const { username, password, preferredLanguage, preferredScript } = req.body;
       if (!username || typeof username !== "string") {
         return res.status(400).json({ error: "Username is required" });
@@ -54,7 +98,6 @@ export async function registerRoutes(
 
       let user = await storage.getUserByUsername(username.trim());
       if (user) {
-        // Existing user: verify password if they have one set
         const storedHash = await storage.getUserPasswordHash(username.trim());
         if (storedHash && password) {
           if (!verifyPassword(password, storedHash)) {
@@ -63,7 +106,6 @@ export async function registerRoutes(
         } else if (storedHash && !password) {
           return res.status(401).json({ error: "Требуется пароль" });
         }
-        // Password OK or legacy user (no password set)
         if (preferredLanguage || preferredScript) {
           user = (await storage.updateUserPreferences(
             user.id,
@@ -71,10 +113,13 @@ export async function registerRoutes(
             preferredScript || user.preferredScript
           ))!;
         }
+        // Set session
+        req.session.userId = user.id;
+        req.session.role = user.role;
         return res.json(user);
       }
 
-      // New user: create with password hash
+      // New user
       const pwHash = password ? hashPassword(password) : "";
       user = await storage.createUser({
         username: username.trim(),
@@ -82,13 +127,38 @@ export async function registerRoutes(
         preferredLanguage: preferredLanguage || "ru",
         preferredScript: preferredScript || "latin",
       }, pwHash);
+      // Set session
+      req.session.userId = user.id;
+      req.session.role = user.role;
       return res.json(user);
     } catch (e: any) {
       return res.status(500).json({ error: e.message });
     }
   });
 
-  // Users
+  // Restore session on page reload
+  app.get("/api/auth/me", async (req, res) => {
+    if (!req.session?.userId) {
+      return res.status(401).json({ error: "Not logged in" });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      req.session.destroy(() => {});
+      return res.status(401).json({ error: "User not found" });
+    }
+    return res.json(user);
+  });
+
+  // Logout
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy(() => {
+      res.clearCookie("connect.sid");
+      return res.json({ success: true });
+    });
+  });
+
+  // ===== USER ENDPOINTS =====
+
   app.get("/api/users/:id", async (req, res) => {
     const user = await storage.getUser(req.params.id);
     if (!user) return res.status(404).json({ error: "User not found" });
@@ -115,12 +185,25 @@ export async function registerRoutes(
     });
   });
 
+  // Update preferences (authenticated)
+  app.put("/api/users/preferences", requireAuth, async (req, res) => {
+    const { preferredLanguage, preferredScript } = req.body;
+    const user = await storage.updateUserPreferences(
+      req.session.userId!,
+      preferredLanguage,
+      preferredScript,
+    );
+    if (!user) return res.status(404).json({ error: "User not found" });
+    return res.json(user);
+  });
+
   app.get("/api/leaderboard", async (_req, res) => {
     const users = await storage.getLeaderboard();
     return res.json(users);
   });
 
-  // Words
+  // ===== WORDS =====
+
   app.get("/api/words", async (req, res) => {
     const category = req.query.category as string | undefined;
     if (category) {
@@ -141,31 +224,32 @@ export async function registerRoutes(
     return res.json(cats);
   });
 
-  app.post("/api/words", async (req, res) => {
+  // Submit a word (authenticated — userId from session)
+  app.post("/api/words", requireAuth, async (req, res) => {
     try {
+      const userId = req.session.userId!;
       const parsed = insertWordSchema.parse({
         ...req.body,
         source: "community",
+        addedByUserId: userId,
       });
       const word = await storage.createWord(parsed);
 
       // Award 50 XP for contributing
-      if (parsed.addedByUserId) {
-        await storage.updateUserXp(parsed.addedByUserId, 50);
-        await storage.createXpLog({
-          userId: parsed.addedByUserId,
-          actionType: "word_contribution",
-          xpEarned: 50,
-          details: `Contributed word: ${parsed.latinPamiri}`,
-        });
-        await storage.updateUserStreak(parsed.addedByUserId);
-        // Check word warrior badge
-        const allWords = await storage.getAllVerifiedWords();
-        const unverified = await storage.getUnverifiedWords();
-        const userWords = [...allWords, ...unverified].filter(w => w.addedByUserId === parsed.addedByUserId);
-        if (userWords.length >= 10 && !(await storage.hasBadge(parsed.addedByUserId, "word_warrior"))) {
-          await storage.createBadge({ userId: parsed.addedByUserId, badgeType: "word_warrior" });
-        }
+      await storage.updateUserXp(userId, 50);
+      await storage.createXpLog({
+        userId,
+        actionType: "word_contribution",
+        xpEarned: 50,
+        details: `Contributed word: ${parsed.latinPamiri}`,
+      });
+      await storage.updateUserStreak(userId);
+      // Check word warrior badge
+      const allWords = await storage.getAllVerifiedWords();
+      const unverified = await storage.getUnverifiedWords();
+      const userWords = [...allWords, ...unverified].filter(w => w.addedByUserId === userId);
+      if (userWords.length >= 10 && !(await storage.hasBadge(userId, "word_warrior"))) {
+        await storage.createBadge({ userId, badgeType: "word_warrior" });
       }
 
       return res.json(word);
@@ -179,72 +263,66 @@ export async function registerRoutes(
     return res.json(words);
   });
 
-  // Community review queue: unverified community words the user hasn't voted on yet
-  // Pass includeVoted=true for moderator view (shows all pending words including already-voted)
-  app.get("/api/words/pending-review", async (req, res) => {
-    const userId = req.query.userId as string;
+  // Community review queue (authenticated — userId from session)
+  app.get("/api/words/pending-review", requireAuth, async (req, res) => {
+    const userId = req.session.userId!;
     const includeVoted = req.query.includeVoted === "true";
-    if (!userId) return res.status(400).json({ error: "userId required" });
     const words = await storage.getPendingCommunityWords(userId, includeVoted);
     return res.json(words);
   });
 
-  app.post("/api/words/:id/approve", async (req, res) => {
+  // Mod-only: approve/reject words
+  app.post("/api/words/:id/approve", requireModerator, async (req, res) => {
     const word = await storage.approveWord(Number(req.params.id));
     if (!word) return res.status(404).json({ error: "Word not found" });
     return res.json(word);
   });
 
-  app.post("/api/words/:id/reject", async (req, res) => {
+  app.post("/api/words/:id/reject", requireModerator, async (req, res) => {
     const deleted = await storage.rejectWord(Number(req.params.id));
     if (!deleted) return res.status(404).json({ error: "Word not found" });
     return res.json({ success: true });
   });
 
-  app.post("/api/words/:id/vote", async (req, res) => {
+  // Vote on a word (authenticated — userId from session)
+  app.post("/api/words/:id/vote", requireAuth, async (req, res) => {
     try {
+      const userId = req.session.userId!;
       const parsed = insertVoteSchema.parse({
         wordId: Number(req.params.id),
-        userId: req.body.userId,
+        userId,
         voteType: req.body.voteType,
       });
 
-      // Rate limit check
-      if (isRateLimited(parsed.userId)) {
+      if (isRateLimited(userId)) {
         return res.status(429).json({ error: "Too many votes. Please slow down." });
       }
 
-      // Check word state before vote (to detect if it's an unverified review)
       const wordBefore = await storage.getWordById(parsed.wordId);
       const isUnverifiedReview = wordBefore && !wordBefore.verified;
 
-      // Check whether user has already voted (first-time vote earns XP)
       const existingVotes = isUnverifiedReview
         ? await storage.getVotesForWord(parsed.wordId)
         : [];
-      const isFirstVote = !existingVotes.some(v => v.userId === parsed.userId);
+      const isFirstVote = !existingVotes.some(v => v.userId === userId);
 
-      // Record the vote
       const vote = await storage.createVote(parsed);
 
-      // Award XP for first-time review of an unverified community word
       let xpEarned = 0;
       if (isUnverifiedReview && isFirstVote) {
         xpEarned = 5;
-        await storage.updateUserXp(parsed.userId, xpEarned);
-        await storage.updateUserStreak(parsed.userId);
+        await storage.updateUserXp(userId, xpEarned);
+        await storage.updateUserStreak(userId);
         await storage.createXpLog({
-          userId: parsed.userId,
+          userId,
           actionType: "word_review",
           xpEarned,
           details: `Reviewed community word: ${wordBefore!.latinPamiri}`,
         });
       }
 
-      // Fetch updated word (recalcVotes already ran inside createVote)
       const word = await storage.getWordById(parsed.wordId);
 
-      // Auto-approve if net votes reach threshold
       let autoApproved = false;
       if (word && !word.verified && word.upvotesCount >= AUTO_APPROVE_THRESHOLD) {
         await storage.approveWord(word.id);
@@ -259,13 +337,11 @@ export async function registerRoutes(
 
   // ===== WORD SUGGESTIONS =====
 
-  // Get suggestions for a word (optionally with user's votes)
   app.get("/api/words/:id/suggestions", async (req, res) => {
     const userId = req.query.userId as string | undefined;
     const suggestions = await storage.getSuggestionsForWord(Number(req.params.id));
     if (!userId) return res.json(suggestions);
 
-    // Attach user's vote to each suggestion
     const enriched = await Promise.all(suggestions.map(async (s) => {
       const votes = await storage.getSuggestionVotesForSuggestion(s.id);
       const userVote = votes.find(v => v.userId === userId);
@@ -274,29 +350,28 @@ export async function registerRoutes(
     return res.json(enriched);
   });
 
-  // Submit a correction suggestion
-  app.post("/api/words/:id/suggest", async (req, res) => {
+  // Submit suggestion (authenticated)
+  app.post("/api/words/:id/suggest", requireAuth, async (req, res) => {
     try {
+      const userId = req.session.userId!;
       const parsed = insertSuggestionSchema.parse({
         wordId: Number(req.params.id),
-        userId: req.body.userId,
+        userId,
         latinPamiri: req.body.latinPamiri,
         cyrillicPamiri: req.body.cyrillicPamiri || "",
         english: req.body.english,
         russian: req.body.russian,
       });
 
-      // Verify the word exists
       const word = await storage.getWordById(parsed.wordId);
       if (!word) return res.status(404).json({ error: "Word not found" });
 
       const suggestion = await storage.createSuggestion(parsed);
 
-      // Award 5 XP for submitting a suggestion
-      await storage.updateUserXp(parsed.userId, 5);
-      await storage.updateUserStreak(parsed.userId);
+      await storage.updateUserXp(userId, 5);
+      await storage.updateUserStreak(userId);
       await storage.createXpLog({
-        userId: parsed.userId,
+        userId,
         actionType: "word_suggestion",
         xpEarned: 5,
         details: `Suggested correction for: ${word.latinPamiri}`,
@@ -308,12 +383,13 @@ export async function registerRoutes(
     }
   });
 
-  // Vote on a suggestion
-  app.post("/api/suggestions/:id/vote", async (req, res) => {
+  // Vote on suggestion (authenticated)
+  app.post("/api/suggestions/:id/vote", requireAuth, async (req, res) => {
     try {
+      const userId = req.session.userId!;
       const parsed = insertSuggestionVoteSchema.parse({
         suggestionId: Number(req.params.id),
-        userId: req.body.userId,
+        userId,
         voteType: req.body.voteType,
       });
 
@@ -328,46 +404,47 @@ export async function registerRoutes(
     }
   });
 
-  // Mod: approve a suggestion (applies changes to word)
-  app.post("/api/suggestions/:id/approve", async (req, res) => {
+  // Mod-only: manage suggestions
+  app.post("/api/suggestions/:id/approve", requireModerator, async (req, res) => {
     const word = await storage.approveSuggestion(Number(req.params.id));
     if (!word) return res.status(404).json({ error: "Suggestion not found" });
     return res.json(word);
   });
 
-  // Mod: reject a suggestion
-  app.post("/api/suggestions/:id/reject", async (req, res) => {
+  app.post("/api/suggestions/:id/reject", requireModerator, async (req, res) => {
     const rejected = await storage.rejectSuggestion(Number(req.params.id));
     if (!rejected) return res.status(404).json({ error: "Suggestion not found" });
     return res.json({ success: true });
   });
 
-  // Mod: get all pending suggestions
-  app.get("/api/admin/suggestions", async (_req, res) => {
+  app.get("/api/admin/suggestions", requireModerator, async (_req, res) => {
     const suggestions = await storage.getAllPendingSuggestions();
     return res.json(suggestions);
   });
 
-  // Progress
+  // ===== PROGRESS =====
+
   app.get("/api/progress/:userId", async (req, res) => {
     const prog = await storage.getUserProgress(req.params.userId);
     return res.json(prog);
   });
 
-  app.post("/api/progress", async (req, res) => {
-    const { userId, wordId, correct } = req.body;
-    if (!userId || wordId === undefined || correct === undefined) {
+  // Record answer (authenticated)
+  app.post("/api/progress", requireAuth, async (req, res) => {
+    const userId = req.session.userId!;
+    const { wordId, correct } = req.body;
+    if (wordId === undefined || correct === undefined) {
       return res.status(400).json({ error: "Missing fields" });
     }
     const prog = await storage.recordAnswer(userId, Number(wordId), Boolean(correct));
     return res.json(prog);
   });
 
-  // Normalize string for deduplication and comparison (trim + lowercase + Unicode NFC)
+  // ===== QUIZ =====
+
   const normalizeAnswer = (s: string) =>
     (s || "").trim().normalize("NFC").toLowerCase();
 
-  // Quiz generation
   app.get("/api/quiz/:userId", async (req, res) => {
     const user = await storage.getUser(req.params.userId);
     if (!user) return res.status(404).json({ error: "User not found" });
@@ -383,7 +460,6 @@ export async function registerRoutes(
       pool = await storage.getUnlockedWordsForUser(user.id);
     }
 
-    // Deduplicate by normalized word form so the same word cannot appear twice in a quiz
     const seenKeys = new Set<string>();
     pool = pool.filter((w) => {
       const key = normalizeAnswer(w.latinPamiri) + "|" + normalizeAnswer(w.english);
@@ -398,14 +474,12 @@ export async function registerRoutes(
 
     const script = user.preferredScript;
 
-    // Shuffle and pick 10 (or fewer)
     const shuffled = [...pool].sort(() => Math.random() - 0.5);
     const quizWords = shuffled.slice(0, Math.min(10, pool.length));
 
     const questions: QuizQuestion[] = quizWords.map((word) => {
       const direction = Math.random() > 0.5 ? "pamiri_to_meaning" : "meaning_to_pamiri";
 
-      // Get wrong answers from pool (exclude same word by normalized form so options are unique)
       const wordKey = normalizeAnswer(word.latinPamiri) + "|" + normalizeAnswer(word.english);
       const otherWords = pool
         .filter(w => {
@@ -459,17 +533,21 @@ export async function registerRoutes(
     return res.json(questions);
   });
 
-  // Quiz complete
-  app.post("/api/quiz/complete", async (req, res) => {
-    const { userId, score, totalQuestions, categoryId } = req.body;
-    if (!userId) return res.status(400).json({ error: "Missing userId" });
+  // Quiz complete (authenticated — userId from session, score validated)
+  app.post("/api/quiz/complete", requireAuth, async (req, res) => {
+    const userId = req.session.userId!;
+    const { score, totalQuestions, categoryId } = req.body;
 
     const user = await storage.getUser(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
 
+    // Validate score: clamp to valid range
+    const maxQuestions = Math.min(Math.max(Number(totalQuestions) || 0, 1), 10);
+    const validatedScore = Math.max(0, Math.min(Number(score) || 0, maxQuestions));
+
     const oldLevel = user.level;
-    let xpEarned = (score || 0) * 2;
-    if (score === totalQuestions) xpEarned += 10; // perfect bonus
+    let xpEarned = validatedScore * 2;
+    if (validatedScore === maxQuestions && maxQuestions > 0) xpEarned += 10;
 
     await storage.updateUserXp(userId, xpEarned);
     await storage.updateUserStreak(userId);
@@ -478,25 +556,23 @@ export async function registerRoutes(
       userId,
       actionType: "quiz_complete",
       xpEarned,
-      details: `Quiz: ${score}/${totalQuestions}${categoryId ? ` in ${categoryId}` : ""}`,
+      details: `Quiz: ${validatedScore}/${maxQuestions}${categoryId ? ` in ${categoryId}` : ""}`,
     });
 
     const updatedUser = await storage.getUser(userId);
     const newLevel = updatedUser!.level;
     const newBadges: string[] = [];
 
-    // Check first word badge
     const progress = await storage.getUserProgress(userId);
     if (progress.length > 0 && !(await storage.hasBadge(userId, "first_word"))) {
       await storage.createBadge({ userId, badgeType: "first_word" });
       newBadges.push("first_word");
     }
 
-    // Perfectionist badge (5 perfect scores)
-    if (score === totalQuestions) {
+    if (validatedScore === maxQuestions) {
       const xpLog = await storage.getXpLogForUser(userId);
       const perfectCount = xpLog.filter(l =>
-        l.actionType === "quiz_complete" && l.details.includes(`${totalQuestions}/${totalQuestions}`)
+        l.actionType === "quiz_complete" && l.details.includes(`${maxQuestions}/${maxQuestions}`)
       ).length;
       if (perfectCount >= 5 && !(await storage.hasBadge(userId, "perfectionist"))) {
         await storage.createBadge({ userId, badgeType: "perfectionist" });
@@ -504,20 +580,17 @@ export async function registerRoutes(
       }
     }
 
-    // Streak master
     if (updatedUser!.currentStreak >= 7 && !(await storage.hasBadge(userId, "streak_master"))) {
       await storage.createBadge({ userId, badgeType: "streak_master" });
       newBadges.push("streak_master");
     }
 
-    // Scholar badge (100 words mastered)
     const masteredCount = progress.filter(p => p.masteryLevel >= 3).length;
     if (masteredCount >= 100 && !(await storage.hasBadge(userId, "scholar"))) {
       await storage.createBadge({ userId, badgeType: "scholar" });
       newBadges.push("scholar");
     }
 
-    // Check new unlocks
     const newUnlocks: string[] = [];
     if (newLevel > oldLevel) {
       for (const [cat, info] of Object.entries(CATEGORY_UNLOCKS)) {
@@ -548,41 +621,37 @@ export async function registerRoutes(
     return res.json(logs);
   });
 
-  // ===== ADMIN / MOD ENDPOINTS =====
+  // ===== ADMIN / MOD ENDPOINTS (all require moderator role) =====
 
-  // List all users
-  app.get("/api/admin/users", async (_req, res) => {
+  app.get("/api/admin/users", requireModerator, async (_req, res) => {
     const users = await storage.getAllUsers();
     return res.json(users);
   });
 
-  // Delete a user
-  app.delete("/api/admin/users/:id", async (req, res) => {
-    const deleted = await storage.deleteUser(req.params.id);
+  app.delete("/api/admin/users/:id", requireModerator, async (req, res) => {
+    const deleted = await storage.deleteUser(String(req.params.id));
     if (!deleted) return res.status(404).json({ error: "User not found" });
     return res.json({ success: true });
   });
 
-  // List ALL words (verified + unverified)
-  app.get("/api/admin/words", async (_req, res) => {
+  app.get("/api/admin/words", requireModerator, async (_req, res) => {
     const words = await storage.getAllWords();
     return res.json(words);
   });
 
-  // Delete any word
-  app.delete("/api/admin/words/:id", async (req, res) => {
+  app.delete("/api/admin/words/:id", requireModerator, async (req, res) => {
     const deleted = await storage.deleteWord(Number(req.params.id));
     if (!deleted) return res.status(404).json({ error: "Word not found" });
     return res.json({ success: true });
   });
 
-  // News CRUD
+  // News
   app.get("/api/news", async (_req, res) => {
     const news = await storage.getAllNews();
     return res.json(news);
   });
 
-  app.post("/api/news", async (req, res) => {
+  app.post("/api/news", requireModerator, async (req, res) => {
     try {
       const parsed = insertNewsSchema.parse(req.body);
       const newsItem = await storage.createNews(parsed);
@@ -592,7 +661,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/news/:id", async (req, res) => {
+  app.delete("/api/news/:id", requireModerator, async (req, res) => {
     const deleted = await storage.deleteNews(Number(req.params.id));
     if (!deleted) return res.status(404).json({ error: "News not found" });
     return res.json({ success: true });

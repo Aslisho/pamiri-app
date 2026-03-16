@@ -95,6 +95,9 @@ export class PostgresStorage implements IStorage {
         ? { rejectUnauthorized: false }
         : undefined,
     });
+    this.pool.on("error", (err) => {
+      console.error("Unexpected PostgreSQL pool error:", err.message);
+    });
     this.initialized = this.init();
   }
 
@@ -223,6 +226,10 @@ export class PostgresStorage implements IStorage {
     await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_xp_logs_user ON xp_logs(user_id)`);
     await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_badges_user ON badges(user_id)`);
     await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_users_xp ON users(total_xp DESC)`);
+    await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_votes_word ON word_votes(word_id)`);
+    await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_votes_user ON word_votes(user_id)`);
+    await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_suggestions_word ON word_suggestions(word_id)`);
+    await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_suggestion_votes_suggestion ON suggestion_votes(suggestion_id)`);
   }
 
   private async loadSeedData() {
@@ -425,11 +432,12 @@ export class PostgresStorage implements IStorage {
   }
 
   async updateUserXp(id: string, xp: number): Promise<User | undefined> {
-    const user = await this.getUser(id);
-    if (!user) return undefined;
-    const newXp = user.totalXp + xp;
-    const newLevel = getLevelFromXp(newXp);
-    await this.pool.query("UPDATE users SET total_xp = $1, level = $2 WHERE id = $3", [newXp, newLevel, id]);
+    // Atomic update to prevent race conditions
+    await this.pool.query("UPDATE users SET total_xp = total_xp + $1 WHERE id = $2", [xp, id]);
+    const { rows } = await this.pool.query("SELECT total_xp FROM users WHERE id = $1", [id]);
+    if (!rows[0]) return undefined;
+    const newLevel = getLevelFromXp(rows[0].total_xp);
+    await this.pool.query("UPDATE users SET level = $1 WHERE id = $2", [newLevel, id]);
     return this.getUser(id);
   }
 
@@ -895,7 +903,12 @@ let storage: IStorage;
 if (process.env.DATABASE_URL) {
   console.log("Using PostgreSQL database");
   const pgStorage = new PostgresStorage();
-  pgStorage.ready().then(() => console.log("PostgreSQL tables initialized"));
+  pgStorage.ready()
+    .then(() => console.log("PostgreSQL tables initialized"))
+    .catch((err) => {
+      console.error("Failed to initialize PostgreSQL:", err.message);
+      process.exit(1);
+    });
   storage = pgStorage;
 } else {
   console.log("No DATABASE_URL found, falling back to SQLite");
@@ -933,6 +946,10 @@ if (process.env.DATABASE_URL) {
         CREATE INDEX IF NOT EXISTS idx_xp_logs_user ON xp_logs(user_id);
         CREATE INDEX IF NOT EXISTS idx_badges_user ON badges(user_id);
         CREATE INDEX IF NOT EXISTS idx_users_xp ON users(total_xp DESC);
+        CREATE INDEX IF NOT EXISTS idx_votes_word ON word_votes(word_id);
+        CREATE INDEX IF NOT EXISTS idx_votes_user ON word_votes(user_id);
+        CREATE INDEX IF NOT EXISTS idx_suggestions_word ON word_suggestions(word_id);
+        CREATE INDEX IF NOT EXISTS idx_suggestion_votes_suggestion ON suggestion_votes(suggestion_id);
       `);
     }
     private loadSeedData() {
