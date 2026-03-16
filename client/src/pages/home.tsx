@@ -80,7 +80,7 @@ export default function HomePage() {
 
       {/* Stats Row */}
       <div className="grid grid-cols-3 gap-3">
-        <Card>
+        <Card className="hover:border-orange-400/30">
           <CardContent className="pt-3 pb-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Flame size={14} className="text-orange-500" />
@@ -91,7 +91,7 @@ export default function HomePage() {
             <p className="text-[10px] text-muted-foreground">{t("home.streak")}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:border-primary/30">
           <CardContent className="pt-3 pb-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <BookOpen size={14} className="text-primary" />
@@ -102,7 +102,7 @@ export default function HomePage() {
             <p className="text-[10px] text-muted-foreground">{t("home.learned")}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:border-amber-500/30">
           <CardContent className="pt-3 pb-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Globe size={14} className="text-accent-foreground" />
@@ -118,7 +118,7 @@ export default function HomePage() {
       {/* Word of the Day */}
       {wordOfTheDay && (
         <Card
-          className="cursor-pointer overflow-hidden"
+          className="cursor-pointer overflow-hidden border-l-4 border-l-primary"
           onClick={() => setFlipped(!flipped)}
           data-testid="word-of-day"
         >
@@ -159,7 +159,7 @@ export default function HomePage() {
       {/* Start Lesson CTA */}
       <Link href="/learn">
         <Button
-          className="w-full h-14 text-base font-semibold rounded-xl"
+          className="w-full h-14 text-base font-semibold rounded-xl bg-gradient-to-r from-primary to-amber-600 hover:from-primary/90 hover:to-amber-600/90 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
           data-testid="button-start-lesson"
         >
           {t("home.startLesson")}

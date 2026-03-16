@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { randomBytes, scryptSync } from "crypto";
 import { storage } from "./storage";
 import {
   insertWordSchema, insertVoteSchema, insertNewsSchema,
@@ -25,6 +26,19 @@ function isRateLimited(userId: string): boolean {
 // Approval threshold: when a word reaches this net score, auto-approve
 const AUTO_APPROVE_THRESHOLD = 5;
 
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password: string, stored: string): boolean {
+  const [salt, hash] = stored.split(":");
+  if (!salt || !hash) return false;
+  const attempt = scryptSync(password, salt, 64).toString("hex");
+  return hash === attempt;
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -33,13 +47,23 @@ export async function registerRoutes(
   // Auth
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { username, preferredLanguage, preferredScript } = req.body;
+      const { username, password, preferredLanguage, preferredScript } = req.body;
       if (!username || typeof username !== "string") {
         return res.status(400).json({ error: "Username is required" });
       }
 
       let user = await storage.getUserByUsername(username.trim());
       if (user) {
+        // Existing user: verify password if they have one set
+        const storedHash = await storage.getUserPasswordHash(username.trim());
+        if (storedHash && password) {
+          if (!verifyPassword(password, storedHash)) {
+            return res.status(401).json({ error: "Неверный пароль" });
+          }
+        } else if (storedHash && !password) {
+          return res.status(401).json({ error: "Требуется пароль" });
+        }
+        // Password OK or legacy user (no password set)
         if (preferredLanguage || preferredScript) {
           user = (await storage.updateUserPreferences(
             user.id,
@@ -50,12 +74,14 @@ export async function registerRoutes(
         return res.json(user);
       }
 
+      // New user: create with password hash
+      const pwHash = password ? hashPassword(password) : "";
       user = await storage.createUser({
         username: username.trim(),
         displayName: username.trim(),
-        preferredLanguage: preferredLanguage || "en",
+        preferredLanguage: preferredLanguage || "ru",
         preferredScript: preferredScript || "latin",
-      });
+      }, pwHash);
       return res.json(user);
     } catch (e: any) {
       return res.status(500).json({ error: e.message });

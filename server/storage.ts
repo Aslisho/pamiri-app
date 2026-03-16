@@ -19,9 +19,10 @@ const { Pool } = pg;
 
 export interface IStorage {
   // Users
-  createUser(user: InsertUser): Promise<User>;
+  createUser(user: InsertUser, passwordHash?: string): Promise<User>;
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserPasswordHash(username: string): Promise<string | null>;
   updateUserXp(id: string, xp: number): Promise<User | undefined>;
   updateUserStreak(id: string): Promise<User | undefined>;
   updateUserPreferences(id: string, lang: string, script: string): Promise<User | undefined>;
@@ -113,6 +114,7 @@ export class PostgresStorage implements IStorage {
         id TEXT PRIMARY KEY,
         username TEXT UNIQUE NOT NULL,
         display_name TEXT NOT NULL,
+        password_hash TEXT NOT NULL DEFAULT '',
         preferred_language TEXT NOT NULL DEFAULT 'ru',
         preferred_script TEXT NOT NULL DEFAULT 'latin',
         role TEXT NOT NULL DEFAULT 'user',
@@ -204,6 +206,14 @@ export class PostgresStorage implements IStorage {
         created_at TEXT NOT NULL,
         UNIQUE(suggestion_id, user_id)
       );
+    `);
+
+    // Migrate: add password_hash column if missing (for existing databases)
+    await this.pool.query(`
+      DO $$ BEGIN
+        ALTER TABLE users ADD COLUMN password_hash TEXT NOT NULL DEFAULT '';
+      EXCEPTION WHEN duplicate_column THEN NULL;
+      END $$;
     `);
 
     // Create indexes (using IF NOT EXISTS)
@@ -387,14 +397,14 @@ export class PostgresStorage implements IStorage {
 
   // ─── Users ──────────────────────────────────────────────────────
 
-  async createUser(insert: InsertUser): Promise<User> {
+  async createUser(insert: InsertUser, passwordHash?: string): Promise<User> {
     const id = randomUUID();
     const now = new Date().toISOString();
     const role = insert.username === "kalkut2014" ? "moderator" : "user";
     await this.pool.query(
-      `INSERT INTO users (id, username, display_name, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, 0, 1, 0, 0, NULL, $7)`,
-      [id, insert.username, insert.displayName, insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now]
+      `INSERT INTO users (id, username, display_name, password_hash, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 1, 0, 0, NULL, $8)`,
+      [id, insert.username, insert.displayName, passwordHash || "", insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now]
     );
     return (await this.getUser(id))!;
   }
@@ -407,6 +417,11 @@ export class PostgresStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     const { rows } = await this.pool.query("SELECT * FROM users WHERE username = $1", [username]);
     return rows[0] ? this.rowToUser(rows[0]) : undefined;
+  }
+
+  async getUserPasswordHash(username: string): Promise<string | null> {
+    const { rows } = await this.pool.query("SELECT password_hash FROM users WHERE username = $1", [username]);
+    return rows[0] ? (rows[0].password_hash || null) : null;
   }
 
   async updateUserXp(id: string, xp: number): Promise<User | undefined> {
@@ -896,12 +911,14 @@ if (process.env.DATABASE_URL) {
       this.db.pragma("journal_mode = WAL");
       this.db.pragma("foreign_keys = ON");
       this.initTables();
+      // Migrate: add password_hash column if missing (for existing databases)
+      try { this.db.exec("ALTER TABLE users ADD COLUMN password_hash TEXT NOT NULL DEFAULT ''"); } catch (_e) { /* column already exists */ }
       this.loadSeedData();
       this.updateSeedData();
     }
     private initTables() {
       this.db.exec(`
-        CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL, preferred_language TEXT NOT NULL DEFAULT 'ru', preferred_script TEXT NOT NULL DEFAULT 'latin', role TEXT NOT NULL DEFAULT 'user', total_xp INTEGER NOT NULL DEFAULT 0, level INTEGER NOT NULL DEFAULT 1, current_streak INTEGER NOT NULL DEFAULT 0, longest_streak INTEGER NOT NULL DEFAULT 0, last_active_date TEXT, created_at TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL, password_hash TEXT NOT NULL DEFAULT '', preferred_language TEXT NOT NULL DEFAULT 'ru', preferred_script TEXT NOT NULL DEFAULT 'latin', role TEXT NOT NULL DEFAULT 'user', total_xp INTEGER NOT NULL DEFAULT 0, level INTEGER NOT NULL DEFAULT 1, current_streak INTEGER NOT NULL DEFAULT 0, longest_streak INTEGER NOT NULL DEFAULT 0, last_active_date TEXT, created_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY AUTOINCREMENT, latin_pamiri TEXT NOT NULL, cyrillic_pamiri TEXT NOT NULL DEFAULT '', english TEXT NOT NULL, russian TEXT NOT NULL, category TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'community', added_by_user_id TEXT, verified INTEGER NOT NULL DEFAULT 0, upvotes_count INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS user_progress (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, word_id INTEGER NOT NULL, correct_count INTEGER NOT NULL DEFAULT 0, incorrect_count INTEGER NOT NULL DEFAULT 0, mastery_level INTEGER NOT NULL DEFAULT 0, last_reviewed_at TEXT, UNIQUE(user_id, word_id));
         CREATE TABLE IF NOT EXISTS word_votes (id INTEGER PRIMARY KEY AUTOINCREMENT, word_id INTEGER NOT NULL, user_id TEXT NOT NULL, vote_type TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(word_id, user_id));
@@ -952,9 +969,10 @@ if (process.env.DATABASE_URL) {
     private rowToBadge(row: any): Badge { return { id: row.id, userId: row.user_id, badgeType: row.badge_type, earnedAt: row.earned_at }; }
     private rowToNews(row: any): NewsItem { return { id: row.id, title: row.title, content: row.content, authorId: row.author_id, createdAt: row.created_at }; }
 
-    async createUser(insert: InsertUser): Promise<User> { const id = randomUUID(); const now = new Date().toISOString(); const role = insert.username === "kalkut2014" ? "moderator" : "user"; this.db.prepare(`INSERT INTO users (id, username, display_name, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, 1, 0, 0, NULL, ?)`).run(id, insert.username, insert.displayName, insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now); return (await this.getUser(id))!; }
+    async createUser(insert: InsertUser, passwordHash?: string): Promise<User> { const id = randomUUID(); const now = new Date().toISOString(); const role = insert.username === "kalkut2014" ? "moderator" : "user"; this.db.prepare(`INSERT INTO users (id, username, display_name, password_hash, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 1, 0, 0, NULL, ?)`).run(id, insert.username, insert.displayName, passwordHash || "", insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now); return (await this.getUser(id))!; }
     async getUser(id: string): Promise<User | undefined> { const row = this.db.prepare("SELECT * FROM users WHERE id = ?").get(id) as any; return row ? this.rowToUser(row) : undefined; }
     async getUserByUsername(username: string): Promise<User | undefined> { const row = this.db.prepare("SELECT * FROM users WHERE username = ?").get(username) as any; return row ? this.rowToUser(row) : undefined; }
+    async getUserPasswordHash(username: string): Promise<string | null> { const row = this.db.prepare("SELECT password_hash FROM users WHERE username = ?").get(username) as any; return row ? (row.password_hash || null) : null; }
     async updateUserXp(id: string, xp: number): Promise<User | undefined> { const user = await this.getUser(id); if (!user) return undefined; const newXp = user.totalXp + xp; const newLevel = getLevelFromXp(newXp); this.db.prepare("UPDATE users SET total_xp = ?, level = ? WHERE id = ?").run(newXp, newLevel, id); return this.getUser(id); }
     async updateUserStreak(id: string): Promise<User | undefined> { const user = await this.getUser(id); if (!user) return undefined; const today = new Date().toISOString().split("T")[0]; if (user.lastActiveDate === today) return user; const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0]; let newStreak: number; if (user.lastActiveDate === yesterday) { newStreak = user.currentStreak + 1; } else { newStreak = 1; } const newLongest = Math.max(newStreak, user.longestStreak); this.db.prepare("UPDATE users SET current_streak = ?, longest_streak = ?, last_active_date = ? WHERE id = ?").run(newStreak, newLongest, today, id); return this.getUser(id); }
     async updateUserPreferences(id: string, lang: string, script: string): Promise<User | undefined> { this.db.prepare("UPDATE users SET preferred_language = ?, preferred_script = ? WHERE id = ?").run(lang, script, id); return this.getUser(id); }
