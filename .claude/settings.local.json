@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(timeout 8 npx tsx server/index.ts)",
+      "Bash(npm install)",
+      "Bash(ls /c/Users/shawa/Downloads/pamiri-app/.claude/worktrees/recursing-kirch/node_modules/.bin/tsx*)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(gh pr:*)",
+      "Bash(NODE_ENV=production npx tsx script/build.ts)",
+      "Bash(ls /c/Users/shawa/Downloads/pamiri-app/.claude/worktrees/recursing-kirch/.docker*)",
+      "Bash(git -C /c/Users/shawa/Downloads/pamiri-app/.claude/worktrees/recursing-kirch log --oneline main..HEAD)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(npm run build)",
+      "Bash(git push)",
+      "Bash(npm run check)",
+      "Bash(git add client/src/pages/login.tsx server/index.ts server/routes.ts server/storage.ts shared/schema.ts)",
+      "Bash(git commit:*)",
+      "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" pr list --head claude/recursing-kirch)"
+    ]
+  }
+}
