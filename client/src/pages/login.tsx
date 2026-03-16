@@ -11,23 +11,44 @@ import { useUser } from "@/contexts/UserContext";
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const { setUser } = useUser();
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [script, setScript] = useState<"latin" | "cyrillic">("latin");
-  const [showPassword, setShowPassword] = useState(false);
-  const [shake, setShake] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loginMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: username.trim(),
-          password: password || undefined,
-          preferredLanguage: "ru",
-        }),
-        credentials: "include",
+      const res = await apiRequest("POST", "/api/auth/login", {
+        username: username.trim(),
+        password,
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setError(null);
+      setUser(data);
+      navigate("/home");
+    },
+    onError: (err: Error) => {
+      try {
+        const body = JSON.parse(err.message.substring(err.message.indexOf("{")));
+        setError(body.error || "Что-то пошло не так");
+      } catch {
+        setError("Неверное имя пользователя или пароль");
+      }
+    },
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/auth/register", {
+        username: username.trim(),
+        displayName: displayName.trim() || username.trim(),
+        password,
+        preferredLanguage: "ru",
+        preferredScript: script,
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -36,19 +57,32 @@ export default function LoginPage() {
       return res.json();
     },
     onSuccess: (data) => {
+      setError(null);
       setUser(data);
       navigate("/home");
     },
-    onError: () => {
-      setShake(true);
-      setTimeout(() => setShake(false), 600);
+    onError: (err: Error) => {
+      try {
+        const body = JSON.parse(err.message.substring(err.message.indexOf("{")));
+        setError(body.error || "Что-то пошло не так");
+      } catch {
+        setError("Ошибка регистрации");
+      }
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!username.trim() || !password.trim()) return;
-    loginMutation.mutate();
+  const isPending = loginMutation.isPending || registerMutation.isPending;
+  const canSubmit =
+    username.trim().length > 0 &&
+    password.length >= (mode === "register" ? 6 : 1);
+
+  const handleSubmit = () => {
+    setError(null);
+    if (mode === "login") {
+      loginMutation.mutate();
+    } else {
+      registerMutation.mutate();
+    }
   };
 
   return (
@@ -109,118 +143,128 @@ export default function LoginPage() {
           </motion.p>
         </motion.div>
 
-        {/* Login Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-        >
-          <motion.div
-            animate={shake ? { x: [-10, 10, -8, 8, -4, 4, 0] } : {}}
-            transition={{ duration: 0.5 }}
-          >
-            <Card className="border-border/60 backdrop-blur-sm bg-card/90 shadow-lg">
-              <CardContent className="pt-6 space-y-4">
-                {/* Username */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                    Имя пользователя
-                  </label>
-                  <Input
-                    data-testid="input-username"
-                    placeholder="Введите ваше имя"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="h-11 text-base transition-all duration-200 focus:ring-2 focus:ring-primary/30"
-                    onKeyDown={(e) => e.key === "Enter" && document.getElementById("password-input")?.focus()}
-                  />
-                </motion.div>
+        <Card className="border-border/60">
+          <CardContent className="pt-6 space-y-5">
+            {/* Username */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Имя пользователя</label>
+              <Input
+                data-testid="input-username"
+                placeholder="Введите имя пользователя"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="h-11"
+                onKeyDown={(e) => e.key === "Enter" && canSubmit && handleSubmit()}
+              />
+            </div>
 
-                {/* Password */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                    Пароль
-                  </label>
-                  <div className="relative">
-                    <Input
-                      id="password-input"
-                      data-testid="input-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Введите пароль"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="h-11 text-base pr-10 transition-all duration-200 focus:ring-2 focus:ring-primary/30"
-                      onKeyDown={(e) => e.key === "Enter" && username.trim() && loginMutation.mutate()}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground mt-1.5">
-                    Новый пользователь? Просто введите имя и пароль для регистрации
-                  </p>
-                </motion.div>
+            {/* Display Name - register only */}
+            {mode === "register" && (
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Отображаемое имя</label>
+                <Input
+                  placeholder="Как вас называть? (необязательно)"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+            )}
 
-                {/* Submit */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                >
+            {/* Password */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Пароль</label>
+              <Input
+                data-testid="input-password"
+                type="password"
+                placeholder={mode === "register" ? "Минимум 6 символов" : "Введите пароль"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-11"
+                onKeyDown={(e) => e.key === "Enter" && canSubmit && handleSubmit()}
+              />
+            </div>
+
+            {/* Script Selection - register only */}
+            {mode === "register" && (
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Памирское письмо
+                </label>
+                <div className="grid grid-cols-2 gap-2">
                   <Button
-                    data-testid="button-login"
-                    className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-amber-600 hover:from-primary/90 hover:to-amber-600/90 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
-                    disabled={!username.trim() || loginMutation.isPending}
-                    onClick={() => loginMutation.mutate()}
+                    type="button"
+                    variant={script === "latin" ? "default" : "secondary"}
+                    size="sm"
+                    onClick={() => setScript("latin")}
+                    data-testid="script-latin"
+                    className="h-9"
                   >
-                    {loginMutation.isPending ? (
-                      <Loader2 className="animate-spin mr-2" size={18} />
-                    ) : null}
-                    {loginMutation.isPending ? "Вход..." : "Сарам чуд — Войти!"}
+                    Латиница
                   </Button>
-                </motion.div>
+                  <Button
+                    type="button"
+                    variant={script === "cyrillic" ? "default" : "secondary"}
+                    size="sm"
+                    onClick={() => setScript("cyrillic")}
+                    data-testid="script-cyrillic"
+                    className="h-9"
+                  >
+                    Кириллица
+                  </Button>
+                </div>
+              </div>
+            )}
 
-                {/* Error */}
-                <AnimatePresence>
-                  {loginMutation.isError && (
-                    <motion.p
-                      className="text-destructive text-xs text-center font-medium"
-                      data-testid="login-error"
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                    >
-                      {loginMutation.error?.message || "Что-то пошло не так"}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </motion.div>
+            {/* Error */}
+            {error && (
+              <p className="text-destructive text-xs text-center" data-testid="login-error">
+                {error}
+              </p>
+            )}
 
-        {/* Footer tagline */}
-        <motion.p
-          className="text-center text-[10px] text-muted-foreground/60"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-        >
-          Сохраняя язык Памира — одно слово за раз
-        </motion.p>
+            {/* Submit */}
+            <Button
+              data-testid="button-login"
+              className="w-full h-12 text-base font-semibold"
+              disabled={!canSubmit || isPending}
+              onClick={handleSubmit}
+            >
+              {isPending
+                ? "..."
+                : mode === "login"
+                  ? "Войти"
+                  : "Зарегистрироваться"}
+            </Button>
+
+            {/* Toggle mode */}
+            <p className="text-center text-sm text-muted-foreground">
+              {mode === "login" ? (
+                <>
+                  Нет аккаунта?{" "}
+                  <button
+                    type="button"
+                    className="text-primary underline-offset-4 hover:underline font-medium"
+                    onClick={() => { setMode("register"); setError(null); }}
+                  >
+                    Зарегистрироваться
+                  </button>
+                </>
+              ) : (
+                <>
+                  Уже есть аккаунт?{" "}
+                  <button
+                    type="button"
+                    className="text-primary underline-offset-4 hover:underline font-medium"
+                    onClick={() => { setMode("login"); setError(null); }}
+                  >
+                    Войти
+                  </button>
+                </>
+              )}
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

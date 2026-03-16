@@ -1,10 +1,12 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import bcrypt from "bcryptjs";
 import { storage } from "./storage";
 import { randomBytes, scryptSync } from "crypto";
 import {
   insertWordSchema, insertVoteSchema, insertNewsSchema,
   insertSuggestionSchema, insertSuggestionVoteSchema,
+  registerUserSchema, loginSchema,
   CATEGORY_UNLOCKS, getLevelFromXp, getXpForNextLevel,
   type QuizQuestion, type Word, type User,
 } from "@shared/schema";
@@ -88,57 +90,62 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
-  // ===== AUTH ENDPOINTS =====
+  // Auth - Register
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const parsed = registerUserSchema.parse(req.body);
 
+      const existing = await storage.getUserByUsername(parsed.username.trim());
+      if (existing) {
+        return res.status(409).json({ error: "Имя пользователя уже занято" });
+      }
+
+      const passwordHash = await bcrypt.hash(parsed.password, 10);
+
+      const user = await storage.createUser(
+        {
+          username: parsed.username.trim(),
+          displayName: parsed.displayName.trim(),
+          preferredLanguage: parsed.preferredLanguage || "ru",
+          preferredScript: parsed.preferredScript || "latin",
+        },
+        passwordHash
+      );
+
+      return res.json(user);
+    } catch (e: any) {
+      if (e.name === "ZodError") {
+        return res.status(400).json({ error: e.errors[0]?.message || "Ошибка валидации" });
+      }
+      return res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Auth - Login
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const ip = req.ip || req.socket.remoteAddress || "unknown";
-      if (isLoginRateLimited(ip)) {
-        return res.status(429).json({ error: "Слишком много попыток. Подождите минуту." });
+      const parsed = loginSchema.parse(req.body);
+
+      const user = await storage.getUserByUsername(parsed.username.trim());
+      if (!user) {
+        return res.status(401).json({ error: "Неверное имя пользователя или пароль" });
       }
 
-      const { username, password, preferredLanguage, preferredScript } = req.body;
-      if (!username || typeof username !== "string") {
-        return res.status(400).json({ error: "Username is required" });
+      const storedHash = await storage.getPasswordHash(user.id);
+      if (!storedHash) {
+        return res.status(401).json({ error: "Неверное имя пользователя или пароль" });
       }
 
-      let user = await storage.getUserByUsername(username.trim());
-      if (user) {
-        // Existing user — verify password if one is set
-        const storedHash = await storage.getUserPasswordHash(username.trim());
-        if (storedHash) {
-          if (!password) {
-            return res.status(401).json({ error: "Пароль обязателен" });
-          }
-          if (!verifyPassword(password, storedHash)) {
-            return res.status(401).json({ error: "Неверный пароль" });
-          }
-        }
-        if (preferredLanguage || preferredScript) {
-          user = (await storage.updateUserPreferences(
-            user.id,
-            preferredLanguage || user.preferredLanguage,
-            preferredScript || user.preferredScript
-          ))!;
-        }
-      } else {
-        // New user — require a password to register
-        if (!password || typeof password !== "string" || password.trim().length < 4) {
-          return res.status(400).json({ error: "Придумайте пароль (минимум 4 символа)" });
-        }
-        user = await storage.createUser({
-          username: username.trim(),
-          displayName: username.trim(),
-          preferredLanguage: preferredLanguage || "ru",
-          preferredScript: preferredScript || "latin",
-          password: hashPassword(password),
-        });
+      const valid = await bcrypt.compare(parsed.password, storedHash);
+      if (!valid) {
+        return res.status(401).json({ error: "Неверное имя пользователя или пароль" });
       }
 
-      req.session.userId = user.id;
-      req.session.role = user.role;
-      return res.json(safeUser(user));
+      return res.json(user);
     } catch (e: any) {
+      if (e.name === "ZodError") {
+        return res.status(400).json({ error: "Имя пользователя и пароль обязательны" });
+      }
       return res.status(500).json({ error: e.message });
     }
   });
