@@ -266,7 +266,7 @@ export function ReviewQueue({ user, isModerator = false }: {
   const [index, setIndex] = useState(0);
   const [sessionXp, setSessionXp] = useState(0);
   const [xpFlash, setXpFlash] = useState(false);
-  const [voteFeedback, setVoteFeedback] = useState<{ netVotes: number } | null>(null);
+  const [voteFeedback, setVoteFeedback] = useState<{ netVotes: number; autoApproved?: boolean; xpEarned?: number } | null>(null);
   const [sessionVotedWords, setSessionVotedWords] = useState<Array<{ id: number; netVotes: number }>>([]);
 
   const queryKeyTag = isModerator ? "mod" : "user";
@@ -295,7 +295,7 @@ export function ReviewQueue({ user, isModerator = false }: {
     onSuccess: (data) => {
       // Show vote feedback with net votes
       const netVotes = data.word?.upvotesCount ?? 0;
-      setVoteFeedback({ netVotes });
+      setVoteFeedback({ netVotes, autoApproved: data.autoApproved, xpEarned: data.xpEarned });
       setSessionVotedWords(prev => [...prev, { id: data.word.id, netVotes }]);
 
       if (data.xpEarned > 0) {
@@ -324,18 +324,6 @@ export function ReviewQueue({ user, isModerator = false }: {
       queryClient.invalidateQueries({ queryKey: ["/api/words"] });
       queryClient.invalidateQueries({ queryKey: ["/api/words/pending"] });
       setIndex(prev => prev + 1);
-      // Track session votes for summary
-      setSessionVotes(prev => [...prev, { wordId: data.word.id, netVotes: data.word.upvotesCount }]);
-      // Show vote feedback flash
-      setVoteFeedback({
-        netVotes: data.word.upvotesCount,
-        autoApproved: data.autoApproved,
-        xpEarned: data.xpEarned,
-      });
-      setTimeout(() => {
-        setVoteFeedback(null);
-        setIndex(prev => prev + 1);
-      }, 1500);
     },
   });
 
@@ -353,9 +341,6 @@ export function ReviewQueue({ user, isModerator = false }: {
 
   const totalWords = words?.length ?? 0;
   const done = !words || totalWords === 0 || index >= totalWords;
-
-  // Count words close to auto-approval (net votes >= 3)
-  const closeToApproval = sessionVotes.filter(v => v.netVotes >= 3).length;
 
   if (done) {
     const closeToApproval = sessionVotedWords.filter(
@@ -390,7 +375,7 @@ export function ReviewQueue({ user, isModerator = false }: {
             </p>
             {closeToApproval > 0 && (
               <p className="text-sm text-green-600 font-medium">
-                {closeToApproval} {t("add.closeToApproval")}
+                {closeToApproval} слов близки к одобрению
               </p>
             )}
             {sessionXp > 0 && (
@@ -425,30 +410,15 @@ export function ReviewQueue({ user, isModerator = false }: {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="text-center text-sm font-medium text-green-600 dark:text-green-400"
-          >
-            {t("add.voteRecorded").replace("{n}", voteFeedback.netVotes > 0 ? `+${voteFeedback.netVotes}` : String(voteFeedback.netVotes))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* XP flash */}
-      <AnimatePresence>
-        {voteFeedback && (
-          <motion.div
-            key="vote-feedback"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
             className="text-center space-y-1"
           >
-            <p className="text-sm font-semibold text-foreground">
-              {t("add.voteRecorded")} {t("add.netVotes")} {voteFeedback.netVotes > 0 ? "+" : ""}{voteFeedback.netVotes} {t("add.netVotesUnit")}
+            <p className="text-sm font-medium text-green-600 dark:text-green-400">
+              {t("add.voteRecorded").replace("{n}", voteFeedback.netVotes > 0 ? `+${voteFeedback.netVotes}` : String(voteFeedback.netVotes))}
             </p>
             {voteFeedback.autoApproved && (
-              <p className="text-xs font-medium text-green-600">{t("add.wordAutoApproved")}</p>
+              <p className="text-xs font-medium text-green-600">Слово одобрено автоматически!</p>
             )}
-            {voteFeedback.xpEarned > 0 && (
+            {(voteFeedback.xpEarned ?? 0) > 0 && (
               <div className="flex items-center justify-center gap-1 text-primary font-bold text-sm">
                 <Sparkles size={14} />
                 +{voteFeedback.xpEarned} XP
@@ -571,7 +541,7 @@ export function ReviewQueue({ user, isModerator = false }: {
       {voteMutation.isError && (
         <p className="text-destructive text-xs text-center">
           {voteMutation.error?.message?.includes("Too many")
-            ? t("add.rateLimited")
+            ? "Слишком много голосов. Подождите немного."
             : voteMutation.error?.message || t("add.error")}
         </p>
       )}
