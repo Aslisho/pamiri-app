@@ -96,8 +96,18 @@ export async function registerRoutes(
       const parsed = registerUserSchema.parse(req.body);
 
       const existing = await storage.getUserByUsername(parsed.username.trim());
+
       if (existing) {
-        return res.status(409).json({ error: "Имя пользователя уже занято" });
+        // Allow legacy users (no password) to claim their account
+        const existingHash = await storage.getPasswordHash(existing.id);
+        if (existingHash) {
+          return res.status(409).json({ error: "Имя пользователя уже занято" });
+        }
+        const passwordHash = await bcrypt.hash(parsed.password, 10);
+        await storage.setPasswordHash(existing.id, passwordHash);
+        req.session.userId = existing.id;
+        req.session.role = existing.role;
+        return res.json(existing);
       }
 
       const passwordHash = await bcrypt.hash(parsed.password, 10);
@@ -112,6 +122,8 @@ export async function registerRoutes(
         passwordHash
       );
 
+      req.session.userId = user.id;
+      req.session.role = user.role;
       return res.json(user);
     } catch (e: any) {
       if (e.name === "ZodError") {
@@ -141,6 +153,8 @@ export async function registerRoutes(
         return res.status(401).json({ error: "Неверное имя пользователя или пароль" });
       }
 
+      req.session.userId = user.id;
+      req.session.role = user.role;
       return res.json(user);
     } catch (e: any) {
       if (e.name === "ZodError") {

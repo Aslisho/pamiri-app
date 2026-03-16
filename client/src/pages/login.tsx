@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ZivLogo } from "@/components/ZivLogo";
 import { useUser } from "@/contexts/UserContext";
+import { apiRequest } from "@/lib/queryClient";
+
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const { setUser } = useUser();
@@ -50,10 +52,6 @@ export default function LoginPage() {
         preferredLanguage: "ru",
         preferredScript: script,
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Ошибка входа");
-      }
       return res.json();
     },
     onSuccess: (data) => {

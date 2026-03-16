@@ -24,6 +24,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getPasswordHash(userId: string): Promise<string | null>;
+  setPasswordHash(userId: string, passwordHash: string): Promise<void>;
   updateUserXp(id: string, xp: number): Promise<User | undefined>;
   updateUserStreak(id: string): Promise<User | undefined>;
   updateUserPreferences(id: string, lang: string, script: string): Promise<User | undefined>;
@@ -440,6 +441,10 @@ export class PostgresStorage implements IStorage {
   async getPasswordHash(userId: string): Promise<string | null> {
     const { rows } = await this.pool.query("SELECT password_hash FROM users WHERE id = $1", [userId]);
     return rows[0]?.password_hash || null;
+  }
+
+  async setPasswordHash(userId: string, passwordHash: string): Promise<void> {
+    await this.pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [passwordHash, userId]);
   }
 
   async updateUserXp(id: string, xp: number): Promise<User | undefined> {
@@ -1000,6 +1005,7 @@ if (process.env.DATABASE_URL) {
     async getUser(id: string): Promise<User | undefined> { const row = this.db.prepare("SELECT * FROM users WHERE id = ?").get(id) as any; return row ? this.rowToUser(row) : undefined; }
     async getUserByUsername(username: string): Promise<User | undefined> { const row = this.db.prepare("SELECT * FROM users WHERE username = ?").get(username) as any; return row ? this.rowToUser(row) : undefined; }
     async getPasswordHash(userId: string): Promise<string | null> { const row = this.db.prepare("SELECT password_hash FROM users WHERE id = ?").get(userId) as any; return row?.password_hash || null; }
+    async setPasswordHash(userId: string, passwordHash: string): Promise<void> { this.db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(passwordHash, userId); }
     async updateUserXp(id: string, xp: number): Promise<User | undefined> { const user = await this.getUser(id); if (!user) return undefined; const newXp = user.totalXp + xp; const newLevel = getLevelFromXp(newXp); this.db.prepare("UPDATE users SET total_xp = ?, level = ? WHERE id = ?").run(newXp, newLevel, id); return this.getUser(id); }
     async updateUserStreak(id: string): Promise<User | undefined> { const user = await this.getUser(id); if (!user) return undefined; const today = new Date().toISOString().split("T")[0]; if (user.lastActiveDate === today) return user; const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0]; let newStreak: number; if (user.lastActiveDate === yesterday) { newStreak = user.currentStreak + 1; } else { newStreak = 1; } const newLongest = Math.max(newStreak, user.longestStreak); this.db.prepare("UPDATE users SET current_streak = ?, longest_streak = ?, last_active_date = ? WHERE id = ?").run(newStreak, newLongest, today, id); return this.getUser(id); }
     async updateUserPreferences(id: string, lang: string, script: string): Promise<User | undefined> { this.db.prepare("UPDATE users SET preferred_language = ?, preferred_script = ? WHERE id = ?").run(lang, script, id); return this.getUser(id); }
