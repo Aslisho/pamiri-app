@@ -30,7 +30,7 @@ const BADGE_INFO: Record<string, { label: string; icon: typeof Star; description
 };
 
 export default function ProfilePage() {
-  const { user, setUser } = useUser();
+  const { user, setUser, logout } = useUser();
   const { t } = useLanguage();
   const [, navigate] = useLocation();
 
@@ -61,8 +61,8 @@ export default function ProfilePage() {
     enabled: !!user,
   });
 
-  const handleLogout = () => {
-    setUser(null);
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
   };
 
@@ -136,12 +136,13 @@ export default function ProfilePage() {
                 className="h-9 transition-all duration-200"
                 onClick={async () => {
                   if (user.preferredScript === "latin") return;
-                  const res = await apiRequest("POST", "/api/auth/login", {
-                    username: user.username,
-                    preferredScript: "latin",
-                    preferredLanguage: user.preferredLanguage,
-                  });
-                  if (res.ok) setUser(await res.json());
+                  try {
+                    const res = await apiRequest("PUT", "/api/users/preferences", {
+                      preferredScript: "latin",
+                      preferredLanguage: user.preferredLanguage,
+                    });
+                    setUser(await res.json());
+                  } catch { /* ignore */ }
                 }}
                 data-testid="script-latin"
               >
@@ -154,12 +155,13 @@ export default function ProfilePage() {
                 className="h-9 transition-all duration-200"
                 onClick={async () => {
                   if (user.preferredScript === "cyrillic") return;
-                  const res = await apiRequest("POST", "/api/auth/login", {
-                    username: user.username,
-                    preferredScript: "cyrillic",
-                    preferredLanguage: user.preferredLanguage,
-                  });
-                  if (res.ok) setUser(await res.json());
+                  try {
+                    const res = await apiRequest("PUT", "/api/users/preferences", {
+                      preferredScript: "cyrillic",
+                      preferredLanguage: user.preferredLanguage,
+                    });
+                    setUser(await res.json());
+                  } catch { /* ignore */ }
                 }}
                 data-testid="script-cyrillic"
               >
