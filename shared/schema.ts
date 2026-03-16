@@ -6,6 +6,7 @@ export const insertUserSchema = z.object({
   displayName: z.string().min(1),
   preferredLanguage: z.enum(["en", "ru"]).default("en"),
   preferredScript: z.enum(["latin", "cyrillic"]).default("latin"),
+  password: z.string().optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -36,6 +37,8 @@ export interface User {
   longestStreak: number;
   lastActiveDate: string | null;
   createdAt: string;
+  /** Only present server-side; stripped before sending to client */
+  password?: string;
 }
 
 // Words table schema
@@ -210,6 +213,9 @@ export interface QuizQuestion {
 }
 
 // Category unlock levels
+// Number of net upvotes required for a word to be considered "ready for approval"
+export const APPROVAL_THRESHOLD = 5;
+
 export const CATEGORY_UNLOCKS: Record<string, { level: number; xpRequired: number }> = {
   "Greetings and Basics": { level: 1, xpRequired: 0 },
   "Numbers and Quantities": { level: 2, xpRequired: 200 },

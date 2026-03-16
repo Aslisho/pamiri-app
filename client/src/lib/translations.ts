@@ -92,6 +92,9 @@ const translations = {
   "add.correct": { ru: "Верно", sgh: "Верно" },
   "add.xpPerReview": { ru: "+5 XP за каждое проверенное слово", sgh: "+5 XP за каждое проверенное слово" },
   "add.xpEarned": { ru: "XP заработано", sgh: "XP заработано" },
+  "add.voteRecorded": { ru: "Голос записан! У слова теперь {n} голосов", sgh: "Голос записан! У слова теперь {n} голосов" },
+  "add.sessionSummary": { ru: "Вы проверили {x} слов. {y} из них близки к одобрению!", sgh: "Вы проверили {x} слов. {y} из них близки к одобрению!" },
+  "add.markReady": { ru: "Добавить в словарь", sgh: "Добавить в словарь" },
 
   // ── Profile page ────────────────────────────────────────────────
   "profile.level": { ru: "Уровень", sgh: "Уровень" },
@@ -103,6 +106,7 @@ const translations = {
   "profile.contributed": { ru: "Добавлено", sgh: "Добавлено" },
   "profile.rank": { ru: "Ранг", sgh: "Ранг" },
   "profile.badges": { ru: "Значки", sgh: "Значки" },
+  "profile.script": { ru: "Памирское письмо", sgh: "Памирское письмо" },
   "profile.recentActions": { ru: "Последние действия", sgh: "Последние действия" },
   "profile.logout": { ru: "Выйти", sgh: "Nakhtidō" },
 

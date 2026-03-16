@@ -9,8 +9,8 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Build client + server
-RUN npm run build
+# Build client + server (NODE_OPTIONS guards against esbuild OOM on low-memory hosts)
+RUN NODE_OPTIONS=--max-old-space-size=2048 npm run build
 
 # ------- Production stage -------
 FROM node:20-slim
