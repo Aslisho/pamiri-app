@@ -96,8 +96,16 @@ export async function registerRoutes(
       const parsed = registerUserSchema.parse(req.body);
 
       const existing = await storage.getUserByUsername(parsed.username.trim());
+
       if (existing) {
-        return res.status(409).json({ error: "Имя пользователя уже занято" });
+        // Allow legacy users (no password) to claim their account
+        const existingHash = await storage.getPasswordHash(existing.id);
+        if (existingHash) {
+          return res.status(409).json({ error: "Имя пользователя уже занято" });
+        }
+        const passwordHash = await bcrypt.hash(parsed.password, 10);
+        await storage.setPasswordHash(existing.id, passwordHash);
+        return res.json(existing);
       }
 
       const passwordHash = await bcrypt.hash(parsed.password, 10);
