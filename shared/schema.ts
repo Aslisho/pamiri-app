@@ -4,6 +4,7 @@ import { z } from "zod";
 export const insertUserSchema = z.object({
   username: z.string().min(1),
   displayName: z.string().min(1),
+  password: z.string().min(4).optional(),
   preferredLanguage: z.enum(["en", "ru"]).default("en"),
   preferredScript: z.enum(["latin", "cyrillic"]).default("latin"),
 });

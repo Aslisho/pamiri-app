@@ -106,6 +106,7 @@ const translations = {
   "profile.contributed": { ru: "Добавлено", sgh: "Добавлено" },
   "profile.rank": { ru: "Ранг", sgh: "Ранг" },
   "profile.badges": { ru: "Значки", sgh: "Значки" },
+  "profile.script": { ru: "Памирское письмо", sgh: "Памирское письмо" },
   "profile.recentActions": { ru: "Последние действия", sgh: "Последние действия" },
   "profile.logout": { ru: "Выйти", sgh: "Nakhtidō" },
 
