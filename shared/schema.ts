@@ -10,6 +10,19 @@ export const insertUserSchema = z.object({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
+export const registerUserSchema = insertUserSchema.extend({
+  password: z.string().min(6, "Пароль должен содержать минимум 6 символов"),
+});
+
+export type RegisterUser = z.infer<typeof registerUserSchema>;
+
+export const loginSchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(1),
+});
+
+export type LoginRequest = z.infer<typeof loginSchema>;
+
 export interface User {
   id: string;
   username: string;

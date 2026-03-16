@@ -19,9 +19,10 @@ const { Pool } = pg;
 
 export interface IStorage {
   // Users
-  createUser(user: InsertUser): Promise<User>;
+  createUser(user: InsertUser, passwordHash?: string): Promise<User>;
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getPasswordHash(userId: string): Promise<string | null>;
   updateUserXp(id: string, xp: number): Promise<User | undefined>;
   updateUserStreak(id: string): Promise<User | undefined>;
   updateUserPreferences(id: string, lang: string, script: string): Promise<User | undefined>;
@@ -205,6 +206,19 @@ export class PostgresStorage implements IStorage {
       );
     `);
 
+    // Add password_hash column if it doesn't exist (migration for existing DBs)
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'users' AND column_name = 'password_hash'
+        ) THEN
+          ALTER TABLE users ADD COLUMN password_hash TEXT;
+        END IF;
+      END $$;
+    `);
+
     // Create indexes (using IF NOT EXISTS)
     await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_words_category ON words(category)`);
     await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_words_verified ON words(verified)`);
@@ -386,14 +400,14 @@ export class PostgresStorage implements IStorage {
 
   // ─── Users ──────────────────────────────────────────────────────
 
-  async createUser(insert: InsertUser): Promise<User> {
+  async createUser(insert: InsertUser, passwordHash?: string): Promise<User> {
     const id = randomUUID();
     const now = new Date().toISOString();
     const role = insert.username === "kalkut2014" ? "moderator" : "user";
     await this.pool.query(
-      `INSERT INTO users (id, username, display_name, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, 0, 1, 0, 0, NULL, $7)`,
-      [id, insert.username, insert.displayName, insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now]
+      `INSERT INTO users (id, username, display_name, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at, password_hash)
+       VALUES ($1, $2, $3, $4, $5, $6, 0, 1, 0, 0, NULL, $7, $8)`,
+      [id, insert.username, insert.displayName, insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now, passwordHash || null]
     );
     return (await this.getUser(id))!;
   }
@@ -406,6 +420,11 @@ export class PostgresStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     const { rows } = await this.pool.query("SELECT * FROM users WHERE username = $1", [username]);
     return rows[0] ? this.rowToUser(rows[0]) : undefined;
+  }
+
+  async getPasswordHash(userId: string): Promise<string | null> {
+    const { rows } = await this.pool.query("SELECT password_hash FROM users WHERE id = $1", [userId]);
+    return rows[0]?.password_hash || null;
   }
 
   async updateUserXp(id: string, xp: number): Promise<User | undefined> {
@@ -907,6 +926,7 @@ if (process.env.DATABASE_URL) {
         CREATE INDEX IF NOT EXISTS idx_badges_user ON badges(user_id);
         CREATE INDEX IF NOT EXISTS idx_users_xp ON users(total_xp DESC);
       `);
+      try { this.db.exec("ALTER TABLE users ADD COLUMN password_hash TEXT"); } catch (e) { /* column already exists */ }
     }
     private loadSeedData() {
       const count = this.db.prepare("SELECT COUNT(*) as c FROM words").get() as { c: number };
@@ -942,9 +962,10 @@ if (process.env.DATABASE_URL) {
     private rowToBadge(row: any): Badge { return { id: row.id, userId: row.user_id, badgeType: row.badge_type, earnedAt: row.earned_at }; }
     private rowToNews(row: any): NewsItem { return { id: row.id, title: row.title, content: row.content, authorId: row.author_id, createdAt: row.created_at }; }
 
-    async createUser(insert: InsertUser): Promise<User> { const id = randomUUID(); const now = new Date().toISOString(); const role = insert.username === "kalkut2014" ? "moderator" : "user"; this.db.prepare(`INSERT INTO users (id, username, display_name, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, 1, 0, 0, NULL, ?)`).run(id, insert.username, insert.displayName, insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now); return (await this.getUser(id))!; }
+    async createUser(insert: InsertUser, passwordHash?: string): Promise<User> { const id = randomUUID(); const now = new Date().toISOString(); const role = insert.username === "kalkut2014" ? "moderator" : "user"; this.db.prepare(`INSERT INTO users (id, username, display_name, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at, password_hash) VALUES (?, ?, ?, ?, ?, ?, 0, 1, 0, 0, NULL, ?, ?)`).run(id, insert.username, insert.displayName, insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now, passwordHash || null); return (await this.getUser(id))!; }
     async getUser(id: string): Promise<User | undefined> { const row = this.db.prepare("SELECT * FROM users WHERE id = ?").get(id) as any; return row ? this.rowToUser(row) : undefined; }
     async getUserByUsername(username: string): Promise<User | undefined> { const row = this.db.prepare("SELECT * FROM users WHERE username = ?").get(username) as any; return row ? this.rowToUser(row) : undefined; }
+    async getPasswordHash(userId: string): Promise<string | null> { const row = this.db.prepare("SELECT password_hash FROM users WHERE id = ?").get(userId) as any; return row?.password_hash || null; }
     async updateUserXp(id: string, xp: number): Promise<User | undefined> { const user = await this.getUser(id); if (!user) return undefined; const newXp = user.totalXp + xp; const newLevel = getLevelFromXp(newXp); this.db.prepare("UPDATE users SET total_xp = ?, level = ? WHERE id = ?").run(newXp, newLevel, id); return this.getUser(id); }
     async updateUserStreak(id: string): Promise<User | undefined> { const user = await this.getUser(id); if (!user) return undefined; const today = new Date().toISOString().split("T")[0]; if (user.lastActiveDate === today) return user; const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0]; let newStreak: number; if (user.lastActiveDate === yesterday) { newStreak = user.currentStreak + 1; } else { newStreak = 1; } const newLongest = Math.max(newStreak, user.longestStreak); this.db.prepare("UPDATE users SET current_streak = ?, longest_streak = ?, last_active_date = ? WHERE id = ?").run(newStreak, newLongest, today, id); return this.getUser(id); }
     async updateUserPreferences(id: string, lang: string, script: string): Promise<User | undefined> { this.db.prepare("UPDATE users SET preferred_language = ?, preferred_script = ? WHERE id = ?").run(lang, script, id); return this.getUser(id); }
