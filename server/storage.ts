@@ -14,8 +14,7 @@ import {
 import { randomUUID, createHash } from "crypto";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
-import { createRequire } from "module";
-const _require = createRequire(import.meta.url);
+import Database from "better-sqlite3";
 import pg from "pg";
 const { Pool } = pg;
 
@@ -925,8 +924,6 @@ if (process.env.DATABASE_URL) {
   storage = pgStorage;
 } else {
   console.log("No DATABASE_URL found, falling back to SQLite");
-  // Use createRequire to load CJS module in ESM context
-  const Database = _require("better-sqlite3");
 
   // Keep the old SQLite class inline for fallback
   class SqliteStorage implements IStorage {
