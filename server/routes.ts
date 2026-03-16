@@ -1,13 +1,20 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import { storage, PostgresStorage } from "./storage";
 import { randomBytes, scryptSync } from "crypto";
 import { storage } from "./storage";
 import {
   insertWordSchema, insertVoteSchema, insertNewsSchema,
   insertSuggestionSchema, insertSuggestionVoteSchema,
   CATEGORY_UNLOCKS, getLevelFromXp, getXpForNextLevel,
-  type QuizQuestion, type Word,
+  type QuizQuestion, type Word, type User,
 } from "@shared/schema";
+
+/** Strip password hash before sending user to client */
+function safeUser(u: User): Omit<User, "password"> {
+  const { password: _pw, ...rest } = u;
+  return rest;
+}
 
 // ─── Session type augmentation ───────────────────────────────────────────────
 declare module "express-session" {
@@ -98,6 +105,15 @@ export async function registerRoutes(
 
       let user = await storage.getUserByUsername(username.trim());
       if (user) {
+        // If this user has a password set, verify it
+        if (user.password) {
+          if (!password) {
+            return res.status(401).json({ error: "Пароль обязателен" });
+          }
+          const hashed = PostgresStorage.hashPassword(password);
+          if (hashed !== user.password) {
+            return res.status(401).json({ error: "Неверный пароль" });
+          }
         const storedHash = await storage.getUserPasswordHash(username.trim());
         if (storedHash && password) {
           if (!verifyPassword(password, storedHash)) {
@@ -113,6 +129,12 @@ export async function registerRoutes(
             preferredScript || user.preferredScript
           ))!;
         }
+        return res.json(safeUser(user));
+      }
+
+      // New user — require a password to register
+      if (!password || typeof password !== "string" || password.trim().length < 4) {
+        return res.status(400).json({ error: "Придумайте пароль (минимум 4 символа)" });
         // Set session
         req.session.userId = user.id;
         req.session.role = user.role;
@@ -126,6 +148,9 @@ export async function registerRoutes(
         displayName: username.trim(),
         preferredLanguage: preferredLanguage || "ru",
         preferredScript: preferredScript || "latin",
+        password: password.trim(),
+      });
+      return res.json(safeUser(user));
       }, pwHash);
       // Set session
       req.session.userId = user.id;

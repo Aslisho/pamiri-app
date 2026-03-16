@@ -7,6 +7,7 @@ export const insertUserSchema = z.object({
   password: z.string().min(4).optional(),
   preferredLanguage: z.enum(["en", "ru"]).default("en"),
   preferredScript: z.enum(["latin", "cyrillic"]).default("latin"),
+  password: z.string().optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -24,6 +25,8 @@ export interface User {
   longestStreak: number;
   lastActiveDate: string | null;
   createdAt: string;
+  /** Only present server-side; stripped before sending to client */
+  password?: string;
 }
 
 // Words table schema

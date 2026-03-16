@@ -113,6 +113,10 @@ export default function LearnPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/words/unlocked"] });
       queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
     },
+    onError: () => {
+      // Unfreeze the match board if the request fails
+      setMatchLocked(false);
+    },
   });
 
   const recordAnswerMutation = useMutation({
@@ -143,12 +147,10 @@ export default function LearnPage() {
 
   const handleNext = () => {
     if (currentQ >= questions.length - 1) {
-      const q = questions[currentQ];
-      const last = selectedAnswer && normalizeOption(selectedAnswer) === normalizeOption(q.correctAnswer) ? 1 : 0;
-      const finalScore = score + last;
-      setResultScore(finalScore);
+      // `score` already includes the current question (incremented in handleAnswer)
+      setResultScore(score);
       setResultTotal(questions.length);
-      completeGameMutation.mutate({ finalScore, total: questions.length });
+      completeGameMutation.mutate({ finalScore: score, total: questions.length });
     } else {
       setCurrentQ(c => c + 1);
       setSelectedAnswer(null);

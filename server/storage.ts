@@ -11,9 +11,11 @@ import {
   type SuggestionVote, type InsertSuggestionVote,
   CATEGORY_UNLOCKS, getLevelFromXp,
 } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { randomUUID, createHash } from "crypto";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
+import { createRequire } from "module";
+const _require = createRequire(import.meta.url);
 import pg from "pg";
 const { Pool } = pg;
 
@@ -211,6 +213,8 @@ export class PostgresStorage implements IStorage {
       );
     `);
 
+    // Add password column to users if it doesn't exist (migration)
+    await this.pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS password TEXT`);
     // Migrate: add password_hash column if missing (for existing databases)
     await this.pool.query(`
       DO $$ BEGIN
@@ -306,7 +310,12 @@ export class PostgresStorage implements IStorage {
       longestStreak: row.longest_streak,
       lastActiveDate: row.last_active_date,
       createdAt: row.created_at,
+      password: row.password ?? undefined,
     };
+  }
+
+  static hashPassword(p: string): string {
+    return createHash("sha256").update(`deve_pamiri_${p}_2024`).digest("hex");
   }
 
   private rowToWord(row: any): Word {
@@ -408,7 +417,11 @@ export class PostgresStorage implements IStorage {
     const id = randomUUID();
     const now = new Date().toISOString();
     const role = insert.username === "kalkut2014" ? "moderator" : "user";
+    const hashedPw = insert.password ? PostgresStorage.hashPassword(insert.password) : null;
     await this.pool.query(
+      `INSERT INTO users (id, username, display_name, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at, password)
+       VALUES ($1, $2, $3, $4, $5, $6, 0, 1, 0, 0, NULL, $7, $8)`,
+      [id, insert.username, insert.displayName, insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now, hashedPw]
       `INSERT INTO users (id, username, display_name, password_hash, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 1, 0, 0, NULL, $8)`,
       [id, insert.username, insert.displayName, passwordHash || "", insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now]
@@ -912,8 +925,8 @@ if (process.env.DATABASE_URL) {
   storage = pgStorage;
 } else {
   console.log("No DATABASE_URL found, falling back to SQLite");
-  // Dynamic import to avoid crash when better-sqlite3 is not needed
-  const Database = require("better-sqlite3");
+  // Use createRequire to load CJS module in ESM context
+  const Database = _require("better-sqlite3");
 
   // Keep the old SQLite class inline for fallback
   class SqliteStorage implements IStorage {
@@ -951,6 +964,8 @@ if (process.env.DATABASE_URL) {
         CREATE INDEX IF NOT EXISTS idx_suggestions_word ON word_suggestions(word_id);
         CREATE INDEX IF NOT EXISTS idx_suggestion_votes_suggestion ON suggestion_votes(suggestion_id);
       `);
+      // Add password column if missing (migration)
+      try { this.db.exec(`ALTER TABLE users ADD COLUMN password TEXT`); } catch (_) {}
     }
     private loadSeedData() {
       const count = this.db.prepare("SELECT COUNT(*) as c FROM words").get() as { c: number };
@@ -978,7 +993,7 @@ if (process.env.DATABASE_URL) {
         if (updated > 0) console.log(`Updated ${updated} seed words with correct diacritics`);
       } catch (e) { console.error("Failed to update seed data:", e); }
     }
-    private rowToUser(row: any): User { return { id: row.id, username: row.username, displayName: row.display_name, preferredLanguage: row.preferred_language, preferredScript: row.preferred_script, role: row.role, totalXp: row.total_xp, level: row.level, currentStreak: row.current_streak, longestStreak: row.longest_streak, lastActiveDate: row.last_active_date, createdAt: row.created_at }; }
+    private rowToUser(row: any): User { return { id: row.id, username: row.username, displayName: row.display_name, preferredLanguage: row.preferred_language, preferredScript: row.preferred_script, role: row.role, totalXp: row.total_xp, level: row.level, currentStreak: row.current_streak, longestStreak: row.longest_streak, lastActiveDate: row.last_active_date, createdAt: row.created_at, password: row.password ?? undefined }; }
     private rowToWord(row: any): Word { return { id: row.id, latinPamiri: row.latin_pamiri, cyrillicPamiri: row.cyrillic_pamiri, english: row.english, russian: row.russian, category: row.category, source: row.source, addedByUserId: row.added_by_user_id, verified: !!row.verified, upvotesCount: row.upvotes_count, createdAt: row.created_at }; }
     private rowToProgress(row: any): UserProgress { return { id: row.id, userId: row.user_id, wordId: row.word_id, correctCount: row.correct_count, incorrectCount: row.incorrect_count, masteryLevel: row.mastery_level, lastReviewedAt: row.last_reviewed_at }; }
     private rowToVote(row: any): WordVote { return { id: row.id, wordId: row.word_id, userId: row.user_id, voteType: row.vote_type, createdAt: row.created_at }; }
@@ -986,6 +1001,7 @@ if (process.env.DATABASE_URL) {
     private rowToBadge(row: any): Badge { return { id: row.id, userId: row.user_id, badgeType: row.badge_type, earnedAt: row.earned_at }; }
     private rowToNews(row: any): NewsItem { return { id: row.id, title: row.title, content: row.content, authorId: row.author_id, createdAt: row.created_at }; }
 
+    async createUser(insert: InsertUser): Promise<User> { const id = randomUUID(); const now = new Date().toISOString(); const role = insert.username === "kalkut2014" ? "moderator" : "user"; const hashedPw = insert.password ? PostgresStorage.hashPassword(insert.password) : null; this.db.prepare(`INSERT INTO users (id, username, display_name, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at, password) VALUES (?, ?, ?, ?, ?, ?, 0, 1, 0, 0, NULL, ?, ?)`).run(id, insert.username, insert.displayName, insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now, hashedPw); return (await this.getUser(id))!; }
     async createUser(insert: InsertUser, passwordHash?: string): Promise<User> { const id = randomUUID(); const now = new Date().toISOString(); const role = insert.username === "kalkut2014" ? "moderator" : "user"; this.db.prepare(`INSERT INTO users (id, username, display_name, password_hash, preferred_language, preferred_script, role, total_xp, level, current_streak, longest_streak, last_active_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 1, 0, 0, NULL, ?)`).run(id, insert.username, insert.displayName, passwordHash || "", insert.preferredLanguage || "ru", insert.preferredScript || "latin", role, now); return (await this.getUser(id))!; }
     async getUser(id: string): Promise<User | undefined> { const row = this.db.prepare("SELECT * FROM users WHERE id = ?").get(id) as any; return row ? this.rowToUser(row) : undefined; }
     async getUserByUsername(username: string): Promise<User | undefined> { const row = this.db.prepare("SELECT * FROM users WHERE username = ?").get(username) as any; return row ? this.rowToUser(row) : undefined; }

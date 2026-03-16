@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +15,19 @@ export default function LoginPage() {
   const { setUser } = useUser();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [script, setScript] = useState<"latin" | "cyrillic">("latin");
+
+  const loginMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/auth/login", {
+        username: username.trim(),
+        password: password.trim(),
+        preferredLanguage: "ru",
+        preferredScript: script,
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Что-то пошло не так");
   const [showPassword, setShowPassword] = useState(false);
   const [shake, setShake] = useState(false);
 
@@ -45,6 +58,12 @@ export default function LoginPage() {
       setTimeout(() => setShake(false), 600);
     },
   });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim() || !password.trim()) return;
+    loginMutation.mutate();
+  };
 
   return (
     <div className="login-bg min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
