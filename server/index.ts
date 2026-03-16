@@ -4,6 +4,9 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import session from "express-session";
 import { randomBytes } from "crypto";
+import connectPgSimple from "connect-pg-simple";
+import pg from "pg";
+import createMemoryStore from "memorystore";
 
 const app = express();
 const httpServer = createServer(app);
@@ -56,9 +59,8 @@ if (!process.env.SESSION_SECRET) {
 let sessionStore: session.Store | undefined;
 
 if (process.env.DATABASE_URL) {
-  const connectPgSimple = require("connect-pg-simple")(session);
-  const pg = require("pg");
-  sessionStore = new connectPgSimple({
+  const PgStore = connectPgSimple(session);
+  sessionStore = new PgStore({
     pool: new pg.Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.DATABASE_URL?.includes("render.com")
@@ -68,7 +70,7 @@ if (process.env.DATABASE_URL) {
     createTableIfMissing: true,
   });
 } else {
-  const MemoryStore = require("memorystore")(session);
+  const MemoryStore = createMemoryStore(session);
   sessionStore = new MemoryStore({ checkPeriod: 86400000 });
 }
 
