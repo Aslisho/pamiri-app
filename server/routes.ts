@@ -1,8 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
-import { storage, PostgresStorage } from "./storage";
-import { randomBytes, scryptSync } from "crypto";
 import { storage } from "./storage";
+import { randomBytes, scryptSync } from "crypto";
 import {
   insertWordSchema, insertVoteSchema, insertNewsSchema,
   insertSuggestionSchema, insertSuggestionVoteSchema,
@@ -105,22 +104,15 @@ export async function registerRoutes(
 
       let user = await storage.getUserByUsername(username.trim());
       if (user) {
-        // If this user has a password set, verify it
-        if (user.password) {
+        // Existing user — verify password if one is set
+        const storedHash = await storage.getUserPasswordHash(username.trim());
+        if (storedHash) {
           if (!password) {
             return res.status(401).json({ error: "Пароль обязателен" });
           }
-          const hashed = PostgresStorage.hashPassword(password);
-          if (hashed !== user.password) {
-            return res.status(401).json({ error: "Неверный пароль" });
-          }
-        const storedHash = await storage.getUserPasswordHash(username.trim());
-        if (storedHash && password) {
           if (!verifyPassword(password, storedHash)) {
             return res.status(401).json({ error: "Неверный пароль" });
           }
-        } else if (storedHash && !password) {
-          return res.status(401).json({ error: "Требуется пароль" });
         }
         if (preferredLanguage || preferredScript) {
           user = (await storage.updateUserPreferences(
@@ -129,33 +121,23 @@ export async function registerRoutes(
             preferredScript || user.preferredScript
           ))!;
         }
-        return res.json(safeUser(user));
+      } else {
+        // New user — require a password to register
+        if (!password || typeof password !== "string" || password.trim().length < 4) {
+          return res.status(400).json({ error: "Придумайте пароль (минимум 4 символа)" });
+        }
+        user = await storage.createUser({
+          username: username.trim(),
+          displayName: username.trim(),
+          preferredLanguage: preferredLanguage || "ru",
+          preferredScript: preferredScript || "latin",
+          password: hashPassword(password),
+        });
       }
 
-      // New user — require a password to register
-      if (!password || typeof password !== "string" || password.trim().length < 4) {
-        return res.status(400).json({ error: "Придумайте пароль (минимум 4 символа)" });
-        // Set session
-        req.session.userId = user.id;
-        req.session.role = user.role;
-        return res.json(user);
-      }
-
-      // New user
-      const pwHash = password ? hashPassword(password) : "";
-      user = await storage.createUser({
-        username: username.trim(),
-        displayName: username.trim(),
-        preferredLanguage: preferredLanguage || "ru",
-        preferredScript: preferredScript || "latin",
-        password: password.trim(),
-      });
-      return res.json(safeUser(user));
-      }, pwHash);
-      // Set session
       req.session.userId = user.id;
       req.session.role = user.role;
-      return res.json(user);
+      return res.json(safeUser(user));
     } catch (e: any) {
       return res.status(500).json({ error: e.message });
     }

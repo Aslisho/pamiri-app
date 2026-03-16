@@ -8,26 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ZivLogo } from "@/components/ZivLogo";
 import { useUser } from "@/contexts/UserContext";
-import { apiRequest } from "@/lib/queryClient";
-
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const { setUser } = useUser();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [script, setScript] = useState<"latin" | "cyrillic">("latin");
-
-  const loginMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/auth/login", {
-        username: username.trim(),
-        password: password.trim(),
-        preferredLanguage: "ru",
-        preferredScript: script,
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Что-то пошло не так");
   const [showPassword, setShowPassword] = useState(false);
   const [shake, setShake] = useState(false);
 
