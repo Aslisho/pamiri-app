@@ -105,6 +105,8 @@ export async function registerRoutes(
         }
         const passwordHash = await bcrypt.hash(parsed.password, 10);
         await storage.setPasswordHash(existing.id, passwordHash);
+        req.session.userId = existing.id;
+        req.session.role = existing.role;
         return res.json(existing);
       }
 
@@ -120,6 +122,8 @@ export async function registerRoutes(
         passwordHash
       );
 
+      req.session.userId = user.id;
+      req.session.role = user.role;
       return res.json(user);
     } catch (e: any) {
       if (e.name === "ZodError") {
@@ -149,6 +153,8 @@ export async function registerRoutes(
         return res.status(401).json({ error: "Неверное имя пользователя или пароль" });
       }
 
+      req.session.userId = user.id;
+      req.session.role = user.role;
       return res.json(user);
     } catch (e: any) {
       if (e.name === "ZodError") {
