@@ -7,3 +7,7 @@ deve.db-shm
 .env
 .env.*
 !.env.example
+=======
+.claude/
+feedback/
+
