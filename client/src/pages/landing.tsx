@@ -12,15 +12,15 @@ interface Stats {
 
 const FLOATING_WORDS = [
   { sgh: "Salōmolek!", ru: "Привет!" },
-  { sgh: "Walek!", ru: "Ответ на привет" },
-  { sgh: "Carang taw awōl?", ru: "Как дела?" },
-  { sgh: "Tu nōm cī?", ru: "Как тебя зовут?" },
-  { sgh: "wūz", ru: "Я" },
-  { sgh: "taw", ru: "Ты" },
-  { sgh: "jūr", ru: "Ладно" },
+  { sgh: "Wālek!", ru: "Ответ на привет" },
+  { sgh: "Carang tu awōl?", ru: "Как дела?" },
+  { sgh: "Tu nōm chāy?", ru: "Как тебя зовут?" },
+  { sgh: "Wūz", ru: "Я" },
+  { sgh: "Tu", ru: "Ты" },
+  { sgh: "Jūr", ru: "Ладно" },
   { sgh: "Sarām čūd", ru: "Начнём" },
   { sgh: "Tu fāmēyo?", ru: "Ты знаешь?" },
-  { sgh: "wadh", ru: "Они" },
+  { sgh: "Wāth", ru: "Они" },
 ];
 
 type Bubble = {
