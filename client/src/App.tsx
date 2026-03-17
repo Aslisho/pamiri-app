@@ -1,3 +1,4 @@
+import { Suspense, lazy, type ComponentType } from "react";
 import { Switch, Route, Router, Redirect } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
 import { queryClient } from "./lib/queryClient";
@@ -11,13 +12,32 @@ import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
-import HomePage from "@/pages/home";
-import LearnPage from "@/pages/learn";
-import AddPage from "@/pages/add";
-import DictionaryPage from "@/pages/dictionary";
-import RanksPage from "@/pages/ranks";
-import ProfilePage from "@/pages/profile";
-import ModPage from "@/pages/mod";
+
+const HomePage = lazy(() => import("@/pages/home"));
+const LearnPage = lazy(() => import("@/pages/learn"));
+const AddPage = lazy(() => import("@/pages/add"));
+const DictionaryPage = lazy(() => import("@/pages/dictionary"));
+const RanksPage = lazy(() => import("@/pages/ranks"));
+const ProfilePage = lazy(() => import("@/pages/profile"));
+const ModPage = lazy(() => import("@/pages/mod"));
+
+function PageFallback() {
+  return (
+    <div className="pt-16 pb-20 px-4 max-w-lg mx-auto">
+      <div className="pt-4 text-sm text-muted-foreground">Загрузка…</div>
+    </div>
+  );
+}
+
+function lazyWrap(C: ComponentType) {
+  return function LazyWrapped() {
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <C />
+      </Suspense>
+    );
+  };
+}
 
 function AppRouter() {
   const { isLoggedIn, isLoading } = useUser();
@@ -43,14 +63,14 @@ function AppRouter() {
     <>
       <TopBar />
       <Switch>
-        <Route path="/" component={HomePage} />
-        <Route path="/home" component={HomePage} />
-        <Route path="/learn" component={LearnPage} />
-        <Route path="/add" component={AddPage} />
-        <Route path="/dictionary" component={DictionaryPage} />
-        <Route path="/ranks" component={RanksPage} />
-        <Route path="/profile" component={ProfilePage} />
-        <Route path="/mod" component={ModPage} />
+        <Route path="/" component={lazyWrap(HomePage)} />
+        <Route path="/home" component={lazyWrap(HomePage)} />
+        <Route path="/learn" component={lazyWrap(LearnPage)} />
+        <Route path="/add" component={lazyWrap(AddPage)} />
+        <Route path="/dictionary" component={lazyWrap(DictionaryPage)} />
+        <Route path="/ranks" component={lazyWrap(RanksPage)} />
+        <Route path="/profile" component={lazyWrap(ProfilePage)} />
+        <Route path="/mod" component={lazyWrap(ModPage)} />
         <Route component={NotFound} />
       </Switch>
       <BottomNav />

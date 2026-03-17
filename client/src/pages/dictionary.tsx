@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Search, Lock, ChevronDown, ChevronUp, Edit3, ThumbsUp, ThumbsDown, Send, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ export default function DictionaryPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [expandedWord, setExpandedWord] = useState<number | null>(null);
   const [suggestingFor, setSuggestingFor] = useState<number | null>(null);
+  const deferredSearch = useDeferredValue(searchTerm);
 
   const { data: allWords, isLoading } = useQuery<Word[]>({
     queryKey: ["/api/words"],
@@ -30,7 +31,7 @@ export default function DictionaryPage() {
   });
 
   const script = user?.preferredScript || "latin";
-  const categories = Object.keys(CATEGORY_UNLOCKS);
+  const categories = useMemo(() => Object.keys(CATEGORY_UNLOCKS), []);
 
   const isUnlocked = (word: Word) => {
     if (!user) return false;
@@ -38,30 +39,36 @@ export default function DictionaryPage() {
     return unlock ? user.level >= unlock.level : false;
   };
 
-  // Filter words
-  const filteredWords = (allWords || []).filter(w => {
-    const matchesSearch = !searchTerm ||
-      w.latinPamiri.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      w.english.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      w.russian.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (w.cyrillicPamiri && w.cyrillicPamiri.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = !selectedCategory || w.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const sortedWords = useMemo(() => {
+    const words = allWords || [];
+    const q = deferredSearch.trim().toLowerCase();
 
-  // Sort: unlocked first (by category level asc, then alphabetically), then locked
-  const sortedWords = [...filteredWords].sort((a, b) => {
-    const aUnlocked = isUnlocked(a);
-    const bUnlocked = isUnlocked(b);
-    if (aUnlocked && !bUnlocked) return -1;
-    if (!aUnlocked && bUnlocked) return 1;
-    // Within same group, sort by category level
-    const aLevel = CATEGORY_UNLOCKS[a.category]?.level ?? 99;
-    const bLevel = CATEGORY_UNLOCKS[b.category]?.level ?? 99;
-    if (aLevel !== bLevel) return aLevel - bLevel;
-    // Then alphabetically
-    return a.latinPamiri.localeCompare(b.latinPamiri);
-  });
+    const filtered = q || selectedCategory
+      ? words.filter((w) => {
+          const matchesCategory = !selectedCategory || w.category === selectedCategory;
+          if (!matchesCategory) return false;
+          if (!q) return true;
+          return (
+            w.latinPamiri.toLowerCase().includes(q) ||
+            w.english.toLowerCase().includes(q) ||
+            w.russian.toLowerCase().includes(q) ||
+            (w.cyrillicPamiri && w.cyrillicPamiri.toLowerCase().includes(q))
+          );
+        })
+      : words;
+
+    // Sort: unlocked first (by category level asc, then alphabetically), then locked
+    return [...filtered].sort((a, b) => {
+      const aUnlocked = isUnlocked(a);
+      const bUnlocked = isUnlocked(b);
+      if (aUnlocked && !bUnlocked) return -1;
+      if (!aUnlocked && bUnlocked) return 1;
+      const aLevel = CATEGORY_UNLOCKS[a.category]?.level ?? 99;
+      const bLevel = CATEGORY_UNLOCKS[b.category]?.level ?? 99;
+      if (aLevel !== bLevel) return aLevel - bLevel;
+      return a.latinPamiri.localeCompare(b.latinPamiri);
+    });
+  }, [allWords, deferredSearch, selectedCategory, user?.level]);
 
   if (!user) return null;
 
