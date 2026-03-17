@@ -155,11 +155,11 @@ export default function LandingPage() {
 
         {/* Mission statement */}
         <div className="text-center mb-8 px-2">
-          <p className="text-white/90 text-lg font-semibold leading-snug">
-            Сохраним шугнанский язык вместе
+          <p className="text-white text-lg font-semibold leading-snug">
+            Сохраним языки вместе.
           </p>
-          <p className="text-white/50 text-sm mt-2 leading-relaxed">
-            Вносите слова, учитесь вместе, сохраняйте живым язык предков.
+          <p className="text-white text-sm mt-2 leading-relaxed">
+            Вносите слова, учитесь вместе, сохраняйте язык живым.
           </p>
         </div>
 
@@ -186,7 +186,7 @@ export default function LandingPage() {
         {/* CTA Buttons */}
         <div className="flex flex-col gap-3 w-full">
           <Link href="/login" className="w-full">
-            <button className="w-full h-13 py-3.5 rounded-2xl font-bold text-base text-white
+            <button className="w-full h-13 py-3.5 rounded-2xl font-bold text-base text-orange
               bg-gradient-to-r from-amber-500 to-orange-600
               shadow-lg shadow-amber-500/30
               hover:shadow-amber-500/50 hover:scale-[1.02]
@@ -197,7 +197,7 @@ export default function LandingPage() {
             </button>
           </Link>
           <Link href="/dictionary" className="w-full">
-            <button className="w-full h-13 py-3.5 rounded-2xl font-semibold text-base text-white/90
+            <button className="w-full h-13 py-3.5 rounded-2xl font-semibold text-base text-oreange/90
               bg-white/10 border border-white/20 backdrop-blur-sm
               hover:bg-white/15 hover:scale-[1.02]
               active:scale-[0.98] transition-all duration-200
@@ -209,8 +209,8 @@ export default function LandingPage() {
         </div>
 
         {/* Footer note */}
-        <p className="mt-8 text-xs text-white/30 text-center leading-relaxed max-w-[260px]">
-          Шугнанский — памирский язык Таджикистана и Афганистана. Вместе мы можем его сохранить.
+        <p className="mt-8 text-xs text-white text-center leading-relaxed max-w-[260px]">
+          Шугнанский — памирский язык.
         </p>
       </div>
     </div>
