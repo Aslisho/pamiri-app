@@ -137,6 +137,7 @@ export class PostgresStorage implements IStorage {
         cyrillic_pamiri TEXT NOT NULL DEFAULT '',
         english TEXT NOT NULL,
         russian TEXT NOT NULL,
+        tajik TEXT NOT NULL DEFAULT '',
         category TEXT NOT NULL,
         source TEXT NOT NULL DEFAULT 'community',
         added_by_user_id TEXT,
@@ -226,6 +227,9 @@ export class PostgresStorage implements IStorage {
       END $$;
     `);
 
+    // Add tajik column if it doesn't exist (migration for existing DBs)
+    await this.pool.query(`ALTER TABLE words ADD COLUMN IF NOT EXISTS tajik TEXT NOT NULL DEFAULT ''`);
+
     // Create indexes (using IF NOT EXISTS)
     await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_words_category ON words(category)`);
     await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_words_verified ON words(verified)`);
@@ -251,13 +255,14 @@ export class PostgresStorage implements IStorage {
       // Batch insert seed words
       for (const entry of data) {
         await this.pool.query(
-          `INSERT INTO words (latin_pamiri, cyrillic_pamiri, english, russian, category, source, added_by_user_id, verified, upvotes_count, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, NULL, 1, 0, $7)`,
+          `INSERT INTO words (latin_pamiri, cyrillic_pamiri, english, russian, tajik, category, source, added_by_user_id, verified, upvotes_count, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, NULL, 1, 0, $8)`,
           [
             entry.latin_pamiri,
             entry.cyrillic_pamiri || "",
             entry.english,
             entry.russian,
+            entry.tajik || "",
             entry.category,
             entry.source || "zarubin",
             now,
@@ -328,6 +333,7 @@ export class PostgresStorage implements IStorage {
       cyrillicPamiri: row.cyrillic_pamiri,
       english: row.english,
       russian: row.russian,
+      tajik: row.tajik || "",
       category: row.category,
       source: row.source,
       addedByUserId: row.added_by_user_id,
@@ -520,13 +526,14 @@ export class PostgresStorage implements IStorage {
   async createWord(insert: InsertWord): Promise<Word> {
     const now = new Date().toISOString();
     const { rows } = await this.pool.query(
-      `INSERT INTO words (latin_pamiri, cyrillic_pamiri, english, russian, category, source, added_by_user_id, verified, upvotes_count, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0, $8) RETURNING id`,
+      `INSERT INTO words (latin_pamiri, cyrillic_pamiri, english, russian, tajik, category, source, added_by_user_id, verified, upvotes_count, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, 0, $9) RETURNING id`,
       [
         insert.latinPamiri,
         insert.cyrillicPamiri || "",
         insert.english,
         insert.russian,
+        (insert as any).tajik || "",
         insert.category,
         insert.source || "community",
         insert.addedByUserId || null,
@@ -887,7 +894,8 @@ export class PostgresStorage implements IStorage {
   async getAllPendingSuggestions(): Promise<(WordSuggestion & { originalWord?: Word })[]> {
     const { rows } = await this.pool.query(
       `SELECT s.*, w.latin_pamiri AS orig_latin, w.cyrillic_pamiri AS orig_cyrillic,
-              w.english AS orig_english, w.russian AS orig_russian, w.category AS orig_category
+              w.english AS orig_english, w.russian AS orig_russian, w.tajik AS orig_tajik,
+              w.category AS orig_category
        FROM word_suggestions s
        LEFT JOIN words w ON w.id = s.word_id
        WHERE s.status = 'pending'
@@ -901,6 +909,7 @@ export class PostgresStorage implements IStorage {
         cyrillicPamiri: r.orig_cyrillic,
         english: r.orig_english,
         russian: r.orig_russian,
+        tajik: r.orig_tajik || "",
         category: r.orig_category,
         source: "",
         addedByUserId: null,
@@ -940,13 +949,15 @@ if (process.env.DATABASE_URL) {
       this.initTables();
       // Migrate: add password_hash column if missing (for existing databases)
       try { this.db.exec("ALTER TABLE users ADD COLUMN password_hash TEXT NOT NULL DEFAULT ''"); } catch (_e) { /* column already exists */ }
+      // Migrate: add tajik column if missing (for existing databases)
+      try { this.db.exec("ALTER TABLE words ADD COLUMN tajik TEXT NOT NULL DEFAULT ''"); } catch (_e) { /* column already exists */ }
       this.loadSeedData();
       this.updateSeedData();
     }
     private initTables() {
       this.db.exec(`
         CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL, password_hash TEXT NOT NULL DEFAULT '', preferred_language TEXT NOT NULL DEFAULT 'ru', preferred_script TEXT NOT NULL DEFAULT 'latin', role TEXT NOT NULL DEFAULT 'user', total_xp INTEGER NOT NULL DEFAULT 0, level INTEGER NOT NULL DEFAULT 1, current_streak INTEGER NOT NULL DEFAULT 0, longest_streak INTEGER NOT NULL DEFAULT 0, last_active_date TEXT, created_at TEXT NOT NULL);
-        CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY AUTOINCREMENT, latin_pamiri TEXT NOT NULL, cyrillic_pamiri TEXT NOT NULL DEFAULT '', english TEXT NOT NULL, russian TEXT NOT NULL, category TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'community', added_by_user_id TEXT, verified INTEGER NOT NULL DEFAULT 0, upvotes_count INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY AUTOINCREMENT, latin_pamiri TEXT NOT NULL, cyrillic_pamiri TEXT NOT NULL DEFAULT '', english TEXT NOT NULL, russian TEXT NOT NULL, tajik TEXT NOT NULL DEFAULT '', category TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'community', added_by_user_id TEXT, verified INTEGER NOT NULL DEFAULT 0, upvotes_count INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS user_progress (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, word_id INTEGER NOT NULL, correct_count INTEGER NOT NULL DEFAULT 0, incorrect_count INTEGER NOT NULL DEFAULT 0, mastery_level INTEGER NOT NULL DEFAULT 0, last_reviewed_at TEXT, UNIQUE(user_id, word_id));
         CREATE TABLE IF NOT EXISTS word_votes (id INTEGER PRIMARY KEY AUTOINCREMENT, word_id INTEGER NOT NULL, user_id TEXT NOT NULL, vote_type TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(word_id, user_id));
         CREATE TABLE IF NOT EXISTS xp_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, action_type TEXT NOT NULL, xp_earned INTEGER NOT NULL, details TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL);
@@ -966,6 +977,7 @@ if (process.env.DATABASE_URL) {
         CREATE INDEX IF NOT EXISTS idx_suggestion_votes_suggestion ON suggestion_votes(suggestion_id);
       `);
       try { this.db.exec("ALTER TABLE users ADD COLUMN password_hash TEXT"); } catch (e) { /* column already exists */ }
+      try { this.db.exec("ALTER TABLE words ADD COLUMN tajik TEXT NOT NULL DEFAULT ''"); } catch (_e) { /* column already exists */ }
     }
     private loadSeedData() {
       const count = this.db.prepare("SELECT COUNT(*) as c FROM words").get() as { c: number };
@@ -973,9 +985,9 @@ if (process.env.DATABASE_URL) {
       try {
         const seedPath = join(process.cwd(), "seed_words.json");
         const data = JSON.parse(readFileSync(seedPath, "utf-8"));
-        const insert = this.db.prepare(`INSERT INTO words (latin_pamiri, cyrillic_pamiri, english, russian, category, source, added_by_user_id, verified, upvotes_count, created_at) VALUES (?, ?, ?, ?, ?, ?, NULL, 1, 0, ?)`);
+        const insert = this.db.prepare(`INSERT INTO words (latin_pamiri, cyrillic_pamiri, english, russian, tajik, category, source, added_by_user_id, verified, upvotes_count, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 1, 0, ?)`);
         const now = new Date().toISOString();
-        const insertMany = this.db.transaction((entries: any[]) => { for (const entry of entries) { insert.run(entry.latin_pamiri, entry.cyrillic_pamiri || "", entry.english, entry.russian, entry.category, entry.source || "zarubin", now); } });
+        const insertMany = this.db.transaction((entries: any[]) => { for (const entry of entries) { insert.run(entry.latin_pamiri, entry.cyrillic_pamiri || "", entry.english, entry.russian, entry.tajik || "", entry.category, entry.source || "zarubin", now); } });
         insertMany(data);
         console.log(`Loaded ${data.length} seed words into database`);
       } catch (e) { console.error("Failed to load seed data:", e); }
@@ -994,7 +1006,7 @@ if (process.env.DATABASE_URL) {
       } catch (e) { console.error("Failed to update seed data:", e); }
     }
     private rowToUser(row: any): User { return { id: row.id, username: row.username, displayName: row.display_name, preferredLanguage: row.preferred_language, preferredScript: row.preferred_script, role: row.role, totalXp: row.total_xp, level: row.level, currentStreak: row.current_streak, longestStreak: row.longest_streak, lastActiveDate: row.last_active_date, createdAt: row.created_at, password: row.password_hash ?? undefined }; }
-    private rowToWord(row: any): Word { return { id: row.id, latinPamiri: row.latin_pamiri, cyrillicPamiri: row.cyrillic_pamiri, english: row.english, russian: row.russian, category: row.category, source: row.source, addedByUserId: row.added_by_user_id, verified: !!row.verified, upvotesCount: row.upvotes_count, createdAt: row.created_at }; }
+    private rowToWord(row: any): Word { return { id: row.id, latinPamiri: row.latin_pamiri, cyrillicPamiri: row.cyrillic_pamiri, english: row.english, russian: row.russian, tajik: row.tajik || "", category: row.category, source: row.source, addedByUserId: row.added_by_user_id, verified: !!row.verified, upvotesCount: row.upvotes_count, createdAt: row.created_at }; }
     private rowToProgress(row: any): UserProgress { return { id: row.id, userId: row.user_id, wordId: row.word_id, correctCount: row.correct_count, incorrectCount: row.incorrect_count, masteryLevel: row.mastery_level, lastReviewedAt: row.last_reviewed_at }; }
     private rowToVote(row: any): WordVote { return { id: row.id, wordId: row.word_id, userId: row.user_id, voteType: row.vote_type, createdAt: row.created_at }; }
     private rowToXpLog(row: any): XpLog { return { id: row.id, userId: row.user_id, actionType: row.action_type, xpEarned: row.xp_earned, details: row.details, createdAt: row.created_at }; }
@@ -1014,7 +1026,7 @@ if (process.env.DATABASE_URL) {
     async getWordsByCategory(category: string): Promise<Word[]> { const rows = this.db.prepare("SELECT * FROM words WHERE verified = 1 AND category = ?").all(category) as any[]; return rows.map(r => this.rowToWord(r)); }
     async getUnverifiedWords(): Promise<Word[]> { const rows = this.db.prepare("SELECT * FROM words WHERE verified = 0").all() as any[]; return rows.map(r => this.rowToWord(r)); }
     async getWordById(id: number): Promise<Word | undefined> { const row = this.db.prepare("SELECT * FROM words WHERE id = ?").get(id) as any; return row ? this.rowToWord(row) : undefined; }
-    async createWord(insert: InsertWord): Promise<Word> { const now = new Date().toISOString(); const result = this.db.prepare(`INSERT INTO words (latin_pamiri, cyrillic_pamiri, english, russian, category, source, added_by_user_id, verified, upvotes_count, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, ?)`).run(insert.latinPamiri, insert.cyrillicPamiri || "", insert.english, insert.russian, insert.category, insert.source || "community", insert.addedByUserId || null, now); return (await this.getWordById(Number(result.lastInsertRowid)))!; }
+    async createWord(insert: InsertWord): Promise<Word> { const now = new Date().toISOString(); const result = this.db.prepare(`INSERT INTO words (latin_pamiri, cyrillic_pamiri, english, russian, tajik, category, source, added_by_user_id, verified, upvotes_count, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)`).run(insert.latinPamiri, insert.cyrillicPamiri || "", insert.english, insert.russian, (insert as any).tajik || "", insert.category, insert.source || "community", insert.addedByUserId || null, now); return (await this.getWordById(Number(result.lastInsertRowid)))!; }
     async approveWord(id: number): Promise<Word | undefined> { this.db.prepare("UPDATE words SET verified = 1 WHERE id = ?").run(id); return this.getWordById(id); }
     async rejectWord(id: number): Promise<boolean> { const result = this.db.prepare("DELETE FROM words WHERE id = ?").run(id); return result.changes > 0; }
     async getUnlockedWordsForUser(userId: string): Promise<Word[]> { const user = await this.getUser(userId); if (!user) return []; const allVerified = await this.getAllVerifiedWords(); return allVerified.filter(w => { const unlock = CATEGORY_UNLOCKS[w.category]; return unlock && user.level >= unlock.level; }); }
@@ -1053,7 +1065,7 @@ if (process.env.DATABASE_URL) {
     async getSuggestionVotesForSuggestion(suggestionId: number): Promise<SuggestionVote[]> { const rows = this.db.prepare("SELECT * FROM suggestion_votes WHERE suggestion_id = ?").all(suggestionId) as any[]; return rows.map(r => this.rowToSuggestionVote(r)); }
     async approveSuggestion(id: number): Promise<Word | undefined> { const suggestion = await this.getSuggestionById(id); if (!suggestion) return undefined; this.db.prepare(`UPDATE words SET latin_pamiri = ?, cyrillic_pamiri = ?, english = ?, russian = ? WHERE id = ?`).run(suggestion.latinPamiri, suggestion.cyrillicPamiri, suggestion.english, suggestion.russian, suggestion.wordId); this.db.prepare("UPDATE word_suggestions SET status = 'approved' WHERE id = ?").run(id); this.db.prepare("UPDATE word_suggestions SET status = 'rejected' WHERE word_id = ? AND id != ? AND status = 'pending'").run(suggestion.wordId, id); return this.getWordById(suggestion.wordId); }
     async rejectSuggestion(id: number): Promise<boolean> { const result = this.db.prepare("UPDATE word_suggestions SET status = 'rejected' WHERE id = ?").run(id); return result.changes > 0; }
-    async getAllPendingSuggestions(): Promise<(WordSuggestion & { originalWord?: Word })[]> { const rows = this.db.prepare(`SELECT s.*, w.latin_pamiri AS orig_latin, w.cyrillic_pamiri AS orig_cyrillic, w.english AS orig_english, w.russian AS orig_russian, w.category AS orig_category FROM word_suggestions s LEFT JOIN words w ON w.id = s.word_id WHERE s.status = 'pending' ORDER BY s.upvotes_count DESC, s.created_at ASC`).all() as any[]; return rows.map(r => ({ ...this.rowToSuggestion(r), originalWord: r.orig_latin ? { id: r.word_id, latinPamiri: r.orig_latin, cyrillicPamiri: r.orig_cyrillic, english: r.orig_english, russian: r.orig_russian, category: r.orig_category, source: "", addedByUserId: null, verified: true, upvotesCount: 0, createdAt: "" } as Word : undefined })); }
+    async getAllPendingSuggestions(): Promise<(WordSuggestion & { originalWord?: Word })[]> { const rows = this.db.prepare(`SELECT s.*, w.latin_pamiri AS orig_latin, w.cyrillic_pamiri AS orig_cyrillic, w.english AS orig_english, w.russian AS orig_russian, w.tajik AS orig_tajik, w.category AS orig_category FROM word_suggestions s LEFT JOIN words w ON w.id = s.word_id WHERE s.status = 'pending' ORDER BY s.upvotes_count DESC, s.created_at ASC`).all() as any[]; return rows.map(r => ({ ...this.rowToSuggestion(r), originalWord: r.orig_latin ? { id: r.word_id, latinPamiri: r.orig_latin, cyrillicPamiri: r.orig_cyrillic, english: r.orig_english, russian: r.orig_russian, tajik: r.orig_tajik || "", category: r.orig_category, source: "", addedByUserId: null, verified: true, upvotesCount: 0, createdAt: "" } as Word : undefined })); }
   }
 
   storage = new SqliteStorage();

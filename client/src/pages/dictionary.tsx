@@ -1,6 +1,7 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Search, Lock, ChevronDown, ChevronUp, Edit3, ThumbsUp, ThumbsDown, Send, X } from "lucide-react";
+import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,14 +28,17 @@ export default function DictionaryPage() {
       const res = await apiRequest("GET", "/api/words");
       return res.json();
     },
-    enabled: !!user,
   });
 
   const script = user?.preferredScript || "latin";
   const categories = useMemo(() => Object.keys(CATEGORY_UNLOCKS), []);
 
   const isUnlocked = (word: Word) => {
-    if (!user) return false;
+    if (!user) {
+      // Guests can see level 1 words
+      const unlock = CATEGORY_UNLOCKS[word.category];
+      return unlock ? unlock.level <= 1 : false;
+    }
     const unlock = CATEGORY_UNLOCKS[word.category];
     return unlock ? user.level >= unlock.level : false;
   };
@@ -52,7 +56,8 @@ export default function DictionaryPage() {
             w.latinPamiri.toLowerCase().includes(q) ||
             w.english.toLowerCase().includes(q) ||
             w.russian.toLowerCase().includes(q) ||
-            (w.cyrillicPamiri && w.cyrillicPamiri.toLowerCase().includes(q))
+            (w.cyrillicPamiri && w.cyrillicPamiri.toLowerCase().includes(q)) ||
+            (w.tajik && w.tajik.toLowerCase().includes(q))
           );
         })
       : words;
@@ -70,11 +75,17 @@ export default function DictionaryPage() {
     });
   }, [allWords, deferredSearch, selectedCategory, user?.level]);
 
-  if (!user) return null;
-
   return (
-    <div className="pt-16 pb-20 px-4 max-w-lg mx-auto space-y-4">
-      <div className="pt-4">
+    <div className={`${user ? "pt-16 pb-20" : "pt-4 pb-8"} px-4 max-w-lg mx-auto space-y-4`}>
+      {!user && (
+        <div className="bg-muted/50 border border-border rounded-lg px-4 py-3 flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">Войдите, чтобы голосовать и добавлять слова</p>
+          <Link href="/login">
+            <Button size="sm" variant="outline" className="shrink-0 h-8 text-xs">Войти</Button>
+          </Link>
+        </div>
+      )}
+      <div className="pt-2">
         <h2 className="text-lg font-bold" data-testid="text-dictionary-title">
           {t("dict.title")}
         </h2>
@@ -174,6 +185,9 @@ export default function DictionaryPage() {
                       <p className="text-xs text-muted-foreground">
                         {word.russian} / {word.english}
                       </p>
+                      {word.tajik && (
+                        <p className="text-xs text-muted-foreground/70">{word.tajik}</p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-[10px]">
@@ -204,27 +218,37 @@ export default function DictionaryPage() {
                           <span className="text-muted-foreground">RU: </span>
                           <span>{word.russian}</span>
                         </div>
+                        {word.tajik && (
+                          <div>
+                            <span className="text-muted-foreground">TG: </span>
+                            <span>{word.tajik}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span>{t("dict.source")}: {word.source === "community" ? t("dict.sourceCommunity") : word.source === "zarubin" ? t("dict.sourceZarubin") : t("dict.sourceDictionary")}</span>
                       </div>
 
-                      {/* Suggest correction button */}
-                      {suggestingFor !== word.id ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full h-8 text-xs gap-1"
-                          onClick={() => setSuggestingFor(word.id)}
-                        >
-                          <Edit3 size={12} /> {t("dict.suggestCorrection")}
-                        </Button>
-                      ) : (
-                        <SuggestionForm word={word} userId={user.id} onClose={() => setSuggestingFor(null)} />
-                      )}
+                      {/* Suggest correction button — only for logged-in users */}
+                      {user && (
+                        <>
+                          {suggestingFor !== word.id ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full h-8 text-xs gap-1"
+                              onClick={() => setSuggestingFor(word.id)}
+                            >
+                              <Edit3 size={12} /> {t("dict.suggestCorrection")}
+                            </Button>
+                          ) : (
+                            <SuggestionForm word={word} userId={user.id} onClose={() => setSuggestingFor(null)} />
+                          )}
 
-                      {/* Existing suggestions */}
-                      <SuggestionsList wordId={word.id} userId={user.id} />
+                          {/* Existing suggestions */}
+                          <SuggestionsList wordId={word.id} userId={user.id} />
+                        </>
+                      )}
                     </div>
                   )}
                 </CardContent>

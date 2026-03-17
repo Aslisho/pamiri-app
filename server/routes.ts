@@ -185,6 +185,14 @@ export async function registerRoutes(
     });
   });
 
+  // ===== PUBLIC STATS ENDPOINT =====
+
+  app.get("/api/stats", async (_req, res) => {
+    const words = await storage.getAllVerifiedWords();
+    const users = await storage.getAllUsers();
+    return res.json({ wordCount: words.length, userCount: users.length });
+  });
+
   // ===== USER ENDPOINTS =====
 
   app.get("/api/users/:id", async (req, res) => {

@@ -13,6 +13,7 @@ import { BottomNav } from "@/components/BottomNav";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 
+const LandingPage = lazy(() => import("@/pages/landing"));
 const HomePage = lazy(() => import("@/pages/home"));
 const LearnPage = lazy(() => import("@/pages/learn"));
 const AddPage = lazy(() => import("@/pages/add"));
@@ -53,7 +54,9 @@ function AppRouter() {
   if (!isLoggedIn) {
     return (
       <Switch>
-        <Route path="/" component={LoginPage} />
+        <Route path="/" component={lazyWrap(LandingPage)} />
+        <Route path="/login" component={LoginPage} />
+        <Route path="/dictionary" component={lazyWrap(DictionaryPage)} />
         <Route><Redirect to="/" /></Route>
       </Switch>
     );
@@ -63,7 +66,7 @@ function AppRouter() {
     <>
       <TopBar />
       <Switch>
-        <Route path="/" component={lazyWrap(HomePage)} />
+        <Route path="/" component={() => <Redirect to="/home" />} />
         <Route path="/home" component={lazyWrap(HomePage)} />
         <Route path="/learn" component={lazyWrap(LearnPage)} />
         <Route path="/add" component={lazyWrap(AddPage)} />

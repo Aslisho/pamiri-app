@@ -73,6 +73,7 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
   const [cyrillicPamiri, setCyrillicPamiri] = useState("");
   const [english, setEnglish] = useState("");
   const [russian, setRussian] = useState("");
+  const [tajik, setTajik] = useState("");
   const [category, setCategory] = useState("");
   const [focusedField, setFocusedField] = useState<"latin" | "cyrillic" | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -86,6 +87,7 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
         cyrillicPamiri,
         english,
         russian,
+        tajik,
         category,
         source: "community",
         addedByUserId: user.id,
@@ -103,6 +105,7 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
         setCyrillicPamiri("");
         setEnglish("");
         setRussian("");
+        setTajik("");
         setCategory("");
       }, 2500);
     },
@@ -196,6 +199,17 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
                   />
                 </div>
                 <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Tajik / Тоҷикӣ</label>
+                  <Input
+                    data-testid="input-tajik"
+                    placeholder="Тарҷума ба тоҷикӣ"
+                    value={tajik}
+                    onChange={e => setTajik(e.target.value)}
+                    onFocus={() => setFocusedField(null)}
+                    className="h-10"
+                  />
+                </div>
+                <div className="space-y-1">
                   <label className="text-xs font-medium text-muted-foreground">{t("add.category")}</label>
                   <Select value={category} onValueChange={setCategory}>
                     <SelectTrigger data-testid="select-category" className="h-10">
@@ -220,6 +234,7 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
                   <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
                     {english && <span>EN: {english}</span>}
                     {russian && <span>RU: {russian}</span>}
+                    {tajik && <span>TG: {tajik}</span>}
                   </div>
                 </CardContent>
               </Card>
@@ -456,6 +471,12 @@ export function ReviewQueue({ user, isModerator = false }: {
                   <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{t("add.russian")}</p>
                   <p className="font-medium">{word.russian}</p>
                 </div>
+                {word.tajik && (
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Тоҷикӣ</p>
+                    <p className="font-medium">{word.tajik}</p>
+                  </div>
+                )}
               </div>
 
               {/* Category + current vote tally + mod prior vote */}

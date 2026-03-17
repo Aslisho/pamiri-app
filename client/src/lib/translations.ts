@@ -76,6 +76,7 @@ const translations = {
   "add.pamiriCyrillic": { ru: "Памирский (кириллица)", sgh: "Памирский (кириллица)" },
   "add.english": { ru: "Английский", sgh: "Английский" },
   "add.russian": { ru: "Русский", sgh: "Русский" },
+  "add.tajik": { ru: "Таджикский", sgh: "Таджикский" },
   "add.category": { ru: "Категория", sgh: "Категория" },
   "add.selectCategory": { ru: "Выберите категорию", sgh: "Выберите категорию" },
   "add.preview": { ru: "Предпросмотр", sgh: "Предпросмотр" },

@@ -47,6 +47,7 @@ export const insertWordSchema = z.object({
   cyrillicPamiri: z.string().default(""),
   english: z.string().min(1),
   russian: z.string().min(1),
+  tajik: z.string().default(""),
   category: z.string().min(1),
   source: z.enum(["manual", "zarubin", "community"]).default("community"),
   addedByUserId: z.string().nullable().default(null),
@@ -60,6 +61,7 @@ export interface Word {
   cyrillicPamiri: string;
   english: string;
   russian: string;
+  tajik: string;
   category: string;
   source: string;
   addedByUserId: string | null;
