@@ -24,16 +24,17 @@ export function TopBar() {
         </Link>
 
         <div className="flex items-center gap-1">
-          {/* Language toggle */}
+          {/* Language toggle — cycles ru → sgh → tj → ru */}
           <Button
             variant="ghost"
             size="sm"
             onClick={toggleLang}
             className="h-8 px-2 text-xs font-bold gap-1"
             data-testid="lang-toggle"
+            title={lang === "ru" ? "Переключить язык" : lang === "sgh" ? "Switch language" : "Забонро иваз кунед"}
           >
             <Languages size={14} />
-            {lang === "ru" ? t("lang.sgh") : t("lang.ru")}
+            {lang === "ru" ? t("lang.ru") : lang === "sgh" ? t("lang.sgh") : t("lang.tj")}
           </Button>
 
           <Button

@@ -144,6 +144,11 @@ export default function HomePage() {
                   <p className="text-lg font-semibold text-primary">
                     {wordOfTheDay.russian} / {wordOfTheDay.english}
                   </p>
+                  {wordOfTheDay.tajik && (
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {wordOfTheDay.tajik}
+                    </p>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">
                     {script === "cyrillic" && wordOfTheDay.cyrillicPamiri
                       ? wordOfTheDay.cyrillicPamiri

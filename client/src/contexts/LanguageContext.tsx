@@ -19,7 +19,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<UILanguage>(() => {
     // Persist preference in localStorage
     const saved = localStorage.getItem("deve-ui-lang");
-    return (saved === "sgh" ? "sgh" : "ru") as UILanguage;
+    return (saved === "sgh" ? "sgh" : saved === "tj" ? "tj" : "ru") as UILanguage;
   });
 
   const setLang = useCallback((l: UILanguage) => {
@@ -29,7 +29,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const toggleLang = useCallback(() => {
     setLangState((prev) => {
-      const next = prev === "ru" ? "sgh" : "ru";
+      const next: UILanguage = prev === "ru" ? "sgh" : prev === "sgh" ? "tj" : "ru";
       localStorage.setItem("deve-ui-lang", next);
       return next;
     });

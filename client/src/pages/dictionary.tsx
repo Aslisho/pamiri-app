@@ -186,7 +186,9 @@ export default function DictionaryPage() {
                         {word.russian} / {word.english}
                       </p>
                       {word.tajik && (
-                        <p className="text-xs text-muted-foreground/70">{word.tajik}</p>
+                        <p className="text-xs text-muted-foreground/70">
+                          <span className="font-medium">{t("dict.tajik")}</span> {word.tajik}
+                        </p>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
@@ -269,6 +271,7 @@ function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string;
   const [cyrillic, setCyrillic] = useState(word.cyrillicPamiri);
   const [english, setEnglish] = useState(word.english);
   const [russian, setRussian] = useState(word.russian);
+  const [tajik, setTajik] = useState(word.tajik || "");
   const [submitted, setSubmitted] = useState(false);
 
   const submitMutation = useMutation({
@@ -279,6 +282,7 @@ function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string;
         cyrillicPamiri: cyrillic.trim(),
         english: english.trim(),
         russian: russian.trim(),
+        tajik: tajik.trim(),
       });
       return res.json();
     },
@@ -293,7 +297,8 @@ function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string;
     latin.trim() !== word.latinPamiri ||
     cyrillic.trim() !== word.cyrillicPamiri ||
     english.trim() !== word.english ||
-    russian.trim() !== word.russian;
+    russian.trim() !== word.russian ||
+    tajik.trim() !== (word.tajik || "");
 
   if (submitted) {
     return (
@@ -335,6 +340,12 @@ function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string;
           value={russian}
           onChange={e => setRussian(e.target.value)}
           className="h-8 text-xs"
+        />
+        <Input
+          placeholder="Тоҷикӣ"
+          value={tajik}
+          onChange={e => setTajik(e.target.value)}
+          className="h-8 text-xs col-span-2"
         />
       </div>
       <Button
