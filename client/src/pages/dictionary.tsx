@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { CATEGORY_UNLOCKS, CATEGORY_RU, type Word, type WordSuggestion } from "@shared/schema";
+import { CATEGORY_UNLOCKS, CATEGORY_RU, CATEGORY_TJ, type Word, type WordSuggestion } from "@shared/schema";
 
 export default function DictionaryPage() {
   const { user } = useUser();
