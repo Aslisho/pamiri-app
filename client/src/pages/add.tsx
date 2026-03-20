@@ -10,6 +10,7 @@ import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CATEGORY_UNLOCKS, CATEGORY_RU, APPROVAL_THRESHOLD, type PendingWordReview } from "@shared/schema";
+import { cap } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Check, Sparkles, CheckCircle, ThumbsUp, ThumbsDown, ClipboardList } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -229,12 +230,12 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
               <Card className="border-primary/20">
                 <CardContent className="pt-3 pb-3">
                   <p className="text-xs text-muted-foreground mb-1">{t("add.preview")}</p>
-                  <p className="text-base font-bold">{latinPamiri}</p>
-                  {cyrillicPamiri && <p className="text-sm text-muted-foreground">{cyrillicPamiri}</p>}
+                  <p className="text-base font-bold">{cap(latinPamiri)}</p>
+                  {cyrillicPamiri && <p className="text-sm text-muted-foreground">{cap(cyrillicPamiri)}</p>}
                   <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
-                    {english && <span>EN: {english}</span>}
-                    {russian && <span>RU: {russian}</span>}
-                    {tajik && <span>TG: {tajik}</span>}
+                    {english && <span>EN: {cap(english)}</span>}
+                    {russian && <span>RU: {cap(russian)}</span>}
+                    {tajik && <span>TG: {cap(tajik)}</span>}
                   </div>
                 </CardContent>
               </Card>
@@ -455,9 +456,9 @@ export function ReviewQueue({ user, isModerator = false }: {
             <CardContent className="pt-5 pb-5 space-y-4">
               {/* Pamiri word */}
               <div>
-                <p className="text-2xl font-bold tracking-wide">{word.latinPamiri}</p>
+                <p className="text-2xl font-bold tracking-wide">{cap(word.latinPamiri)}</p>
                 {word.cyrillicPamiri && (
-                  <p className="text-base text-muted-foreground mt-0.5">{word.cyrillicPamiri}</p>
+                  <p className="text-base text-muted-foreground mt-0.5">{cap(word.cyrillicPamiri)}</p>
                 )}
               </div>
 
@@ -465,16 +466,16 @@ export function ReviewQueue({ user, isModerator = false }: {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="space-y-0.5">
                   <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{t("add.english")}</p>
-                  <p className="font-medium">{word.english}</p>
+                  <p className="font-medium">{cap(word.english)}</p>
                 </div>
                 <div className="space-y-0.5">
                   <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{t("add.russian")}</p>
-                  <p className="font-medium">{word.russian}</p>
+                  <p className="font-medium">{cap(word.russian)}</p>
                 </div>
                 {word.tajik && (
                   <div className="space-y-0.5">
                     <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Тоҷикӣ</p>
-                    <p className="font-medium">{word.tajik}</p>
+                    <p className="font-medium">{cap(word.tajik)}</p>
                   </div>
                 )}
               </div>

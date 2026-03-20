@@ -51,10 +51,14 @@ if (corsOrigin) {
 }
 
 // ─── Session ─────────────────────────────────────────────────────────────────
-const sessionSecret = process.env.SESSION_SECRET || randomBytes(32).toString("hex");
 if (!process.env.SESSION_SECRET) {
+  if (process.env.NODE_ENV === "production") {
+    console.error("FATAL: SESSION_SECRET environment variable must be set in production.");
+    process.exit(1);
+  }
   console.warn("⚠ No SESSION_SECRET set. Sessions won't persist across restarts.");
 }
+const sessionSecret = process.env.SESSION_SECRET || randomBytes(32).toString("hex");
 
 let sessionStore: session.Store | undefined;
 
