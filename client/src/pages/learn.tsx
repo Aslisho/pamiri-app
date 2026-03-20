@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { cap } from "@/lib/utils";
 import { CATEGORY_RU, CATEGORY_TJ, type QuizQuestion, type Word } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -149,7 +150,6 @@ export default function LearnPage() {
   });
 
   // ── Helpers ──────────────────────────────────────────────────────
-  const cap = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
   const normalizeOption = (s: string) => (s || "").trim().normalize("NFC").toLowerCase();
 
   const getWordDisplay = (word: Word) =>
