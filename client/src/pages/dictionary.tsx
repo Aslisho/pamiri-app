@@ -187,6 +187,11 @@ export default function DictionaryPage() {
                         {cap(word.russian)} / {cap(word.english)}
                         {word.tajik && ` / ${cap(word.tajik)}`}
                       </p>
+                      {word.tajik && (
+                        <p className="text-xs text-muted-foreground/70">
+                          <span className="font-medium">{t("dict.tajik")}</span> {word.tajik}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-[10px]">

@@ -146,6 +146,11 @@ export default function HomePage() {
                     {cap(wordOfTheDay.russian)} / {cap(wordOfTheDay.english)}
                     {wordOfTheDay.tajik && ` / ${cap(wordOfTheDay.tajik)}`}
                   </p>
+                  {wordOfTheDay.tajik && (
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {wordOfTheDay.tajik}
+                    </p>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">
                     {cap(script === "cyrillic" && wordOfTheDay.cyrillicPamiri
                       ? wordOfTheDay.cyrillicPamiri
