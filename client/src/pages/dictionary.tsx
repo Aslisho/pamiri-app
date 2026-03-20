@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { cap } from "@/lib/utils";
 import { CATEGORY_UNLOCKS, CATEGORY_RU, type Word, type WordSuggestion } from "@shared/schema";
 
 export default function DictionaryPage() {
@@ -153,7 +154,7 @@ export default function DictionaryPage() {
                     <Lock size={16} className="text-muted-foreground shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm font-medium blur-[3px] select-none">
-                        {word.latinPamiri}
+                        {cap(word.latinPamiri)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {t("dict.needLevel")} {CATEGORY_UNLOCKS[word.category]?.level}
@@ -178,12 +179,13 @@ export default function DictionaryPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <p className="text-sm font-semibold">
-                        {script === "cyrillic" && word.cyrillicPamiri
+                        {cap(script === "cyrillic" && word.cyrillicPamiri
                           ? word.cyrillicPamiri
-                          : word.latinPamiri}
+                          : word.latinPamiri)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {word.russian} / {word.english}
+                        {cap(word.russian)} / {cap(word.english)}
+                        {word.tajik && ` / ${cap(word.tajik)}`}
                       </p>
                       {word.tajik && (
                         <p className="text-xs text-muted-foreground/70">
@@ -204,26 +206,26 @@ export default function DictionaryPage() {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
                           <span className="text-muted-foreground">{t("dict.latin")}: </span>
-                          <span className="font-medium">{word.latinPamiri}</span>
+                          <span className="font-medium">{cap(word.latinPamiri)}</span>
                         </div>
                         {word.cyrillicPamiri && (
                           <div>
                             <span className="text-muted-foreground">{t("dict.cyrillic")}: </span>
-                            <span className="font-medium">{word.cyrillicPamiri}</span>
+                            <span className="font-medium">{cap(word.cyrillicPamiri)}</span>
                           </div>
                         )}
                         <div>
                           <span className="text-muted-foreground">EN: </span>
-                          <span>{word.english}</span>
+                          <span>{cap(word.english)}</span>
                         </div>
                         <div>
                           <span className="text-muted-foreground">RU: </span>
-                          <span>{word.russian}</span>
+                          <span>{cap(word.russian)}</span>
                         </div>
                         {word.tajik && (
                           <div>
                             <span className="text-muted-foreground">TG: </span>
-                            <span>{word.tajik}</span>
+                            <span>{cap(word.tajik)}</span>
                           </div>
                         )}
                       </div>
@@ -398,8 +400,8 @@ function SuggestionsList({ wordId, userId }: { wordId: number; userId: string })
         return (
           <div key={s.id} className="flex items-center gap-2 bg-muted/40 rounded-md p-2">
             <div className="flex-1 min-w-0 text-xs">
-              <span className="font-medium">{s.latinPamiri}</span>
-              <span className="text-muted-foreground"> — {s.russian} / {s.english}</span>
+              <span className="font-medium">{cap(s.latinPamiri)}</span>
+              <span className="text-muted-foreground"> — {cap(s.russian)} / {cap(s.english)}{s.tajik && ` / ${cap(s.tajik)}`}</span>
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <Button

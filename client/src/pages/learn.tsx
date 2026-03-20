@@ -8,10 +8,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { cap } from "@/lib/utils";
 import { CATEGORY_RU, type QuizQuestion, type Word } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
 
-type View = "categories" | "quiz" | "match" | "results";
+type View = "categories" | "flashcard" | "quiz" | "match" | "results";
 
 export default function LearnPage() {
   const { user, setUser } = useUser();
@@ -38,6 +39,12 @@ export default function LearnPage() {
   const [wrongPairIds, setWrongPairIds] = useState<Set<number>>(new Set());
   const [matchScore, setMatchScore]     = useState(0);
   const [matchLocked, setMatchLocked]   = useState(false);
+
+  // ── Flashcard state ───────────────────────────────────────────────
+  const [flashcardWords, setFlashcardWords] = useState<Word[]>([]);
+  const [flashcardIndex, setFlashcardIndex] = useState(0);
+  const [flashcardRevealed, setFlashcardRevealed] = useState(false);
+  const [pendingMode, setPendingMode] = useState<"quiz" | "match">("quiz");
 
   // ── Shared results state ─────────────────────────────────────────
   const [resultScore, setResultScore] = useState(0);
@@ -119,6 +126,22 @@ export default function LearnPage() {
     },
   });
 
+  const flashcardMutation = useMutation({
+    mutationFn: async ({ category, mode }: { category: string; mode: "quiz" | "match" }) => {
+      const res = await apiRequest("GET", `/api/words?category=${encodeURIComponent(category)}`);
+      const words = (await res.json()) as Word[];
+      return { words, mode };
+    },
+    onSuccess: ({ words, mode }) => {
+      const sample = [...words].sort(() => Math.random() - 0.5).slice(0, 6);
+      setFlashcardWords(sample.length > 0 ? sample : words.slice(0, 6));
+      setFlashcardIndex(0);
+      setFlashcardRevealed(false);
+      setPendingMode(mode);
+      setView("flashcard");
+    },
+  });
+
   const recordAnswerMutation = useMutation({
     mutationFn: async ({ wordId, correct }: { wordId: number; correct: boolean }) => {
       const res = await apiRequest("POST", "/api/progress", { userId: user!.id, wordId, correct });
@@ -133,6 +156,98 @@ export default function LearnPage() {
     user?.preferredScript === "cyrillic" && word.cyrillicPamiri
       ? word.cyrillicPamiri
       : word.latinPamiri;
+
+  // ── Emoji helpers ────────────────────────────────────────────────
+  const CATEGORY_EMOJI: Record<string, string> = {
+    "Greetings and Basics": "👋",
+    "Numbers and Quantities": "🔢",
+    "Pronouns and Particles": "👤",
+    "Family and Kinship": "👨‍👩‍👧",
+    "The Human Body": "🫀",
+    "Adjectives and Qualities": "✨",
+    "Verbs and Actions": "🏃",
+    "Food and Drink": "🍎",
+    "Nature and Landscape": "🏔️",
+    "House and Home": "🏠",
+    "Time and Seasons": "🌙",
+    "Agriculture and Livestock": "🌾",
+    "Animals and Birds": "🦅",
+    "Household Objects and Tools": "🔧",
+    "Clothing and Appearance": "👕",
+    "Social Life and Ceremonies": "🎉",
+    "Trade and Money": "💰",
+    "Emotions and Mental States": "❤️",
+    "Health and Illness": "🏥",
+    "Speech and Communication": "💬",
+    "Movement and Travel": "🚶",
+    "War and Conflict": "⚔️",
+    "Descriptive and Abstract": "💭",
+  };
+
+  function getWordEmoji(english: string, category: string): string {
+    const e = english.toLowerCase();
+    if (e.includes("hello") || e.includes("hi") || e.includes("greet")) return "👋";
+    if (e.includes("goodbye") || e.includes("bye")) return "🙋";
+    if (e.includes("thank")) return "🙏";
+    if (e.includes("yes")) return "✅";
+    if (e.includes("no") && e.length < 5) return "❌";
+    if (e.includes("okay") || e === "ok") return "👌";
+    if (e.includes("water")) return "💧";
+    if (e.includes("fire")) return "🔥";
+    if (e.includes("bread")) return "🍞";
+    if (e.includes("milk")) return "🥛";
+    if (e.includes("meat")) return "🥩";
+    if (e.includes("apple") || e.includes("fruit")) return "🍎";
+    if (e.includes("mother") || e.includes("mom")) return "👩";
+    if (e.includes("father") || e.includes("dad")) return "👨";
+    if (e.includes("son") || e.includes("brother")) return "👦";
+    if (e.includes("daughter") || e.includes("sister")) return "👧";
+    if (e.includes("child") || e.includes("baby")) return "🧒";
+    if (e.includes("sun")) return "☀️";
+    if (e.includes("moon")) return "🌙";
+    if (e.includes("star")) return "⭐";
+    if (e.includes("mountain")) return "⛰️";
+    if (e.includes("river") || e.includes("stream")) return "🌊";
+    if (e.includes("house") || e.includes("home")) return "🏠";
+    if (e.includes("dog")) return "🐕";
+    if (e.includes("cat")) return "🐱";
+    if (e.includes("horse")) return "🐴";
+    if (e.includes("bird")) return "🐦";
+    if (e.includes("sheep") || e.includes("goat")) return "🐑";
+    if (e.includes("cow") || e.includes("bull")) return "🐄";
+    if (e.includes("eye")) return "👁️";
+    if (e.includes("hand")) return "✋";
+    if (e.includes("heart")) return "❤️";
+    if (e.includes("head")) return "🧠";
+    if (e.includes("good") || e.includes("nice")) return "👍";
+    if (e.includes("bad")) return "👎";
+    if (e.includes("big") || e.includes("large")) return "🔼";
+    if (e.includes("small") || e.includes("little")) return "🔽";
+    if (e.includes("eat") || e.includes("food")) return "🍽️";
+    if (e.includes("drink")) return "🥤";
+    if (e.includes("sleep")) return "😴";
+    if (e.includes("love")) return "❤️";
+    if (e.includes("go") || e.includes("walk")) return "🚶";
+    if (e.includes("come")) return "👉";
+    if (e.includes("money") || e.includes("coin")) return "💰";
+    if (e.includes("day")) return "🌅";
+    if (e.includes("night")) return "🌃";
+    if (e.includes("year")) return "📅";
+    if (e.includes("winter")) return "❄️";
+    if (e.includes("summer")) return "☀️";
+    if (e.includes("spring")) return "🌸";
+    if (e.includes("autumn") || e.includes("fall")) return "🍂";
+    if (e === "i" || e === "me") return "🙋";
+    if (e === "you") return "👉";
+    if (e === "we" || e === "us") return "👥";
+    if (e === "they" || e === "them") return "👥";
+    if (e.includes("one") || e === "1") return "1️⃣";
+    if (e.includes("two") || e === "2") return "2️⃣";
+    if (e.includes("three") || e === "3") return "3️⃣";
+    if (e.includes("four") || e === "4") return "4️⃣";
+    if (e.includes("five") || e === "5") return "5️⃣";
+    return CATEGORY_EMOJI[category] || "📖";
+  }
 
   // ── Quiz handlers ────────────────────────────────────────────────
   const handleAnswer = (answer: string) => {
@@ -264,9 +379,9 @@ export default function LearnPage() {
                           className="h-8 px-2.5 text-xs gap-1"
                           onClick={() => {
                             setSelectedCategory(cat.category);
-                            startMatchMutation.mutate(cat.category);
+                            flashcardMutation.mutate({ category: cat.category, mode: "match" });
                           }}
-                          disabled={startMatchMutation.isPending}
+                          disabled={flashcardMutation.isPending}
                           title={t("learn.match")}
                         >
                           <Shuffle size={12} />
@@ -278,9 +393,9 @@ export default function LearnPage() {
                           className="h-8 px-2.5 text-xs gap-1"
                           onClick={() => {
                             setSelectedCategory(cat.category);
-                            startQuizMutation.mutate(cat.category);
+                            flashcardMutation.mutate({ category: cat.category, mode: "quiz" });
                           }}
-                          disabled={startQuizMutation.isPending}
+                          disabled={flashcardMutation.isPending}
                         >
                           {t("learn.test")}
                           <ArrowRight size={12} />
@@ -301,6 +416,127 @@ export default function LearnPage() {
           </div>
         )}
 
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // FLASHCARD INTRO VIEW
+  // ══════════════════════════════════════════════════════════════════
+  if (view === "flashcard" && flashcardWords.length > 0) {
+    const word = flashcardWords[flashcardIndex];
+    const isLast = flashcardIndex === flashcardWords.length - 1;
+    const emoji = getWordEmoji(word.english, selectedCategory || "");
+    const pamiri = cap(
+      user?.preferredScript === "cyrillic" && word.cyrillicPamiri
+        ? word.cyrillicPamiri
+        : word.latinPamiri
+    );
+
+    const handleNext = () => {
+      if (!flashcardRevealed) {
+        setFlashcardRevealed(true);
+      } else if (isLast) {
+        if (pendingMode === "quiz") {
+          startQuizMutation.mutate(selectedCategory!);
+        } else {
+          startMatchMutation.mutate(selectedCategory!);
+        }
+      } else {
+        setFlashcardIndex(i => i + 1);
+        setFlashcardRevealed(false);
+      }
+    };
+
+    return (
+      <div className="pt-16 pb-20 px-4 max-w-lg mx-auto">
+        {/* Header */}
+        <div className="pt-4 pb-4 space-y-3">
+          <button
+            onClick={() => setView("categories")}
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ChevronLeft size={16} /> {t("learn.back")}
+          </button>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>{selectedCategory ? (CATEGORY_RU[selectedCategory] || selectedCategory) : ""}</span>
+            <span>{flashcardIndex + 1} / {flashcardWords.length}</span>
+          </div>
+          {/* Dot progress */}
+          <div className="flex gap-1.5 justify-center pt-1">
+            {flashcardWords.map((_, i) => (
+              <div
+                key={i}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  i < flashcardIndex
+                    ? "bg-primary w-5"
+                    : i === flashcardIndex
+                    ? "bg-primary w-8"
+                    : "bg-muted w-5"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Flashcard */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${flashcardIndex}-${flashcardRevealed}`}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -24 }}
+            transition={{ duration: 0.22 }}
+            onClick={() => !flashcardRevealed && setFlashcardRevealed(true)}
+            className="cursor-pointer select-none"
+          >
+            <Card className="min-h-[300px] flex items-center justify-center border-primary/30 overflow-hidden relative">
+              {/* Gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-violet-500/8 pointer-events-none" />
+              <CardContent className="pt-8 pb-8 text-center w-full space-y-5">
+                <div className="text-7xl leading-none">{emoji}</div>
+                <div className="space-y-2">
+                  <p className="text-3xl font-black tracking-tight">{pamiri}</p>
+                  {flashcardRevealed ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.18 }}
+                      className="space-y-1 pt-1"
+                    >
+                      <p className="text-xl font-bold text-primary">{cap(word.russian)}</p>
+                      <p className="text-base text-muted-foreground">{cap(word.english)}</p>
+                      {word.tajik && (
+                        <p className="text-sm text-muted-foreground/70">{cap(word.tajik)}</p>
+                      )}
+                    </motion.div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground/60 pt-1">
+                      Нажмите, чтобы увидеть перевод
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Action button */}
+        <div className="mt-5">
+          <Button
+            className="w-full h-12 text-base font-semibold"
+            onClick={handleNext}
+            disabled={startQuizMutation.isPending || startMatchMutation.isPending}
+          >
+            {!flashcardRevealed
+              ? "Показать перевод"
+              : isLast
+              ? pendingMode === "quiz"
+                ? "Начать тест →"
+                : "Начать игру →"
+              : "Следующее слово →"}
+          </Button>
+        </div>
       </div>
     );
   }
@@ -340,7 +576,7 @@ export default function LearnPage() {
             <Card className="mb-4">
               <CardContent className="pt-6 pb-6 text-center">
                 <p className="text-xs text-muted-foreground mb-2">{t("learn.whatMeans")}</p>
-                <p className="text-xl font-bold" data-testid="text-quiz-prompt">{q.prompt}</p>
+                <p className="text-xl font-bold" data-testid="text-quiz-prompt">{cap(q.prompt)}</p>
               </CardContent>
             </Card>
 
@@ -370,7 +606,7 @@ export default function LearnPage() {
                       {showFeedback && option === selectedAnswer && normalizeOption(option) !== normalizeOption(q.correctAnswer) && (
                         <XCircle size={16} className="text-destructive shrink-0" />
                       )}
-                      <span>{option}</span>
+                      <span>{cap(option)}</span>
                     </div>
                   </button>
                 );
@@ -473,7 +709,7 @@ export default function LearnPage() {
                   {matchedIds.has(word.id) && (
                     <CheckCircle size={12} className="inline mr-1 text-green-500" />
                   )}
-                  {getWordDisplay(word)}
+                  {cap(getWordDisplay(word))}
                 </motion.button>
               ))}
             </div>
@@ -491,7 +727,7 @@ export default function LearnPage() {
                   {matchedIds.has(word.id) && (
                     <CheckCircle size={12} className="inline mr-1 text-green-500" />
                   )}
-                  {word.russian}
+                  {cap(word.russian)}
                 </motion.button>
               ))}
             </div>

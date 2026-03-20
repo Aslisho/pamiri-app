@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { cap } from "@/lib/utils";
 import { ReviewQueue } from "@/pages/add";
 import type { Word, User, WordSuggestion } from "@shared/schema";
 
@@ -123,7 +124,8 @@ function SuggestionsTab() {
           cyrillic: s.cyrillicPamiri !== orig.cyrillicPamiri,
           english: s.english !== orig.english,
           russian: s.russian !== orig.russian,
-        } : { latin: false, cyrillic: false, english: false, russian: false };
+          tajik: (s.tajik || "") !== (orig.tajik || ""),
+        } : { latin: false, cyrillic: false, english: false, russian: false, tajik: false };
 
         return (
           <Card key={s.id}>
@@ -134,17 +136,22 @@ function SuggestionsTab() {
                   <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Текущее:</span>
                   <div className="text-xs grid grid-cols-2 gap-1">
                     <div className={changed.latin ? "line-through text-muted-foreground" : ""}>
-                      <span className="text-muted-foreground">Лат: </span>{orig.latinPamiri}
+                      <span className="text-muted-foreground">Лат: </span>{cap(orig.latinPamiri)}
                     </div>
                     <div className={changed.cyrillic ? "line-through text-muted-foreground" : ""}>
-                      <span className="text-muted-foreground">Кир: </span>{orig.cyrillicPamiri || "—"}
+                      <span className="text-muted-foreground">Кир: </span>{orig.cyrillicPamiri ? cap(orig.cyrillicPamiri) : "—"}
                     </div>
                     <div className={changed.english ? "line-through text-muted-foreground" : ""}>
-                      <span className="text-muted-foreground">EN: </span>{orig.english}
+                      <span className="text-muted-foreground">EN: </span>{cap(orig.english)}
                     </div>
                     <div className={changed.russian ? "line-through text-muted-foreground" : ""}>
-                      <span className="text-muted-foreground">RU: </span>{orig.russian}
+                      <span className="text-muted-foreground">RU: </span>{cap(orig.russian)}
                     </div>
+                    {(orig.tajik || s.tajik) && (
+                      <div className={changed.tajik ? "line-through text-muted-foreground col-span-2" : "col-span-2"}>
+                        <span className="text-muted-foreground">TG: </span>{orig.tajik ? cap(orig.tajik) : "—"}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -154,17 +161,22 @@ function SuggestionsTab() {
                 <span className="text-[10px] font-medium text-primary uppercase tracking-wider">Предложение:</span>
                 <div className="text-xs grid grid-cols-2 gap-1">
                   <div className={changed.latin ? "font-bold text-green-700 dark:text-green-400" : ""}>
-                    <span className="text-muted-foreground">Лат: </span>{s.latinPamiri}
+                    <span className="text-muted-foreground">Лат: </span>{cap(s.latinPamiri)}
                   </div>
                   <div className={changed.cyrillic ? "font-bold text-green-700 dark:text-green-400" : ""}>
-                    <span className="text-muted-foreground">Кир: </span>{s.cyrillicPamiri || "—"}
+                    <span className="text-muted-foreground">Кир: </span>{s.cyrillicPamiri ? cap(s.cyrillicPamiri) : "—"}
                   </div>
                   <div className={changed.english ? "font-bold text-green-700 dark:text-green-400" : ""}>
-                    <span className="text-muted-foreground">EN: </span>{s.english}
+                    <span className="text-muted-foreground">EN: </span>{cap(s.english)}
                   </div>
                   <div className={changed.russian ? "font-bold text-green-700 dark:text-green-400" : ""}>
-                    <span className="text-muted-foreground">RU: </span>{s.russian}
+                    <span className="text-muted-foreground">RU: </span>{cap(s.russian)}
                   </div>
+                  {(s.tajik || (s.originalWord?.tajik)) && (
+                    <div className={`col-span-2 ${changed.tajik ? "font-bold text-green-700 dark:text-green-400" : ""}`}>
+                      <span className="text-muted-foreground">TG: </span>{s.tajik ? cap(s.tajik) : "—"}
+                    </div>
+                  )}
                 </div>
               </div>
 

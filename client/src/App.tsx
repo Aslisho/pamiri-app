@@ -81,6 +81,19 @@ function AppRouter() {
   );
 }
 
+function AppBackground() {
+  return (
+    <div className="fixed inset-0 -z-10 hidden dark:block">
+      {/* Base gradient: matches landing page */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-violet-950 to-slate-900" />
+      {/* Ambient glow spots */}
+      <div className="absolute top-1/4 left-1/3 w-72 h-72 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/3 right-1/4 w-64 h-64 rounded-full bg-violet-500/15 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 w-96 h-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose-500/5 blur-3xl pointer-events-none" />
+    </div>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -88,6 +101,7 @@ function App() {
         <UserProvider>
           <LanguageProvider>
             <TooltipProvider>
+              <AppBackground />
               <Toaster />
               <Router hook={useHashLocation}>
                 <AppRouter />
