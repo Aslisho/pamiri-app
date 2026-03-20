@@ -149,6 +149,7 @@ export default function LearnPage() {
   });
 
   // ── Helpers ──────────────────────────────────────────────────────
+  const cap = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
   const normalizeOption = (s: string) => (s || "").trim().normalize("NFC").toLowerCase();
 
   const getWordDisplay = (word: Word) =>
