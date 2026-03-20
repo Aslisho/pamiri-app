@@ -279,6 +279,8 @@ export class PostgresStorage implements IStorage {
     try {
       const seedPath = join(process.cwd(), "seed_words.json");
       const data = JSON.parse(readFileSync(seedPath, "utf-8"));
+
+      // Update existing seed words (diacritics, translations)
       let updated = 0;
       for (const entry of data) {
         const result = await this.pool.query(
@@ -297,7 +299,36 @@ export class PostgresStorage implements IStorage {
         );
         updated += result.rowCount ?? 0;
       }
-      if (updated > 0) console.log(`Updated ${updated} seed words with correct diacritics and tajik translations`);
+      if (updated > 0) console.log(`Updated ${updated} seed words`);
+
+      // Delete seed words removed from seed file
+      const seedKeys = new Set(data.map((e: any) => `${e.english}|${e.category}|${e.source || "zarubin"}`));
+      const existing = await this.pool.query(`SELECT id, english, category, source FROM words WHERE source IN ('zarubin', 'manual')`);
+      let deleted = 0;
+      for (const row of existing.rows) {
+        if (!seedKeys.has(`${row.english}|${row.category}|${row.source}`)) {
+          await this.pool.query(`DELETE FROM words WHERE id = $1`, [row.id]);
+          deleted++;
+        }
+      }
+      if (deleted > 0) console.log(`Removed ${deleted} obsolete seed words`);
+
+      // Insert seed words missing from DB (e.g. after category change)
+      const existingKeys = new Set(existing.rows.map((r: any) => `${r.english}|${r.category}|${r.source}`));
+      let inserted = 0;
+      const now = new Date().toISOString();
+      for (const entry of data) {
+        const key = `${entry.english}|${entry.category}|${entry.source || "zarubin"}`;
+        if (!existingKeys.has(key)) {
+          await this.pool.query(
+            `INSERT INTO words (latin_pamiri, cyrillic_pamiri, english, russian, tajik, category, source, verified, upvotes_count, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, true, 0, $8)`,
+            [entry.latin_pamiri, entry.cyrillic_pamiri || "", entry.english, entry.russian, entry.tajik || "", entry.category, entry.source || "zarubin", now]
+          );
+          inserted++;
+        }
+      }
+      if (inserted > 0) console.log(`Inserted ${inserted} new seed words`);
     } catch (e) {
       console.error("Failed to update seed data:", e);
     }
@@ -997,13 +1028,42 @@ if (process.env.DATABASE_URL) {
       try {
         const seedPath = join(process.cwd(), "seed_words.json");
         const data = JSON.parse(readFileSync(seedPath, "utf-8"));
+
+        // Update existing seed words
         const update = this.db.prepare(`UPDATE words SET latin_pamiri = ?, cyrillic_pamiri = ?, russian = ?, tajik = ? WHERE english = ? AND category = ? AND source = ? AND (latin_pamiri != ? OR tajik != ?)`);
         let updated = 0;
         for (const entry of data) {
           const r = update.run(entry.latin_pamiri, entry.cyrillic_pamiri || "", entry.russian, entry.tajik || "", entry.english, entry.category, entry.source || "zarubin", entry.latin_pamiri, entry.tajik || "");
           updated += r.changes;
         }
-        if (updated > 0) console.log(`Updated ${updated} seed words with correct diacritics`);
+        if (updated > 0) console.log(`Updated ${updated} seed words`);
+
+        // Delete seed words removed from seed file
+        const seedKeys = new Set(data.map((e: any) => `${e.english}|${e.category}|${e.source || "zarubin"}`));
+        const existing = this.db.prepare(`SELECT id, english, category, source FROM words WHERE source IN ('zarubin', 'manual')`).all() as any[];
+        const del = this.db.prepare(`DELETE FROM words WHERE id = ?`);
+        let deleted = 0;
+        for (const row of existing) {
+          if (!seedKeys.has(`${row.english}|${row.category}|${row.source}`)) {
+            del.run(row.id);
+            deleted++;
+          }
+        }
+        if (deleted > 0) console.log(`Removed ${deleted} obsolete seed words`);
+
+        // Insert seed words missing from DB (e.g. after category change)
+        const existingKeys = new Set(existing.map((r: any) => `${r.english}|${r.category}|${r.source}`));
+        const insert = this.db.prepare(`INSERT INTO words (latin_pamiri, cyrillic_pamiri, english, russian, tajik, category, source, verified, upvotes_count, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 0, ?)`);
+        let inserted = 0;
+        const now = new Date().toISOString();
+        for (const entry of data) {
+          const key = `${entry.english}|${entry.category}|${entry.source || "zarubin"}`;
+          if (!existingKeys.has(key)) {
+            insert.run(entry.latin_pamiri, entry.cyrillic_pamiri || "", entry.english, entry.russian, entry.tajik || "", entry.category, entry.source || "zarubin", now);
+            inserted++;
+          }
+        }
+        if (inserted > 0) console.log(`Inserted ${inserted} new seed words`);
       } catch (e) { console.error("Failed to update seed data:", e); }
     }
     private rowToUser(row: any): User { return { id: row.id, username: row.username, displayName: row.display_name, preferredLanguage: row.preferred_language, preferredScript: row.preferred_script, role: row.role, totalXp: row.total_xp, level: row.level, currentStreak: row.current_streak, longestStreak: row.longest_streak, lastActiveDate: row.last_active_date, createdAt: row.created_at, password: row.password_hash ?? undefined }; }
