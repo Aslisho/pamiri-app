@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import bcrypt from "bcryptjs";
 import { storage } from "./storage";
-import { randomBytes, scryptSync } from "crypto";
+import { randomBytes } from "crypto";
 import {
   insertWordSchema, insertVoteSchema, insertNewsSchema,
   insertSuggestionSchema, insertSuggestionVoteSchema,
@@ -51,6 +51,13 @@ function isRateLimited(userId: string): boolean {
   if (timestamps.length >= VOTE_RATE_LIMIT) return true;
   timestamps.push(now);
   voteRateMap.set(userId, timestamps);
+  // Clean up entries older than window to prevent unbounded map growth
+  if (timestamps.length === 1) {
+    setTimeout(() => {
+      const cur = voteRateMap.get(userId);
+      if (cur && cur.every(t => Date.now() - t >= VOTE_RATE_WINDOW)) voteRateMap.delete(userId);
+    }, VOTE_RATE_WINDOW);
+  }
   return false;
 }
 
@@ -65,24 +72,16 @@ function isLoginRateLimited(ip: string): boolean {
   if (timestamps.length >= LOGIN_RATE_LIMIT) return true;
   timestamps.push(now);
   loginRateMap.set(ip, timestamps);
+  if (timestamps.length === 1) {
+    setTimeout(() => {
+      const cur = loginRateMap.get(ip);
+      if (cur && cur.every(t => Date.now() - t >= LOGIN_RATE_WINDOW)) loginRateMap.delete(ip);
+    }, LOGIN_RATE_WINDOW);
+  }
   return false;
 }
 
 const AUTO_APPROVE_THRESHOLD = 5;
-
-// ─── Password helpers ────────────────────────────────────────────────────────
-function hashPassword(password: string): string {
-  const salt = randomBytes(16).toString("hex");
-  const hash = scryptSync(password, salt, 64).toString("hex");
-  return `${salt}:${hash}`;
-}
-
-function verifyPassword(password: string, stored: string): boolean {
-  const [salt, hash] = stored.split(":");
-  if (!salt || !hash) return false;
-  const attempt = scryptSync(password, salt, 64).toString("hex");
-  return hash === attempt;
-}
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 export async function registerRoutes(
@@ -107,7 +106,7 @@ export async function registerRoutes(
         await storage.setPasswordHash(existing.id, passwordHash);
         req.session.userId = existing.id;
         req.session.role = existing.role;
-        return res.json(existing);
+        return res.json(safeUser(existing));
       }
 
       const passwordHash = await bcrypt.hash(parsed.password, 10);
@@ -124,7 +123,7 @@ export async function registerRoutes(
 
       req.session.userId = user.id;
       req.session.role = user.role;
-      return res.json(user);
+      return res.json(safeUser(user));
     } catch (e: any) {
       if (e.name === "ZodError") {
         return res.status(400).json({ error: e.errors[0]?.message || "Ошибка валидации" });
@@ -135,6 +134,10 @@ export async function registerRoutes(
 
   // Auth - Login
   app.post("/api/auth/login", async (req, res) => {
+    const ip = req.ip || req.socket.remoteAddress || "unknown";
+    if (isLoginRateLimited(ip)) {
+      return res.status(429).json({ error: "Too many login attempts. Please try again in a minute." });
+    }
     try {
       const parsed = loginSchema.parse(req.body);
 
@@ -155,7 +158,7 @@ export async function registerRoutes(
 
       req.session.userId = user.id;
       req.session.role = user.role;
-      return res.json(user);
+      return res.json(safeUser(user));
     } catch (e: any) {
       if (e.name === "ZodError") {
         return res.status(400).json({ error: "Имя пользователя и пароль обязательны" });
@@ -174,7 +177,7 @@ export async function registerRoutes(
       req.session.destroy(() => {});
       return res.status(401).json({ error: "User not found" });
     }
-    return res.json(user);
+    return res.json(safeUser(user));
   });
 
   // Logout
@@ -294,7 +297,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/words/pending", async (_req, res) => {
+  app.get("/api/words/pending", requireModerator, async (_req, res) => {
     const words = await storage.getUnverifiedWords();
     return res.json(words);
   });

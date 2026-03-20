@@ -9,6 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { getXpForNextLevel, getXpForLevel, type Word } from "@shared/schema";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { cap } from "@/lib/utils";
 
 export default function HomePage() {
   const { user } = useUser();
@@ -133,21 +134,27 @@ export default function HomePage() {
               {!flipped ? (
                 <>
                   <p className="text-xl font-bold">
-                    {script === "cyrillic" && wordOfTheDay.cyrillicPamiri
+                    {cap(script === "cyrillic" && wordOfTheDay.cyrillicPamiri
                       ? wordOfTheDay.cyrillicPamiri
-                      : wordOfTheDay.latinPamiri}
+                      : wordOfTheDay.latinPamiri)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">{t("home.tapToFlip")}</p>
                 </>
               ) : (
                 <>
                   <p className="text-lg font-semibold text-primary">
-                    {wordOfTheDay.russian} / {wordOfTheDay.english}
+                    {cap(wordOfTheDay.russian)} / {cap(wordOfTheDay.english)}
+                    {wordOfTheDay.tajik && ` / ${cap(wordOfTheDay.tajik)}`}
                   </p>
+                  {wordOfTheDay.tajik && (
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {wordOfTheDay.tajik}
+                    </p>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">
-                    {script === "cyrillic" && wordOfTheDay.cyrillicPamiri
+                    {cap(script === "cyrillic" && wordOfTheDay.cyrillicPamiri
                       ? wordOfTheDay.cyrillicPamiri
-                      : wordOfTheDay.latinPamiri}
+                      : wordOfTheDay.latinPamiri)}
                   </p>
                 </>
               )}
