@@ -230,7 +230,7 @@
   {"latin_pamiri": "Walek!", "cyrillic_pamiri": "", "english": "Reply to Hi!", "russian": "Ответ на приветствие!", "tajik": "Ва алейкум!", "category": "Greetings and Basics", "source": "manual"},
   {"latin_pamiri": "Tu nōm čāy?", "cyrillic_pamiri": "", "english": "What is your name?", "russian": "Как тебя зовут?", "tajik": "Номи ту чист?", "category": "Greetings and Basics", "source": "manual"},
   {"latin_pamiri": "Tu fāmēyo?", "cyrillic_pamiri": "", "english": "Do you know?", "russian": "Ты знаешь?", "tajik": "Ту медонӣ?", "category": "Greetings and Basics", "source": "manual"},
-  {"latin_pamiri": "Carang taw awōl?", "cyrillic_pamiri": "", "english": "How are you?", "russian": "Как дела?", "tajik": "Ҳолатон чӣ тавр?", "category": "Greetings and Basics", "source": "manual"},
+  {"latin_pamiri": "Carang tu awōl?", "cyrillic_pamiri": "", "english": "How are you?", "russian": "Как дела?", "tajik": "Ҳолатон чӣ тавр?", "category": "Greetings and Basics", "source": "manual"},
   {"latin_pamiri": "žīwj", "cyrillic_pamiri": "", "english": "Love", "russian": "Любовь", "tajik": "Ишқ; Муҳаббат", "category": "Emotions and Mental States", "source": "manual"},
   {"latin_pamiri": "yīw", "cyrillic_pamiri": "", "english": "One", "russian": "Один", "tajik": "Як", "category": "Numbers and Quantities", "source": "manual"},
   {"latin_pamiri": "δuyōn", "cyrillic_pamiri": "", "english": "Two", "russian": "Два", "tajik": "Ду", "category": "Numbers and Quantities", "source": "manual"},
