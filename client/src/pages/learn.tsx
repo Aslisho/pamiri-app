@@ -8,8 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { cap } from "@/lib/utils";
-import { CATEGORY_RU, type QuizQuestion, type Word } from "@shared/schema";
+import { CATEGORY_RU, CATEGORY_TJ, type QuizQuestion, type Word } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
 
 type View = "categories" | "flashcard" | "quiz" | "match" | "results";
@@ -367,6 +366,9 @@ export default function LearnPage() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold">{CATEGORY_RU[cat.category] || cat.category}</p>
+                      {CATEGORY_TJ[cat.category] && (
+                        <p className="text-xs text-muted-foreground/70">{CATEGORY_TJ[cat.category]}</p>
+                      )}
                       <p className="text-xs text-muted-foreground">{cat.wordCount} {t("learn.words")}</p>
                     </div>
 

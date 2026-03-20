@@ -282,13 +282,14 @@ export class PostgresStorage implements IStorage {
       let updated = 0;
       for (const entry of data) {
         const result = await this.pool.query(
-          `UPDATE words SET latin_pamiri = $1, cyrillic_pamiri = $2, russian = $3
-           WHERE english = $4 AND category = $5 AND source = $6
-             AND latin_pamiri IS DISTINCT FROM $1`,
+          `UPDATE words SET latin_pamiri = $1, cyrillic_pamiri = $2, russian = $3, tajik = $4
+           WHERE english = $5 AND category = $6 AND source = $7
+             AND (latin_pamiri IS DISTINCT FROM $1 OR tajik IS DISTINCT FROM $4)`,
           [
             entry.latin_pamiri,
             entry.cyrillic_pamiri || "",
             entry.russian,
+            entry.tajik || "",
             entry.english,
             entry.category,
             entry.source || "zarubin",
@@ -296,7 +297,7 @@ export class PostgresStorage implements IStorage {
         );
         updated += result.rowCount ?? 0;
       }
-      if (updated > 0) console.log(`Updated ${updated} seed words with correct diacritics`);
+      if (updated > 0) console.log(`Updated ${updated} seed words with correct diacritics and tajik translations`);
     } catch (e) {
       console.error("Failed to update seed data:", e);
     }
@@ -996,10 +997,10 @@ if (process.env.DATABASE_URL) {
       try {
         const seedPath = join(process.cwd(), "seed_words.json");
         const data = JSON.parse(readFileSync(seedPath, "utf-8"));
-        const update = this.db.prepare(`UPDATE words SET latin_pamiri = ?, cyrillic_pamiri = ?, russian = ? WHERE english = ? AND category = ? AND source = ? AND latin_pamiri != ?`);
+        const update = this.db.prepare(`UPDATE words SET latin_pamiri = ?, cyrillic_pamiri = ?, russian = ?, tajik = ? WHERE english = ? AND category = ? AND source = ? AND (latin_pamiri != ? OR tajik != ?)`);
         let updated = 0;
         for (const entry of data) {
-          const r = update.run(entry.latin_pamiri, entry.cyrillic_pamiri || "", entry.russian, entry.english, entry.category, entry.source || "zarubin", entry.latin_pamiri);
+          const r = update.run(entry.latin_pamiri, entry.cyrillic_pamiri || "", entry.russian, entry.tajik || "", entry.english, entry.category, entry.source || "zarubin", entry.latin_pamiri, entry.tajik || "");
           updated += r.changes;
         }
         if (updated > 0) console.log(`Updated ${updated} seed words with correct diacritics`);

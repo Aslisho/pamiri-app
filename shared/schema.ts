@@ -271,6 +271,33 @@ export const CATEGORY_RU: Record<string, string> = {
   "Descriptive and Abstract": "Описание и абстракции",
 };
 
+// Tajik translations for category names
+export const CATEGORY_TJ: Record<string, string> = {
+  "Greetings and Basics": "Салом ва асосҳо",
+  "Numbers and Quantities": "Рақамҳо ва миқдорҳо",
+  "Pronouns and Particles": "Ҷонишинҳо ва ҳиссачаҳо",
+  "Family and Kinship": "Оила ва хешовандӣ",
+  "The Human Body": "Бадани инсон",
+  "Adjectives and Qualities": "Сифатҳо ва хусусиятҳо",
+  "Verbs and Actions": "Феълҳо ва амалҳо",
+  "Food and Drink": "Хӯрок ва нӯшокӣ",
+  "Nature and Landscape": "Табиат ва манзара",
+  "House and Home": "Хона ва манзил",
+  "Time and Seasons": "Вақт ва мавсимҳо",
+  "Agriculture and Livestock": "Кишоварзӣ ва чорводорӣ",
+  "Animals and Birds": "Ҳайвонҳо ва паррандаҳо",
+  "Household Objects and Tools": "Асбобҳои рӯзгор ва олотҳо",
+  "Clothing and Appearance": "Либос ва намуди зоҳирӣ",
+  "Social Life and Ceremonies": "Ҳаёти иҷтимоӣ ва маросимҳо",
+  "Trade and Money": "Тиҷорат ва пул",
+  "Emotions and Mental States": "Эҳсосот ва ҳолатҳои рӯҳӣ",
+  "Health and Illness": "Саломатӣ ва беморӣ",
+  "Speech and Communication": "Нутқ ва муоширот",
+  "Movement and Travel": "Ҳаракат ва сафар",
+  "War and Conflict": "Ҷанг ва низоъ",
+  "Descriptive and Abstract": "Тавсифӣ ва мафҳумӣ",
+};
+
 export function getLevelFromXp(xp: number): number {
   if (xp >= 5000) return 17;
   if (xp >= 4500) return 16;
