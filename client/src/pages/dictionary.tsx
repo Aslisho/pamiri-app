@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { cap } from "@/lib/utils";
 import { CATEGORY_UNLOCKS, CATEGORY_RU, type Word, type WordSuggestion } from "@shared/schema";
 
 export default function DictionaryPage() {
@@ -153,7 +154,7 @@ export default function DictionaryPage() {
                     <Lock size={16} className="text-muted-foreground shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm font-medium blur-[3px] select-none">
-                        {word.latinPamiri}
+                        {cap(word.latinPamiri)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {t("dict.needLevel")} {CATEGORY_UNLOCKS[word.category]?.level}
@@ -178,16 +179,14 @@ export default function DictionaryPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <p className="text-sm font-semibold">
-                        {script === "cyrillic" && word.cyrillicPamiri
+                        {cap(script === "cyrillic" && word.cyrillicPamiri
                           ? word.cyrillicPamiri
-                          : word.latinPamiri}
+                          : word.latinPamiri)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {word.russian} / {word.english}
+                        {cap(word.russian)} / {cap(word.english)}
+                        {word.tajik && ` / ${cap(word.tajik)}`}
                       </p>
-                      {word.tajik && (
-                        <p className="text-xs text-muted-foreground/70">{word.tajik}</p>
-                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-[10px]">
@@ -202,26 +201,26 @@ export default function DictionaryPage() {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
                           <span className="text-muted-foreground">{t("dict.latin")}: </span>
-                          <span className="font-medium">{word.latinPamiri}</span>
+                          <span className="font-medium">{cap(word.latinPamiri)}</span>
                         </div>
                         {word.cyrillicPamiri && (
                           <div>
                             <span className="text-muted-foreground">{t("dict.cyrillic")}: </span>
-                            <span className="font-medium">{word.cyrillicPamiri}</span>
+                            <span className="font-medium">{cap(word.cyrillicPamiri)}</span>
                           </div>
                         )}
                         <div>
                           <span className="text-muted-foreground">EN: </span>
-                          <span>{word.english}</span>
+                          <span>{cap(word.english)}</span>
                         </div>
                         <div>
                           <span className="text-muted-foreground">RU: </span>
-                          <span>{word.russian}</span>
+                          <span>{cap(word.russian)}</span>
                         </div>
                         {word.tajik && (
                           <div>
                             <span className="text-muted-foreground">TG: </span>
-                            <span>{word.tajik}</span>
+                            <span>{cap(word.tajik)}</span>
                           </div>
                         )}
                       </div>
@@ -269,6 +268,7 @@ function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string;
   const [cyrillic, setCyrillic] = useState(word.cyrillicPamiri);
   const [english, setEnglish] = useState(word.english);
   const [russian, setRussian] = useState(word.russian);
+  const [tajik, setTajik] = useState(word.tajik || "");
   const [submitted, setSubmitted] = useState(false);
 
   const submitMutation = useMutation({
@@ -279,6 +279,7 @@ function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string;
         cyrillicPamiri: cyrillic.trim(),
         english: english.trim(),
         russian: russian.trim(),
+        tajik: tajik.trim(),
       });
       return res.json();
     },
@@ -293,7 +294,8 @@ function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string;
     latin.trim() !== word.latinPamiri ||
     cyrillic.trim() !== word.cyrillicPamiri ||
     english.trim() !== word.english ||
-    russian.trim() !== word.russian;
+    russian.trim() !== word.russian ||
+    tajik.trim() !== (word.tajik || "");
 
   if (submitted) {
     return (
@@ -335,6 +337,12 @@ function SuggestionForm({ word, userId, onClose }: { word: Word; userId: string;
           value={russian}
           onChange={e => setRussian(e.target.value)}
           className="h-8 text-xs"
+        />
+        <Input
+          placeholder="Тоҷикӣ"
+          value={tajik}
+          onChange={e => setTajik(e.target.value)}
+          className="h-8 text-xs col-span-2"
         />
       </div>
       <Button
@@ -387,8 +395,8 @@ function SuggestionsList({ wordId, userId }: { wordId: number; userId: string })
         return (
           <div key={s.id} className="flex items-center gap-2 bg-muted/40 rounded-md p-2">
             <div className="flex-1 min-w-0 text-xs">
-              <span className="font-medium">{s.latinPamiri}</span>
-              <span className="text-muted-foreground"> — {s.russian} / {s.english}</span>
+              <span className="font-medium">{cap(s.latinPamiri)}</span>
+              <span className="text-muted-foreground"> — {cap(s.russian)} / {cap(s.english)}{s.tajik && ` / ${cap(s.tajik)}`}</span>
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <Button
