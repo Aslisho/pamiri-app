@@ -1,15 +1,15 @@
 import { Link, useLocation } from "wouter";
-import { Home, BookOpen, PlusCircle, Search, Trophy } from "lucide-react";
+import { BookOpen, PlusCircle, Search, Trophy, UserCircle } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { TranslationKey } from "@/lib/translations";
 
-const tabs: { path: string; icon: typeof Home; labelKey: TranslationKey; center?: boolean }[] = [
-  { path: "/home", icon: Home, labelKey: "nav.home" },
+const tabs: { path: string; icon: typeof BookOpen; labelKey: TranslationKey; center?: boolean }[] = [
   { path: "/learn", icon: BookOpen, labelKey: "nav.learn" },
-  { path: "/add", icon: PlusCircle, labelKey: "nav.add", center: true },
   { path: "/dictionary", icon: Search, labelKey: "nav.dictionary" },
+  { path: "/add", icon: PlusCircle, labelKey: "nav.add", center: true },
   { path: "/ranks", icon: Trophy, labelKey: "nav.ranks" },
+  { path: "/profile", icon: UserCircle, labelKey: "nav.profile" },
 ];
 
 export function BottomNav() {
@@ -30,22 +30,14 @@ export function BottomNav() {
             <Link key={tab.path} href={tab.path}>
               <button
                 data-testid={`nav-${tab.labelKey}`}
-                className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
+                className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded-lg transition-all duration-200 ${
                   tab.center ? "relative -top-3" : ""
-                } ${isActive && !tab.center ? "text-primary" : !isActive ? "text-muted-foreground hover:text-foreground hover:scale-105" : ""}`}
+                } ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground hover:scale-105"}`}
               >
                 {tab.center ? (
-                  <div
-                    className="flex items-center justify-center w-13 h-13 w-[52px] h-[52px] rounded-full transition-all duration-200 hover:scale-105 active:scale-95 text-white"
-                    style={isActive ? {
-                      background: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%)",
-                      boxShadow: "0 4px 20px rgba(249,115,22,0.45), 0 1px 4px rgba(0,0,0,0.2)",
-                    } : {
-                      background: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%)",
-                      boxShadow: "0 2px 10px rgba(249,115,22,0.30)",
-                      opacity: 0.82,
-                    }}
-                  >
+                  <div className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 hover:scale-110 ${
+                    isActive ? "bg-primary text-primary-foreground shadow-lg" : "bg-secondary text-foreground shadow-md"
+                  }`}>
                     <Icon size={22} />
                   </div>
                 ) : (
@@ -56,7 +48,7 @@ export function BottomNav() {
                     )}
                   </div>
                 )}
-                <span className={`text-[10px] font-medium ${tab.center ? "mt-0.5 text-foreground/70" : ""}`}>{label}</span>
+                <span className={`text-[10px] font-medium ${tab.center ? "mt-0.5" : ""}`}>{label}</span>
               </button>
             </Link>
           );

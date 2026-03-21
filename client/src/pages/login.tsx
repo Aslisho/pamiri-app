@@ -31,7 +31,7 @@ export default function LoginPage() {
     onSuccess: (data) => {
       setError(null);
       setUser(data);
-      navigate("/home");
+      navigate("/learn");
     },
     onError: (err: Error) => {
       try {
@@ -57,7 +57,7 @@ export default function LoginPage() {
     onSuccess: (data) => {
       setError(null);
       setUser(data);
-      navigate("/home");
+      navigate("/learn");
     },
     onError: (err: Error) => {
       try {
