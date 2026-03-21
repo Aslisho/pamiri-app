@@ -12,8 +12,35 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CATEGORY_UNLOCKS, CATEGORY_RU, APPROVAL_THRESHOLD, type PendingWordReview } from "@shared/schema";
 import { cap } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Check, Sparkles, CheckCircle, ThumbsUp, ThumbsDown, ClipboardList } from "lucide-react";
+import { Check, Sparkles, CheckCircle, ThumbsUp, ThumbsDown, ClipboardList, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+// Example words that help users pick the right category
+const CATEGORY_EXAMPLES: Record<string, string> = {
+  "Greetings and Basics": "hello, goodbye, yes, no, please, thank you",
+  "Numbers and Quantities": "one, two, three, many, few, half",
+  "Pronouns and Particles": "I, you, he, she, we, this, that",
+  "Family and Kinship": "mother, father, brother, sister, son, daughter",
+  "The Human Body": "head, hand, eye, ear, nose, heart, leg",
+  "Adjectives and Qualities": "big, small, good, bad, hot, cold, new",
+  "Verbs and Actions": "go, eat, sleep, work, speak, give, take",
+  "Food and Drink": "bread, water, milk, meat, fruit, tea, salt",
+  "Nature and Landscape": "mountain, river, sky, sun, rain, stone, forest",
+  "House and Home": "door, window, roof, room, bed, fire, wall",
+  "Time and Seasons": "day, night, morning, spring, year, hour, tomorrow",
+  "Agriculture and Livestock": "field, seed, cow, sheep, harvest, wheat, plough",
+  "Animals and Birds": "wolf, eagle, rabbit, fish, horse, goat, bear",
+  "Household Objects and Tools": "knife, pot, axe, needle, rope, lamp, bowl",
+  "Clothing and Appearance": "shirt, shoes, hat, coat, ring, belt, dress",
+  "Social Life and Ceremonies": "wedding, guest, prayer, dance, feast, elder, gift",
+  "Trade and Money": "buy, sell, price, market, gold, debt, trade",
+  "Emotions and Mental States": "happy, sad, angry, love, fear, hope, tired",
+  "Health and Illness": "sick, pain, doctor, medicine, wound, heal, fever",
+  "Speech and Communication": "word, say, ask, answer, name, voice, language",
+  "Movement and Travel": "road, walk, run, horse, bridge, far, arrive",
+  "War and Conflict": "sword, arrow, battle, enemy, shield, victory, war",
+  "Descriptive and Abstract": "color, shape, idea, truth, fate, spirit, reason",
+};
 
 export default function AddPage() {
   const { user } = useUser();
@@ -183,6 +210,14 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
                     className="h-10"
                   />
                 </div>
+
+                {/* Inline special-character keyboard — shown right inside the card so it is never hidden behind the system keyboard */}
+                {focusedField && !submitted && (
+                  <PamiriKeyboard
+                    script={focusedField === "latin" ? "latin" : "cyrillic"}
+                    onKeyPress={handleKeyPress}
+                  />
+                )}
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-muted-foreground">{t("add.english")}</label>
                   <Input
@@ -228,6 +263,14 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
                       ))}
                     </SelectContent>
                   </Select>
+                  {category && CATEGORY_EXAMPLES[category] && (
+                    <div className="flex items-start gap-1.5 pt-0.5">
+                      <Info size={12} className="text-muted-foreground mt-0.5 shrink-0" />
+                      <p className="text-[11px] text-muted-foreground leading-snug">
+                        {CATEGORY_EXAMPLES[category]}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -269,14 +312,6 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
         )}
       </AnimatePresence>
 
-      {focusedField && !submitted && (
-        <div className="fixed bottom-16 left-0 right-0">
-          <PamiriKeyboard
-            script={focusedField === "latin" ? "latin" : "cyrillic"}
-            onKeyPress={handleKeyPress}
-          />
-        </div>
-      )}
     </>
   );
 }
