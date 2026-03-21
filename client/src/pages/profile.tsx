@@ -10,14 +10,24 @@ import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import type { Badge as BadgeType, XpLog } from "@shared/schema";
 
-const LEVEL_TITLES: Record<string, string> = {
-  "1": "Начинающий",
-  "2": "Ученик", "3": "Ученик", "4": "Ученик",
-  "5": "Говорящий", "6": "Говорящий", "7": "Говорящий",
-  "8": "Участник", "9": "Участник", "10": "Участник",
-  "11": "Знаток", "12": "Знаток", "13": "Знаток", "14": "Знаток",
-  "15": "Мастер", "16": "Мастер",
-  "17": "Хранитель Шугнанского",
+const LEVEL_TITLES: Record<string, { ru: string; sgh: string; tj: string }> = {
+  "1":  { ru: "Начинающий",           sgh: "Shurukkon",           tj: "Шурӯъкунанда" },
+  "2":  { ru: "Ученик",               sgh: "Kheyjendon",          tj: "Донишҷӯ" },
+  "3":  { ru: "Ученик",               sgh: "Kheyjendon",          tj: "Донишҷӯ" },
+  "4":  { ru: "Ученик",               sgh: "Kheyjendon",          tj: "Донишҷӯ" },
+  "5":  { ru: "Говорящий",            sgh: "Guftugūkon",          tj: "Гӯянда" },
+  "6":  { ru: "Говорящий",            sgh: "Guftugūkon",          tj: "Гӯянда" },
+  "7":  { ru: "Говорящий",            sgh: "Guftugūkon",          tj: "Гӯянда" },
+  "8":  { ru: "Участник",             sgh: "Shirkat",             tj: "Иштирокчӣ" },
+  "9":  { ru: "Участник",             sgh: "Shirkat",             tj: "Иштирокчӣ" },
+  "10": { ru: "Участник",             sgh: "Shirkat",             tj: "Иштирокчӣ" },
+  "11": { ru: "Знаток",               sgh: "Fahmkor",             tj: "Огоҳ" },
+  "12": { ru: "Знаток",               sgh: "Fahmkor",             tj: "Огоҳ" },
+  "13": { ru: "Знаток",               sgh: "Fahmkor",             tj: "Огоҳ" },
+  "14": { ru: "Знаток",               sgh: "Fahmkor",             tj: "Огоҳ" },
+  "15": { ru: "Мастер",               sgh: "Usto",                tj: "Устод" },
+  "16": { ru: "Мастер",               sgh: "Usto",                tj: "Устод" },
+  "17": { ru: "Хранитель Шугнанского", sgh: "Nignabdori Shugnoni", tj: "Посбони Шуғнонӣ" },
 };
 
 const BADGE_INFO: Record<string, { label: string; icon: typeof Star; description: string }> = {
@@ -31,7 +41,7 @@ const BADGE_INFO: Record<string, { label: string; icon: typeof Star; description
 
 export default function ProfilePage() {
   const { user, setUser, logout } = useUser();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [, navigate] = useLocation();
 
   const { data: stats, isLoading } = useQuery({
@@ -68,7 +78,8 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
-  const levelTitle = LEVEL_TITLES[String(user.level)] || "Хранитель Шугнанского";
+  const levelTitleEntry = LEVEL_TITLES[String(user.level)] || LEVEL_TITLES["17"];
+  const levelTitle = levelTitleEntry[lang] || levelTitleEntry.ru;
   const earnedBadgeTypes = (badges || []).map(b => b.badgeType);
 
   return (
@@ -152,7 +163,7 @@ export default function ProfilePage() {
                 }}
                 data-testid="script-latin"
               >
-                Латиница
+                {t("profile.latin")}
               </Button>
               <Button
                 type="button"
@@ -171,7 +182,7 @@ export default function ProfilePage() {
                 }}
                 data-testid="script-cyrillic"
               >
-                Кириллица
+                {t("profile.cyrillic")}
               </Button>
             </div>
           </CardContent>
