@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Lock, CheckCircle, XCircle, ArrowRight, ChevronLeft, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,86 @@ import { CATEGORY_RU, CATEGORY_TJ, type QuizQuestion, type Word } from "@shared/
 import { motion, AnimatePresence } from "framer-motion";
 
 type View = "categories" | "flashcard" | "quiz" | "match" | "results";
+
+// ── Module-level constants (defined once, not re-created on every render) ──
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  "Greetings and Basics": "👋",
+  "Numbers and Quantities": "🔢",
+  "Pronouns and Particles": "👤",
+  "Family and Kinship": "👨‍👩‍👧",
+  "The Human Body": "🫀",
+  "Adjectives and Qualities": "✨",
+  "Verbs and Actions": "🏃",
+  "Food and Drink": "🍎",
+  "Nature and Landscape": "🏔️",
+  "House and Home": "🏠",
+  "Time and Seasons": "🌙",
+  "Agriculture and Livestock": "🌾",
+  "Animals and Birds": "🦅",
+  "Household Objects and Tools": "🔧",
+  "Clothing and Appearance": "👕",
+  "Social Life and Ceremonies": "🎉",
+  "Trade and Money": "💰",
+  "Emotions and Mental States": "❤️",
+  "Health and Illness": "🏥",
+  "Speech and Communication": "💬",
+  "Movement and Travel": "🚶",
+  "War and Conflict": "⚔️",
+  "Descriptive and Abstract": "💭",
+};
+
+const WORD_EMOJI_ENTRIES: [string, string][] = [
+  ["hello", "👋"], ["hi", "👋"], ["greet", "👋"],
+  ["goodbye", "🙋"], ["bye", "🙋"],
+  ["thank", "🙏"], ["yes", "✅"],
+  ["water", "💧"], ["fire", "🔥"],
+  ["bread", "🍞"], ["milk", "🥛"], ["meat", "🥩"],
+  ["apple", "🍎"], ["fruit", "🍎"],
+  ["mother", "👩"], ["mom", "👩"],
+  ["father", "👨"], ["dad", "👨"],
+  ["son", "👦"], ["brother", "👦"],
+  ["daughter", "👧"], ["sister", "👧"],
+  ["child", "🧒"], ["baby", "🧒"],
+  ["sun", "☀️"], ["moon", "🌙"], ["star", "⭐"],
+  ["mountain", "⛰️"],
+  ["river", "🌊"], ["stream", "🌊"],
+  ["house", "🏠"], ["home", "🏠"],
+  ["dog", "🐕"], ["cat", "🐱"], ["horse", "🐴"],
+  ["bird", "🐦"], ["sheep", "🐑"], ["goat", "🐑"],
+  ["cow", "🐄"], ["bull", "🐄"],
+  ["eye", "👁️"], ["hand", "✋"], ["heart", "❤️"], ["head", "🧠"],
+  ["good", "👍"], ["nice", "👍"],
+  ["bad", "👎"],
+  ["big", "🔼"], ["large", "🔼"],
+  ["small", "🔽"], ["little", "🔽"],
+  ["eat", "🍽️"], ["food", "🍽️"],
+  ["drink", "🥤"], ["sleep", "😴"], ["love", "❤️"],
+  ["go", "🚶"], ["walk", "🚶"],
+  ["come", "👉"], ["money", "💰"], ["coin", "💰"],
+  ["day", "🌅"], ["night", "🌃"], ["year", "📅"],
+  ["winter", "❄️"], ["summer", "☀️"], ["spring", "🌸"],
+  ["autumn", "🍂"], ["fall", "🍂"],
+];
+
+function getWordEmoji(english: string, category: string): string {
+  const e = english.toLowerCase();
+  if (e === "i" || e === "me") return "🙋";
+  if (e === "you") return "👉";
+  if (e === "we" || e === "us") return "👥";
+  if (e === "they" || e === "them") return "👥";
+  if (e === "no" && e.length < 5) return "❌";
+  if (e === "ok") return "👌";
+  if (e === "1" || e === "one") return "1️⃣";
+  if (e === "2" || e === "two") return "2️⃣";
+  if (e === "3" || e === "three") return "3️⃣";
+  if (e === "4" || e === "four") return "4️⃣";
+  if (e === "5" || e === "five") return "5️⃣";
+  for (const [key, emoji] of WORD_EMOJI_ENTRIES) {
+    if (e.includes(key)) return emoji;
+  }
+  return CATEGORY_EMOJI[category] || "📖";
+}
 
 export default function LearnPage() {
   const { user, setUser } = useUser();
@@ -157,98 +237,6 @@ export default function LearnPage() {
       ? word.cyrillicPamiri
       : word.latinPamiri;
 
-  // ── Emoji helpers ────────────────────────────────────────────────
-  const CATEGORY_EMOJI: Record<string, string> = {
-    "Greetings and Basics": "👋",
-    "Numbers and Quantities": "🔢",
-    "Pronouns and Particles": "👤",
-    "Family and Kinship": "👨‍👩‍👧",
-    "The Human Body": "🫀",
-    "Adjectives and Qualities": "✨",
-    "Verbs and Actions": "🏃",
-    "Food and Drink": "🍎",
-    "Nature and Landscape": "🏔️",
-    "House and Home": "🏠",
-    "Time and Seasons": "🌙",
-    "Agriculture and Livestock": "🌾",
-    "Animals and Birds": "🦅",
-    "Household Objects and Tools": "🔧",
-    "Clothing and Appearance": "👕",
-    "Social Life and Ceremonies": "🎉",
-    "Trade and Money": "💰",
-    "Emotions and Mental States": "❤️",
-    "Health and Illness": "🏥",
-    "Speech and Communication": "💬",
-    "Movement and Travel": "🚶",
-    "War and Conflict": "⚔️",
-    "Descriptive and Abstract": "💭",
-  };
-
-  function getWordEmoji(english: string, category: string): string {
-    const e = english.toLowerCase();
-    if (e.includes("hello") || e.includes("hi") || e.includes("greet")) return "👋";
-    if (e.includes("goodbye") || e.includes("bye")) return "🙋";
-    if (e.includes("thank")) return "🙏";
-    if (e.includes("yes")) return "✅";
-    if (e.includes("no") && e.length < 5) return "❌";
-    if (e.includes("okay") || e === "ok") return "👌";
-    if (e.includes("water")) return "💧";
-    if (e.includes("fire")) return "🔥";
-    if (e.includes("bread")) return "🍞";
-    if (e.includes("milk")) return "🥛";
-    if (e.includes("meat")) return "🥩";
-    if (e.includes("apple") || e.includes("fruit")) return "🍎";
-    if (e.includes("mother") || e.includes("mom")) return "👩";
-    if (e.includes("father") || e.includes("dad")) return "👨";
-    if (e.includes("son") || e.includes("brother")) return "👦";
-    if (e.includes("daughter") || e.includes("sister")) return "👧";
-    if (e.includes("child") || e.includes("baby")) return "🧒";
-    if (e.includes("sun")) return "☀️";
-    if (e.includes("moon")) return "🌙";
-    if (e.includes("star")) return "⭐";
-    if (e.includes("mountain")) return "⛰️";
-    if (e.includes("river") || e.includes("stream")) return "🌊";
-    if (e.includes("house") || e.includes("home")) return "🏠";
-    if (e.includes("dog")) return "🐕";
-    if (e.includes("cat")) return "🐱";
-    if (e.includes("horse")) return "🐴";
-    if (e.includes("bird")) return "🐦";
-    if (e.includes("sheep") || e.includes("goat")) return "🐑";
-    if (e.includes("cow") || e.includes("bull")) return "🐄";
-    if (e.includes("eye")) return "👁️";
-    if (e.includes("hand")) return "✋";
-    if (e.includes("heart")) return "❤️";
-    if (e.includes("head")) return "🧠";
-    if (e.includes("good") || e.includes("nice")) return "👍";
-    if (e.includes("bad")) return "👎";
-    if (e.includes("big") || e.includes("large")) return "🔼";
-    if (e.includes("small") || e.includes("little")) return "🔽";
-    if (e.includes("eat") || e.includes("food")) return "🍽️";
-    if (e.includes("drink")) return "🥤";
-    if (e.includes("sleep")) return "😴";
-    if (e.includes("love")) return "❤️";
-    if (e.includes("go") || e.includes("walk")) return "🚶";
-    if (e.includes("come")) return "👉";
-    if (e.includes("money") || e.includes("coin")) return "💰";
-    if (e.includes("day")) return "🌅";
-    if (e.includes("night")) return "🌃";
-    if (e.includes("year")) return "📅";
-    if (e.includes("winter")) return "❄️";
-    if (e.includes("summer")) return "☀️";
-    if (e.includes("spring")) return "🌸";
-    if (e.includes("autumn") || e.includes("fall")) return "🍂";
-    if (e === "i" || e === "me") return "🙋";
-    if (e === "you") return "👉";
-    if (e === "we" || e === "us") return "👥";
-    if (e === "they" || e === "them") return "👥";
-    if (e.includes("one") || e === "1") return "1️⃣";
-    if (e.includes("two") || e === "2") return "2️⃣";
-    if (e.includes("three") || e === "3") return "3️⃣";
-    if (e.includes("four") || e === "4") return "4️⃣";
-    if (e.includes("five") || e === "5") return "5️⃣";
-    return CATEGORY_EMOJI[category] || "📖";
-  }
-
   // ── Quiz handlers ────────────────────────────────────────────────
   const handleAnswer = (answer: string) => {
     if (showFeedback) return;
@@ -324,19 +312,19 @@ export default function LearnPage() {
     }
   };
 
-  const handleLeftSelect = (wordId: number) => {
+  const handleLeftSelect = useCallback((wordId: number) => {
     if (matchLocked || matchedIds.has(wordId)) return;
     if (selectedLeft === wordId) { setSelectedLeft(null); return; }
     setSelectedLeft(wordId);
     if (selectedRight !== null) checkMatch(wordId, selectedRight, matchedIds, matchScore);
-  };
+  }, [matchLocked, matchedIds, selectedLeft, selectedRight, matchScore]);
 
-  const handleRightSelect = (wordId: number) => {
+  const handleRightSelect = useCallback((wordId: number) => {
     if (matchLocked || matchedIds.has(wordId)) return;
     if (selectedRight === wordId) { setSelectedRight(null); return; }
     setSelectedRight(wordId);
     if (selectedLeft !== null) checkMatch(selectedLeft, wordId, matchedIds, matchScore);
-  };
+  }, [matchLocked, matchedIds, selectedRight, selectedLeft, matchScore]);
 
   if (!user) return null;
 
@@ -492,7 +480,7 @@ export default function LearnPage() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -24 }}
-            transition={{ duration: 0.22 }}
+            transition={{ duration: 0.15 }}
             onClick={() => !flashcardRevealed && setFlashcardRevealed(true)}
             className="cursor-pointer select-none"
           >
@@ -581,7 +569,7 @@ export default function LearnPage() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.15 }}
           >
             <Card className="mb-4">
               <CardContent className="pt-6 pb-6 text-center">
@@ -707,7 +695,7 @@ export default function LearnPage() {
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -40 }}
-            transition={{ duration: 0.22 }}
+            transition={{ duration: 0.15 }}
             className="grid grid-cols-2 gap-2"
           >
             {/* Left: Pamiri words */}
