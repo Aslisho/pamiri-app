@@ -118,12 +118,18 @@ export default function LoginPage() {
             animate={{ y: 0 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
           >
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-amber-500/10 backdrop-blur-sm">
-              <ZivLogo size={72} />
+            <div
+              className="w-24 h-24 rounded-[28px] flex items-center justify-center text-white"
+              style={{
+                background: "linear-gradient(135deg, #f59e0b 0%, #f97316 55%, #ea580c 100%)",
+                boxShadow: "0 8px 40px rgba(249,115,22,0.40), 0 2px 8px rgba(0,0,0,0.3)",
+              }}
+            >
+              <ZivLogo size={52} />
             </div>
           </motion.div>
           <motion.h1
-            className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-amber-600 bg-clip-text text-transparent"
+            className="text-4xl font-black tracking-tight text-foreground"
             data-testid="app-title"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -132,12 +138,21 @@ export default function LoginPage() {
             Deve
           </motion.h1>
           <motion.p
+            className="text-xs font-semibold tracking-[0.2em] uppercase"
+            style={{ color: "#f59e0b" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
+          >
+            Памирский язык
+          </motion.p>
+          <motion.p
             className="text-sm text-muted-foreground"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            Учи памирский шугнанский язык
+            Учи шугнанский памирский язык
           </motion.p>
         </motion.div>
 

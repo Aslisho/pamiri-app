@@ -76,7 +76,13 @@ export default function ProfilePage() {
       {/* Avatar + Name */}
       <div className="pt-4 text-center space-y-2">
         <div className="flex justify-center">
-          <div className="w-20 h-20 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-3xl font-bold">
+          <div
+            className="w-20 h-20 rounded-full text-white flex items-center justify-center text-3xl font-black"
+            style={{
+              background: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%)",
+              boxShadow: "0 4px 24px rgba(249,115,22,0.40)",
+            }}
+          >
             {user.displayName.charAt(0).toUpperCase()}
           </div>
         </div>

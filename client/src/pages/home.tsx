@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Flame, BookOpen, Star, Globe } from "lucide-react";
+import { Flame, BookOpen, Star, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -106,7 +106,7 @@ export default function HomePage() {
         <Card className="hover:border-amber-500/30">
           <CardContent className="pt-3 pb-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Globe size={14} className="text-accent-foreground" />
+              <Trophy size={14} className="text-amber-500" />
               <span className="text-lg font-bold" data-testid="text-rank">
                 #{stats?.globalRank || "—"}
               </span>
@@ -165,12 +165,16 @@ export default function HomePage() {
 
       {/* Start Lesson CTA */}
       <Link href="/learn">
-        <Button
-          className="w-full h-14 text-base font-semibold rounded-xl bg-gradient-to-r from-primary to-amber-600 hover:from-primary/90 hover:to-amber-600/90 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+        <button
+          className="w-full py-4 rounded-2xl text-base font-bold text-white flex items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           data-testid="button-start-lesson"
+          style={{
+            background: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%)",
+            boxShadow: "0 4px 20px rgba(249,115,22,0.35), 0 1px 4px rgba(0,0,0,0.15)",
+          }}
         >
           {t("home.startLesson")}
-        </Button>
+        </button>
       </Link>
 
     </div>
