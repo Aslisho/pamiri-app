@@ -136,8 +136,14 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
             className="text-center py-12 space-y-3"
           >
             <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <Check size={32} className="text-primary" />
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center text-white"
+                style={{
+                  background: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%)",
+                  boxShadow: "0 4px 20px rgba(249,115,22,0.40)",
+                }}
+              >
+                <Check size={32} />
               </div>
             </div>
             <p className="text-base font-semibold">{t("add.thanks")}</p>
@@ -241,14 +247,18 @@ function AddForm({ user }: { user: NonNullable<ReturnType<typeof useUser>["user"
               </Card>
             )}
 
-            <Button
-              className="w-full h-12 text-base font-semibold"
+            <button
+              className="w-full py-3.5 rounded-2xl text-base font-bold text-white flex items-center justify-center transition-all duration-200 hover:opacity-90 active:scale-[0.98] disabled:opacity-40"
+              style={{
+                background: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%)",
+                boxShadow: "0 4px 16px rgba(249,115,22,0.35)",
+              }}
               disabled={!canSubmit || submitMutation.isPending}
               onClick={() => submitMutation.mutate()}
               data-testid="button-submit-word"
             >
               {submitMutation.isPending ? "..." : t("add.submit")}
-            </Button>
+            </button>
 
             {submitMutation.isError && (
               <p className="text-destructive text-xs text-center">

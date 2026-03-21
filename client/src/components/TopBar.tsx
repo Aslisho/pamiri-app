@@ -17,14 +17,23 @@ export function TopBar() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-md border-b border-border">
       <div className="flex items-center justify-between h-14 max-w-lg mx-auto px-4">
         <Link href="/home">
-          <div className="flex items-center gap-2 cursor-pointer" data-testid="logo-link">
-            <ZivLogo size={28} />
-            <span className="font-semibold text-base tracking-tight">Deve</span>
+          <div className="flex items-center gap-2.5 cursor-pointer" data-testid="logo-link">
+            {/* Branded logo container */}
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white flex-shrink-0"
+              style={{
+                background: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%)",
+                boxShadow: "0 2px 8px rgba(249,115,22,0.35)",
+              }}
+            >
+              <ZivLogo size={18} />
+            </div>
+            <span className="font-black text-base tracking-tight">Deve</span>
           </div>
         </Link>
 
         <div className="flex items-center gap-1">
-          {/* Language toggle — cycles ru → sgh → tj → ru */}
+          {/* Language toggle */}
           <Button
             variant="ghost"
             size="sm"
@@ -58,7 +67,11 @@ export function TopBar() {
           <Link href="/profile">
             <button
               data-testid="profile-link"
-              className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-xs font-bold"
+              className="flex items-center justify-center w-8 h-8 rounded-full text-white text-xs font-bold flex-shrink-0"
+              style={{
+                background: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%)",
+                boxShadow: "0 2px 8px rgba(249,115,22,0.30)",
+              }}
             >
               {user.displayName.charAt(0).toUpperCase()}
             </button>

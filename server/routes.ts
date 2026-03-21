@@ -505,10 +505,13 @@ export async function registerRoutes(
     }
 
     const seenKeys = new Set<string>();
+    const seenPamiri = new Set<string>();
     pool = pool.filter((w) => {
       const key = normalizeAnswer(w.latinPamiri) + "|" + normalizeAnswer(w.english);
-      if (seenKeys.has(key)) return false;
+      const pamiriKey = normalizeAnswer(w.latinPamiri);
+      if (seenKeys.has(key) || seenPamiri.has(pamiriKey)) return false;
       seenKeys.add(key);
+      seenPamiri.add(pamiriKey);
       return true;
     });
 

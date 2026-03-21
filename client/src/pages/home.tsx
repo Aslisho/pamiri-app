@@ -168,7 +168,7 @@ export default function HomePage() {
         <Card>
           <CardContent className="pt-3 pb-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Globe size={14} className="text-accent-foreground" />
+              <Trophy size={14} className="text-amber-500" />
               <span className="text-lg font-bold" data-testid="text-rank">
                 #{stats?.globalRank || "—"}
               </span>

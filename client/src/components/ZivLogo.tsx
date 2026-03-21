@@ -1,4 +1,4 @@
-export function ZivLogo({ size = 32 }: { size?: number }) {
+export function ZivLogo({ size = 32, className = "" }: { size?: number; className?: string }) {
   return (
     <svg
       width={size}
@@ -6,38 +6,33 @@ export function ZivLogo({ size = 32 }: { size?: number }) {
       viewBox="0 0 48 48"
       fill="none"
       aria-label="Deve — Памирский язык"
-      className="inline-block"
+      className={`inline-block ${className}`}
     >
-      {/* Mountain silhouette */}
+      {/* Mountain M — subtle fill for depth */}
       <path
-        d="M4 38L16 12L24 24L32 10L44 38"
+        d="M5 39L18 10L24 25L30 10L43 39Z"
+        fill="currentColor"
+        opacity="0.10"
+      />
+      {/* Mountain M — bold outline */}
+      <path
+        d="M5 39L18 10L24 25L30 10L43 39"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="3.8"
         strokeLinecap="round"
         strokeLinejoin="round"
-        fill="none"
-      />
-      {/* Snow caps */}
-      <path
-        d="M14 16L16 12L18 16"
-        stroke="hsl(24, 70%, 45%)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="text-primary"
-        fill="none"
-      />
-      <path
-        d="M30 14L32 10L34 14"
-        stroke="hsl(24, 70%, 45%)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="text-primary"
         fill="none"
       />
       {/* Base line */}
-      <line x1="2" y1="38" x2="46" y2="38" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line
+        x1="3"
+        y1="39"
+        x2="45"
+        y2="39"
+        stroke="currentColor"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
