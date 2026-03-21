@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Lock, CheckCircle, XCircle, ArrowRight, ChevronLeft, Shuffle } from "lucide-react";
+import { Lock, CheckCircle, XCircle, ChevronLeft, Shuffle, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { cap } from "@/lib/utils";
 import { CATEGORY_RU, CATEGORY_TJ, type QuizQuestion, type Word } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -340,84 +341,106 @@ export default function LearnPage() {
   if (!user) return null;
 
   // ══════════════════════════════════════════════════════════════════
-  // CATEGORIES VIEW
+  // CATEGORIES VIEW  — Duolingo-style path
   // ══════════════════════════════════════════════════════════════════
   if (view === "categories") {
+    // zigzag offsets: each category node is offset left/right/center
+    const OFFSETS = ["justify-start pl-8", "justify-center", "justify-end pr-8", "justify-center"];
+
     return (
-      <div className="pt-16 pb-20 px-4 max-w-lg mx-auto space-y-4">
-        <div className="pt-4">
+      <div className="pt-16 pb-20 px-4 max-w-lg mx-auto">
+        <div className="pt-4 pb-2">
           <h2 className="text-lg font-bold" data-testid="text-learn-title">{t("learn.title")}</h2>
           <p className="text-sm text-muted-foreground">{t("learn.subtitle")}</p>
         </div>
 
         {isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {categories?.map((cat: any) => (
-              <Card
-                key={cat.category}
-                className={`transition-all ${cat.unlocked ? "" : "opacity-50"}`}
-                data-testid={`category-${cat.category.replace(/\s+/g, "-").toLowerCase()}`}
-              >
-                <CardContent className="pt-3 pb-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold">{CATEGORY_RU[cat.category] || cat.category}</p>
-                      {CATEGORY_TJ[cat.category] && (
-                        <p className="text-xs text-muted-foreground/70">{CATEGORY_TJ[cat.category]}</p>
-                      )}
-                      <p className="text-xs text-muted-foreground">{cat.wordCount} {t("learn.words")}</p>
-                    </div>
-
-                    {cat.unlocked && cat.wordCount >= 4 ? (
-                      <div className="flex gap-1.5 shrink-0">
-                        {/* Match mode button */}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 px-2.5 text-xs gap-1"
-                          onClick={() => {
-                            setSelectedCategory(cat.category);
-                            flashcardMutation.mutate({ category: cat.category, mode: "match" });
-                          }}
-                          disabled={flashcardMutation.isPending}
-                          title={t("learn.match")}
-                        >
-                          <Shuffle size={12} />
-                          {t("learn.match")}
-                        </Button>
-                        {/* Quiz mode button */}
-                        <Button
-                          size="sm"
-                          className="h-8 px-2.5 text-xs gap-1"
-                          onClick={() => {
-                            setSelectedCategory(cat.category);
-                            flashcardMutation.mutate({ category: cat.category, mode: "quiz" });
-                          }}
-                          disabled={flashcardMutation.isPending}
-                        >
-                          {t("learn.test")}
-                          <ArrowRight size={12} />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1 text-muted-foreground shrink-0">
-                        {cat.unlocked
-                          ? <span className="text-xs">{t("learn.fewWords")}</span>
-                          : <><Lock size={14} /><span className="text-xs">{t("learn.lvl")} {cat.level}</span></>
-                        }
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+          <div className="flex flex-col items-center gap-6 pt-6">
+            {[1, 2, 3, 4].map(i => (
+              <Skeleton key={i} className="w-20 h-20 rounded-full" />
             ))}
           </div>
-        )}
+        ) : (
+          <div className="relative pt-4 pb-4">
+            {/* Vertical guide line */}
+            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 -translate-x-1/2 bg-border/60 rounded-full" />
 
+            <div className="relative flex flex-col gap-1">
+              {categories?.map((cat: any, idx: number) => {
+                const isPlayable = cat.unlocked && cat.wordCount >= 4;
+                const isLocked = !cat.unlocked;
+                const isFewWords = cat.unlocked && cat.wordCount < 4;
+                const emoji = CATEGORY_EMOJI[cat.category] || "📖";
+                const offsetClass = OFFSETS[idx % OFFSETS.length];
+
+                return (
+                  <div
+                    key={cat.category}
+                    className="flex flex-col"
+                    data-testid={`category-${cat.category.replace(/\s+/g, "-").toLowerCase()}`}
+                  >
+                    {/* Node row */}
+                    <div className={`flex ${offsetClass}`}>
+                      <div className="flex flex-col items-center gap-2 py-3 w-36">
+                        {/* Circle node */}
+                        <motion.button
+                          whileTap={isPlayable ? { scale: 0.92 } : undefined}
+                          onClick={() => {
+                            if (!isPlayable) return;
+                            const mode: "quiz" | "match" = Math.random() > 0.5 ? "quiz" : "match";
+                            setSelectedCategory(cat.category);
+                            flashcardMutation.mutate({ category: cat.category, mode });
+                          }}
+                          disabled={flashcardMutation.isPending && selectedCategory === cat.category}
+                          className={`relative w-20 h-20 rounded-full border-[3px] flex flex-col items-center justify-center transition-all duration-200 select-none
+                            ${isLocked
+                              ? "border-muted-foreground/20 bg-muted/30 cursor-default"
+                              : isFewWords
+                              ? "border-muted-foreground/30 bg-muted/20 cursor-default"
+                              : "border-primary bg-primary/10 hover:bg-primary/20 cursor-pointer shadow-md shadow-primary/10"
+                            }
+                          `}
+                        >
+                          {/* Pulse ring for first playable category */}
+                          {isPlayable && idx === categories.findIndex((c: any) => c.unlocked && c.wordCount >= 4) && (
+                            <span className="absolute inset-0 rounded-full border-2 border-primary animate-ping opacity-30" />
+                          )}
+
+                          <span className={`text-2xl ${isLocked ? "grayscale opacity-40" : ""}`}>{emoji}</span>
+
+                          {isLocked && (
+                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-muted-foreground/40 rounded-full flex items-center justify-center">
+                              <Lock size={10} className="text-background" />
+                            </div>
+                          )}
+
+                          {isPlayable && (
+                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow">
+                              <Play size={10} fill="white" className="text-white ml-0.5" />
+                            </div>
+                          )}
+                        </motion.button>
+
+                        {/* Label */}
+                        <div className="text-center">
+                          <p className={`text-xs font-semibold leading-tight ${isLocked ? "text-muted-foreground/40" : "text-foreground"}`}>
+                            {CATEGORY_RU[cat.category] || cat.category}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                            {isLocked
+                              ? `${t("learn.lvl")} ${cat.level}`
+                              : `${cat.wordCount} ${t("learn.words")}`
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

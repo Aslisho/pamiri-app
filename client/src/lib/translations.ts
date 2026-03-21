@@ -23,6 +23,10 @@ const translations = {
   "home.startLesson": { ru: "Начать урок", sgh: "Sar kenām", tj: "Дарсро оғоз кунед" },
   "home.level": { ru: "Уровень", sgh: "Уровень", tj: "Сатҳ" },
   "home.xpToLevel": { ru: "XP до уровня", sgh: "XP до уровня", tj: "XP то сатҳи" },
+  "home.nextLesson": { ru: "Следующий урок", sgh: "Pêsh ẋeydo", tj: "Дарси навбатӣ" },
+  "home.dailyGoal": { ru: "Цель на день", sgh: "Cōndum hisob", tj: "Ҳадафи рӯзона" },
+  "home.nextUnlock": { ru: "Следующий: ", sgh: "Vēy: ", tj: "Баъдӣ: " },
+  "home.atLevel": { ru: "на уровне", sgh: "darsoh", tj: "дар сатҳи" },
 
   // ── Dictionary page ─────────────────────────────────────────────
   "dict.title": { ru: "Словарь", sgh: "Luɣat", tj: "Луғат" },
