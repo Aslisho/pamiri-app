@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Lock, CheckCircle, XCircle, ChevronLeft, Shuffle, Play } from "lucide-react";
+import { Lock, CheckCircle, XCircle, ChevronLeft, Shuffle, Play, Flame, Zap, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -9,17 +9,18 @@ import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { cap } from "@/lib/utils";
-import { CATEGORY_RU, CATEGORY_TJ, type QuizQuestion, type Word } from "@shared/schema";
+import { getCategoryName, type QuizQuestion, type Word } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
 
 type View = "categories" | "flashcard" | "quiz" | "match" | "results";
 
 export default function LearnPage() {
   const { user, setUser } = useUser();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [view, setView]   = useState<View>("categories");
   const [gameMode, setGameMode] = useState<"quiz" | "match">("quiz");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [wordFlipped, setWordFlipped] = useState(false);
 
   // ── Quiz state ──────────────────────────────────────────────────
   const [questions, setQuestions]       = useState<QuizQuestion[]>([]);
@@ -50,11 +51,31 @@ export default function LearnPage() {
   const [resultScore, setResultScore] = useState(0);
   const [resultTotal, setResultTotal] = useState(0);
 
+  const DAILY_XP_GOAL = 50;
+
   // ── Queries / mutations ──────────────────────────────────────────
   const { data: categories, isLoading } = useQuery({
     queryKey: ["/api/words/categories", user?.id],
     queryFn: async () => {
       const res = await apiRequest("GET", `/api/words/categories/${user!.id}`);
+      return res.json();
+    },
+    enabled: !!user,
+  });
+
+  const { data: stats } = useQuery({
+    queryKey: ["/api/users", user?.id, "stats"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/users/${user!.id}/stats`);
+      return res.json();
+    },
+    enabled: !!user,
+  });
+
+  const { data: unlockedWords } = useQuery<Word[]>({
+    queryKey: ["/api/words/unlocked", user?.id],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/words/unlocked/${user!.id}`);
       return res.json();
     },
     enabled: !!user,
@@ -347,11 +368,103 @@ export default function LearnPage() {
     // zigzag offsets: each category node is offset left/right/center
     const OFFSETS = ["justify-start pl-8", "justify-center", "justify-end pr-8", "justify-center"];
 
+    const totalXp = stats?.totalXp || user.totalXp;
+    const streak = stats?.currentStreak || user.currentStreak;
+    const todayXp = Math.min(DAILY_XP_GOAL, totalXp % DAILY_XP_GOAL || (totalXp > 0 ? DAILY_XP_GOAL : 0));
+    const dailyDone = todayXp >= DAILY_XP_GOAL;
+    const wordOfTheDay = unlockedWords && unlockedWords.length > 0
+      ? unlockedWords[Math.floor(new Date().getDate() * 7 + new Date().getMonth() * 31) % unlockedWords.length]
+      : null;
+
     return (
       <div className="pt-16 pb-20 px-4 max-w-lg mx-auto">
-        <div className="pt-4 pb-2">
-          <h2 className="text-lg font-bold" data-testid="text-learn-title">{t("learn.title")}</h2>
-          <p className="text-sm text-muted-foreground">{t("learn.subtitle")}</p>
+        {/* Greeting header */}
+        <div className="pt-4 pb-3 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold" data-testid="text-welcome">
+              {t("home.welcome")}, {user.displayName}!
+            </h2>
+            <p className="text-sm text-muted-foreground">{t("home.subtitle")}</p>
+          </div>
+          <div className="flex flex-col items-center gap-0.5 shrink-0">
+            <div className="flex items-center gap-1 bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-1.5">
+              <Flame size={15} className="text-orange-500" />
+              <span className="text-sm font-bold text-orange-500" data-testid="text-streak">{streak}</span>
+            </div>
+            <span className="text-[9px] text-muted-foreground uppercase tracking-wide">{t("home.streak")}</span>
+          </div>
+        </div>
+
+        {/* Daily goal bar */}
+        <div className="mb-4">
+          <Card className={dailyDone ? "border-primary/40" : ""}>
+            <CardContent className="pt-3 pb-3">
+              <div className="flex items-center gap-3">
+                <Zap size={16} className={dailyDone ? "text-primary shrink-0" : "text-muted-foreground shrink-0"} />
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-xs font-medium">{t("home.dailyGoal")}</span>
+                    <span className="text-xs text-muted-foreground">{Math.min(todayXp, DAILY_XP_GOAL)}/{DAILY_XP_GOAL} XP</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all duration-700"
+                      style={{ width: `${Math.min(100, (todayXp / DAILY_XP_GOAL) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+                {dailyDone && <span className="text-xs font-bold text-primary shrink-0">✓</span>}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Word of the Day */}
+        {wordOfTheDay && (
+          <div className="mb-4">
+            <Card
+              className="cursor-pointer overflow-hidden border-l-4 border-l-primary"
+              onClick={() => setWordFlipped(f => !f)}
+              data-testid="word-of-day"
+            >
+              <CardContent className="pt-3 pb-3">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Star size={12} className="text-primary" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {t("home.wordOfDay")}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between min-h-[36px]">
+                  {!wordFlipped ? (
+                    <>
+                      <p className="text-xl font-bold">
+                        {cap(user.preferredScript === "cyrillic" && wordOfTheDay.cyrillicPamiri
+                          ? wordOfTheDay.cyrillicPamiri
+                          : wordOfTheDay.latinPamiri)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{t("home.tapToFlip")}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-base font-semibold text-primary">
+                        {cap(wordOfTheDay.russian)} / {cap(wordOfTheDay.english)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {cap(user.preferredScript === "cyrillic" && wordOfTheDay.cyrillicPamiri
+                          ? wordOfTheDay.cyrillicPamiri
+                          : wordOfTheDay.latinPamiri)}
+                      </p>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Section label */}
+        <div className="pb-2">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider" data-testid="text-learn-title">{t("learn.title")}</h3>
         </div>
 
         {isLoading ? (
@@ -424,7 +537,7 @@ export default function LearnPage() {
                         {/* Label */}
                         <div className="text-center">
                           <p className={`text-xs font-semibold leading-tight ${isLocked ? "text-muted-foreground/40" : "text-foreground"}`}>
-                            {CATEGORY_RU[cat.category] || cat.category}
+                            {getCategoryName(cat.category, lang)}
                           </p>
                           <p className="text-[10px] text-muted-foreground/60 mt-0.5">
                             {isLocked
@@ -484,7 +597,7 @@ export default function LearnPage() {
             <ChevronLeft size={16} /> {t("learn.back")}
           </button>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{selectedCategory ? (CATEGORY_RU[selectedCategory] || selectedCategory) : ""}</span>
+            <span>{selectedCategory ? (getCategoryName(selectedCategory, lang)) : ""}</span>
             <span>{flashcardIndex + 1} / {flashcardWords.length}</span>
           </div>
           {/* Dot progress */}
@@ -583,7 +696,7 @@ export default function LearnPage() {
           </button>
           <div className="space-y-1">
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{selectedCategory ? (CATEGORY_RU[selectedCategory] || selectedCategory) : ""}</span>
+              <span>{selectedCategory ? (getCategoryName(selectedCategory, lang)) : ""}</span>
               <span>{currentQ + 1}/{questions.length}</span>
             </div>
             <Progress value={((currentQ + 1) / questions.length) * 100} className="h-2" data-testid="quiz-progress" />
@@ -696,7 +809,7 @@ export default function LearnPage() {
             <div className="flex justify-between text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Shuffle size={12} />
-                {selectedCategory ? (CATEGORY_RU[selectedCategory] || selectedCategory) : ""}
+                {selectedCategory ? (getCategoryName(selectedCategory, lang)) : ""}
               </span>
               <span>{t("learn.round")} {matchRound + 1}/{totalMatchRounds}</span>
             </div>
@@ -802,7 +915,7 @@ export default function LearnPage() {
                 <div className="pt-2 border-t border-border">
                   <p className="text-xs text-muted-foreground mb-1">{t("learn.newCategories")}</p>
                   {quizResult.newUnlocks.map((cat: string) => (
-                    <p key={cat} className="text-sm font-medium text-primary">{CATEGORY_RU[cat] || cat}</p>
+                    <p key={cat} className="text-sm font-medium text-primary">{getCategoryName(cat, lang)}</p>
                   ))}
                 </div>
               )}

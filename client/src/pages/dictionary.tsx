@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Search, Lock, ChevronDown, ChevronUp, Edit3, ThumbsUp, ThumbsDown, Send, X } from "lucide-react";
+import { Search, Lock, ChevronDown, ChevronUp, Edit3, ThumbsUp, ThumbsDown, Send, X, Star } from "lucide-react";
 import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,15 +12,16 @@ import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { cap } from "@/lib/utils";
-import { CATEGORY_UNLOCKS, CATEGORY_RU, CATEGORY_TJ, type Word, type WordSuggestion } from "@shared/schema";
+import { CATEGORY_UNLOCKS, getCategoryName, type Word, type WordSuggestion } from "@shared/schema";
 
 export default function DictionaryPage() {
   const { user } = useUser();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [expandedWord, setExpandedWord] = useState<number | null>(null);
   const [suggestingFor, setSuggestingFor] = useState<number | null>(null);
+  const [wordFlipped, setWordFlipped] = useState(false);
   const deferredSearch = useDeferredValue(searchTerm);
 
   const { data: allWords, isLoading } = useQuery<Word[]>({
@@ -33,6 +34,19 @@ export default function DictionaryPage() {
 
   const script = user?.preferredScript || "latin";
   const categories = useMemo(() => Object.keys(CATEGORY_UNLOCKS), []);
+
+  // Word of the Day — from unlocked words only (for logged-in users)
+  const { data: unlockedWords } = useQuery<Word[]>({
+    queryKey: ["/api/words/unlocked", user?.id],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/words/unlocked/${user!.id}`);
+      return res.json();
+    },
+    enabled: !!user,
+  });
+  const wordOfTheDay = unlockedWords && unlockedWords.length > 0
+    ? unlockedWords[Math.floor(new Date().getDate() * 7 + new Date().getMonth() * 31) % unlockedWords.length]
+    : null;
 
   const isUnlocked = (word: Word) => {
     if (!user) {
@@ -92,6 +106,47 @@ export default function DictionaryPage() {
         </h2>
       </div>
 
+      {/* Word of the Day */}
+      {user && wordOfTheDay && (
+        <Card
+          className="cursor-pointer overflow-hidden border-l-4 border-l-primary"
+          onClick={() => setWordFlipped(f => !f)}
+          data-testid="word-of-day"
+        >
+          <CardContent className="pt-3 pb-3">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Star size={12} className="text-primary" />
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                {t("home.wordOfDay")}
+              </span>
+            </div>
+            <div className="flex items-center justify-between min-h-[40px]">
+              {!wordFlipped ? (
+                <>
+                  <p className="text-xl font-bold">
+                    {cap(script === "cyrillic" && wordOfTheDay.cyrillicPamiri
+                      ? wordOfTheDay.cyrillicPamiri
+                      : wordOfTheDay.latinPamiri)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{t("home.tapToFlip")}</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-base font-semibold text-primary">
+                    {cap(wordOfTheDay.russian)} / {cap(wordOfTheDay.english)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {cap(script === "cyrillic" && wordOfTheDay.cyrillicPamiri
+                      ? wordOfTheDay.cyrillicPamiri
+                      : wordOfTheDay.latinPamiri)}
+                  </p>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Search */}
       <div className="relative">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -125,7 +180,7 @@ export default function DictionaryPage() {
               onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
               data-testid={`filter-${cat.replace(/\s+/g, "-").toLowerCase()}`}
             >
-              {CATEGORY_RU[cat] || cat}
+              {getCategoryName(cat, lang)}
             </Button>
           ))}
         </div>
@@ -195,7 +250,7 @@ export default function DictionaryPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-[10px]">
-                        {CATEGORY_RU[word.category] || word.category}
+                        {getCategoryName(word.category, lang)}
                       </Badge>
                       {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </div>

@@ -4,7 +4,7 @@ import { Flame, BookOpen, Globe, ChevronRight, Zap, Lock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getXpForNextLevel, getXpForLevel, CATEGORY_RU, type Word } from "@shared/schema";
+import { getXpForNextLevel, getXpForLevel, getCategoryName, type Word } from "@shared/schema";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { cap } from "@/lib/utils";
@@ -35,7 +35,7 @@ function XpRing({ current, total }: { current: number; total: number }) {
 
 export default function HomePage() {
   const { user } = useUser();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [flipped, setFlipped] = useState(false);
 
   const { data: stats } = useQuery({
@@ -124,7 +124,7 @@ export default function HomePage() {
                   {t("home.nextLesson")}
                 </p>
                 <p className="text-xl font-bold text-white leading-tight">
-                  {CATEGORY_RU[nextCategory.category] || nextCategory.category}
+                  {getCategoryName(nextCategory.category, lang)}
                 </p>
                 <p className="text-sm text-white/70 mt-0.5">
                   {nextCategory.wordCount} {t("learn.words")}
@@ -168,7 +168,7 @@ export default function HomePage() {
         <Card>
           <CardContent className="pt-3 pb-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Trophy size={14} className="text-amber-500" />
+              <Globe size={14} className="text-accent-foreground" />
               <span className="text-lg font-bold" data-testid="text-rank">
                 #{stats?.globalRank || "—"}
               </span>
@@ -254,7 +254,7 @@ export default function HomePage() {
           <Lock size={12} className="text-muted-foreground/50" />
           <p className="text-xs text-muted-foreground/60">
             {t("home.nextUnlock")}{" "}
-            <span className="font-medium">{CATEGORY_RU[nextLocked.category] || nextLocked.category}</span>
+            <span className="font-medium">{getCategoryName(nextLocked.category, lang)}</span>
             {" "}{t("home.atLevel")} {nextLocked.level}
           </p>
         </div>

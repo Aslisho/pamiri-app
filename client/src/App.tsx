@@ -66,8 +66,8 @@ function AppRouter() {
     <>
       <TopBar />
       <Switch>
-        <Route path="/" component={() => <Redirect to="/home" />} />
-        <Route path="/home" component={lazyWrap(HomePage)} />
+        <Route path="/" component={() => <Redirect to="/learn" />} />
+        <Route path="/home" component={() => <Redirect to="/learn" />} />
         <Route path="/learn" component={lazyWrap(LearnPage)} />
         <Route path="/add" component={lazyWrap(AddPage)} />
         <Route path="/dictionary" component={lazyWrap(DictionaryPage)} />
@@ -84,12 +84,12 @@ function AppRouter() {
 function AppBackground() {
   return (
     <div className="fixed inset-0 -z-10 hidden dark:block">
-      {/* Base gradient: deep purple-navy matching brand */}
-      <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #0f0720 0%, #1a0d3a 50%, #0d0a1e 100%)" }} />
+      {/* Base gradient: matches landing page */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-violet-950 to-slate-900" />
       {/* Ambient glow spots */}
-      <div className="absolute top-1/4 left-1/3 w-72 h-72 rounded-full pointer-events-none" style={{ background: "rgba(245,158,11,0.07)", filter: "blur(64px)" }} />
-      <div className="absolute bottom-1/3 right-1/4 w-64 h-64 rounded-full pointer-events-none" style={{ background: "rgba(139,92,246,0.10)", filter: "blur(64px)" }} />
-      <div className="absolute top-1/2 left-1/2 w-96 h-96 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none" style={{ background: "rgba(88,28,135,0.08)", filter: "blur(80px)" }} />
+      <div className="absolute top-1/4 left-1/3 w-72 h-72 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/3 right-1/4 w-64 h-64 rounded-full bg-violet-500/15 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 w-96 h-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose-500/5 blur-3xl pointer-events-none" />
     </div>
   );
 }

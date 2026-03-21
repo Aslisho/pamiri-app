@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation } from "wouter";
+import { useHashLocation } from "wouter/use-hash-location";
 import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -11,7 +11,7 @@ import { useUser } from "@/contexts/UserContext";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function LoginPage() {
-  const [, navigate] = useLocation();
+  const [, navigate] = useHashLocation();
   const { setUser } = useUser();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [username, setUsername] = useState("");
@@ -31,7 +31,7 @@ export default function LoginPage() {
     onSuccess: (data) => {
       setError(null);
       setUser(data);
-      navigate("/home");
+      navigate("/learn");
     },
     onError: (err: Error) => {
       try {
@@ -57,7 +57,7 @@ export default function LoginPage() {
     onSuccess: (data) => {
       setError(null);
       setUser(data);
-      navigate("/home");
+      navigate("/learn");
     },
     onError: (err: Error) => {
       try {
