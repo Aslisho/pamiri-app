@@ -298,6 +298,40 @@ export const CATEGORY_TJ: Record<string, string> = {
   "Descriptive and Abstract": "Тавсифӣ ва мафҳумӣ",
 };
 
+// Shughni translations for category names
+export const CATEGORY_SGH: Record<string, string> = {
+  "Greetings and Basics": "Salōm u Asōs",
+  "Numbers and Quantities": "Šumōr u Miqdōr",
+  "Pronouns and Particles": "Zamīr u Ẑarf",
+  "Family and Kinship": "Xešāwandī",
+  "The Human Body": "Tan-i Mardim",
+  "Adjectives and Qualities": "Sifat u Xususiyat",
+  "Verbs and Actions": "Fe'l u Kōr",
+  "Food and Drink": "Ẋōrōk u Nōšōk",
+  "Nature and Landscape": "Ṭabīat u Manzara",
+  "House and Home": "Xōna u Manzil",
+  "Time and Seasons": "Waxt u Fasl",
+  "Agriculture and Livestock": "Kishdararī u Raman",
+  "Animals and Birds": "Jōnzid u Paranda",
+  "Household Objects and Tools": "Asbobi Xōna",
+  "Clothing and Appearance": "Libōs u Pōšok",
+  "Social Life and Ceremonies": "Zindagīi Ijtimoī",
+  "Trade and Money": "Tijōrat u Pul",
+  "Emotions and Mental States": "Ehsōs u Rūhiyat",
+  "Health and Illness": "Tandurustī u Naxōšī",
+  "Speech and Communication": "Nuṭq u Guftugū",
+  "Movement and Travel": "Harakat u Safar",
+  "War and Conflict": "Jang u Nizō",
+  "Descriptive and Abstract": "Tawsifī u Mafhumī",
+};
+
+// Get category name in the correct UI language
+export function getCategoryName(category: string, lang: "ru" | "sgh" | "tj"): string {
+  if (lang === "sgh") return CATEGORY_SGH[category] || CATEGORY_RU[category] || category;
+  if (lang === "tj") return CATEGORY_TJ[category] || CATEGORY_RU[category] || category;
+  return CATEGORY_RU[category] || category;
+}
+
 export function getLevelFromXp(xp: number): number {
   if (xp >= 5000) return 17;
   if (xp >= 4500) return 16;
