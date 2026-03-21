@@ -413,11 +413,11 @@
   /* ── Primary button glow on hover ── */
   button[class*="bg-primary"]:hover,
   a[class*="bg-primary"]:hover {
-    box-shadow: 0 4px 18px hsl(var(--primary) / 0.40);
+    box-shadow: 0 4px 20px hsl(var(--primary) / 0.45);
     transform: translateY(-1px);
   }
   button[class*="bg-primary"]:active {
-    transform: translateY(0);
+    transform: translateY(0px);
     box-shadow: none;
   }
 
@@ -478,21 +478,12 @@
 
   /* ── Start lesson button glow ── */
   [data-testid="button-start-lesson"] {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--primary)),
-      hsl(38 92% 58%)
-    );
     animation: glow-pulse 3s ease-in-out infinite;
   }
 
   /* ── Login button ── */
   [data-testid="button-login"] {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--primary)),
-      hsl(38 92% 58%)
-    );
+    background: linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%);
   }
 
   /* ── Quiz correct answer flash ── */
@@ -520,7 +511,7 @@
   }
 
   /* ── Card base shadow ── */
-  .rounded-lg, .rounded-xl {
+  [data-slot="card"], .shadcn-card {
     box-shadow: var(--shadow-xs);
   }
 }
@@ -535,7 +526,7 @@
   );
 }
 .dark .login-bg {
-  background: transparent;
+  background: linear-gradient(135deg, #0f0720 0%, #1a0d3a 50%, #0d0a1e 100%);
 }
 
 /* Global smooth transitions for interactive elements */

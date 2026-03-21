@@ -391,9 +391,12 @@ export default function LearnPage() {
                           {t("learn.match")}
                         </Button>
                         {/* Quiz mode button */}
-                        <Button
-                          size="sm"
-                          className="h-8 px-2.5 text-xs gap-1"
+                        <button
+                          className="h-8 px-2.5 text-xs gap-1 rounded-md font-semibold text-white flex items-center transition-all duration-200 hover:opacity-90 active:scale-95 disabled:opacity-50"
+                          style={{
+                            background: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%)",
+                            boxShadow: "0 2px 8px rgba(249,115,22,0.30)",
+                          }}
                           onClick={() => {
                             setSelectedCategory(cat.category);
                             flashcardMutation.mutate({ category: cat.category, mode: "quiz" });
@@ -401,8 +404,8 @@ export default function LearnPage() {
                           disabled={flashcardMutation.isPending}
                         >
                           {t("learn.test")}
-                          <ArrowRight size={12} />
-                        </Button>
+                          <ArrowRight size={12} className="ml-1" />
+                        </button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-1 text-muted-foreground shrink-0">
@@ -526,8 +529,12 @@ export default function LearnPage() {
 
         {/* Action button */}
         <div className="mt-5">
-          <Button
-            className="w-full h-12 text-base font-semibold"
+          <button
+            className="w-full py-3.5 rounded-2xl text-base font-bold text-white flex items-center justify-center transition-all duration-200 hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
+            style={{
+              background: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%)",
+              boxShadow: "0 4px 16px rgba(249,115,22,0.35)",
+            }}
             onClick={handleNext}
             disabled={startQuizMutation.isPending || startMatchMutation.isPending}
           >
@@ -538,7 +545,7 @@ export default function LearnPage() {
                 ? "Начать тест →"
                 : "Начать игру →"
               : "Следующее слово →"}
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -620,14 +627,18 @@ export default function LearnPage() {
 
         {showFeedback && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <Button
-              className="w-full h-12 text-base font-semibold"
+            <button
+              className="w-full py-3.5 rounded-2xl text-base font-bold text-white flex items-center justify-center transition-all duration-200 hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
+              style={{
+                background: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%)",
+                boxShadow: "0 4px 16px rgba(249,115,22,0.35)",
+              }}
               onClick={handleNext}
               data-testid="button-next"
               disabled={completeGameMutation.isPending}
             >
               {currentQ >= questions.length - 1 ? t("learn.finish") : t("learn.next")}
-            </Button>
+            </button>
           </motion.div>
         )}
       </div>
@@ -804,8 +815,12 @@ export default function LearnPage() {
             >
               {t("learn.categories")}
             </Button>
-            <Button
-              className="flex-1 h-11"
+            <button
+              className="flex-1 py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
+              style={{
+                background: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%)",
+                boxShadow: "0 2px 12px rgba(249,115,22,0.35)",
+              }}
               onClick={() => {
                 if (!selectedCategory) return;
                 setQuizResult(null);
@@ -815,7 +830,7 @@ export default function LearnPage() {
               data-testid="button-retry"
             >
               {t("learn.retry")}
-            </Button>
+            </button>
           </div>
         </motion.div>
 

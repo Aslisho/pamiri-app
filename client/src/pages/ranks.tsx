@@ -7,7 +7,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest } from "@/lib/queryClient";
 import type { User } from "@shared/schema";
 
-const TROPHY_COLORS = ["text-yellow-500", "text-gray-400", "text-amber-600"];
+const TROPHY_COLORS = ["text-yellow-400", "text-slate-400", "text-amber-600"];
+const TOP3_BORDER = ["border-yellow-400/30 bg-yellow-400/5", "border-slate-400/20 bg-slate-400/5", "border-amber-600/25 bg-amber-600/5"];
 
 export default function RanksPage() {
   const { user } = useUser();
@@ -50,7 +51,7 @@ export default function RanksPage() {
             return (
               <Card
                 key={u.id}
-                className={`${isCurrentUser ? "border-primary/40 bg-primary/5" : ""}`}
+                className={`${isCurrentUser ? "border-primary/40 bg-primary/5" : index < 3 ? TOP3_BORDER[index] : ""}`}
                 data-testid={`rank-${index + 1}`}
               >
                 <CardContent className="pt-3 pb-3 flex items-center gap-3">
@@ -66,11 +67,17 @@ export default function RanksPage() {
                   </div>
 
                   {/* Avatar */}
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                    isCurrentUser
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground"
-                  }`}>
+                  <div
+                    className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                      isCurrentUser || index < 3
+                        ? "text-white"
+                        : "bg-secondary text-secondary-foreground"
+                    }`}
+                    style={isCurrentUser || index < 3 ? {
+                      background: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%)",
+                      boxShadow: "0 2px 8px rgba(249,115,22,0.30)",
+                    } : undefined}
+                  >
                     {u.displayName.charAt(0).toUpperCase()}
                   </div>
 
